@@ -8,7 +8,7 @@
 ## Supports
 
 - Web 
-- Browser Extensions: **Firefox**, **Safari**, **Chrome**, **IE**, **Bookmarklets**
+- Browser Extensions: **Firefox**, **Safari**, **Chrome**, **IE**, **Bookmarklets**, **Opera**
 - Server Side: **Node**
 - Soon: Titanium, Phonegap
 
@@ -37,6 +37,7 @@ The bootstrap script will produce a `manifest.json` file. Here's what it looks l
 	"author": "John Doe",
 	"description": "project-description",
 	"homepage_url": "http://somesite.com",
+	"server":"http://api.yournodeserver.com",
 	"icons": {
 		"128": "icons/icon128.png",
 		"48": "icons/icon48.png",
