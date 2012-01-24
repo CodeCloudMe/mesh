@@ -87,8 +87,6 @@ After you're done initializing your project, you can go ahead and build it:
 
 	latte build [path to project] [output directory=release]
 
-The last parameter is optional.
-
 I'll save some examples - just check out the **examples** directory.
 
 ## Commands
