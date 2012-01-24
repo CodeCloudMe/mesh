@@ -65,9 +65,12 @@ Here's the project structure:
 			- `your common JS files here` - stuff that gets used in all platforms
 		- `node/`
 			- `index.js` - entry point
+			- `link.json` - tells latte what files to link with this project on build
 		- `web/`
 		- `firefox/`
 		- `safari/`
+		- `firefox6 firefox7 firefox8/` -  Common libraries specified to given platforms
+
 		- ...
 	- `release/` - build directory
 		- `node/`
@@ -78,6 +81,27 @@ Here's the project structure:
 After you're done initializing your project, you can go ahead and build it:
 
 	latte build [path to project] [output directory=release]
+
+
+## Linking
+
+Latte allows you to specify what libraries you want to link together.  Here's an example:
+
+```javascript
+{
+	"plugins": ["built-in-plugin", "platform/plugin", "platform/*"]
+}
+```
+
+Here's a real use case for a Firefox plugin:
+
+```javascript
+{
+	"plugins": ["common/*", "firefox/*","*"]
+}
+```
+
+The example above would load common javascript plugins, along with firefox specific plugins. 
 
 ## Commands
 
