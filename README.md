@@ -68,7 +68,7 @@ Here's the project structure:
 		- `icon128.png` 
 		- `icon48.png`
 		- `icon16.png`
-	- `src - bootstrap code is dumped here
+	- `src` - bootstrap code is dumped here
 		- `common/`
 			- `your common JS files here` - stuff that gets used in all platforms
 		- `node/`
@@ -83,7 +83,7 @@ Here's the project structure:
 		- `firefox/`
 		- `safari/`
 		
-After you're done initializing your project, you can go ahead any build it:
+After you're done initializing your project, you can go ahead and build it:
 
 	latte build [path to project] [output directory=release]
 
