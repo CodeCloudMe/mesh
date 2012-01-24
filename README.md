@@ -95,7 +95,7 @@ After you're done initializing your project, you can go ahead and build it:
 ```javascript
 {
 	"plugins": ["built-in-plugin", "platform/plugin", "platform/*"],
-	"build": "builder"
+	"build": ["builder","build-phase2,","..."]
 }
 ```
 
