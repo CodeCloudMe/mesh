@@ -1,5 +1,7 @@
 ## Write one app, deploy to MANY platforms.
 
+### Note, I've hardly started on this - it's very much a work in progress.
+
 ## Features
 
 - Work with a single code base.
