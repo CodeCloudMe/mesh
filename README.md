@@ -69,7 +69,7 @@ Here's the project structure:
 		- `web/`
 		- `firefox/`
 		- `safari/`
-		- `firefox6 firefox7 firefox8/` -  Common libraries specified to given platforms
+		- `firefox6 firefox7 firefox8/` -  Common libraries specific to given platforms
 
 		- ...
 	- `release/` - build directory
@@ -101,10 +101,11 @@ Here's a real use case for a Firefox plugin:
 }
 ```
 
-The example above would load common javascript plugins, along with firefox specific plugins. 
+The example above would load common javascript plugins, along with common firefox specific plugins. 
 
 ## Commands
 
+TODO
 
 
 
