@@ -1,0 +1,14 @@
+{
+  "name": "{{name}}",
+  "description": "{{description}}",
+  "version": "{{version}}",
+  "repository": {
+  },
+  "engines": {
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+  },
+  "main":"./index.js"
+}

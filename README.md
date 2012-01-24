@@ -64,7 +64,7 @@ Here's the project structure:
 		- `common/`
 			- `your common JS files here` - stuff that gets used in all platforms
 		- `node/`
-			- `index.js` - default entry point
+			- `index.js` - entry point
 		- `web/`
 		- `firefox/`
 		- `safari/`
