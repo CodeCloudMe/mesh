@@ -69,7 +69,7 @@ Here's the project structure:
 		- `web/`
 		- `firefox/`
 		- `safari/`
-		- `firefox6 firefox7 firefox8/` -  Common libraries specific to given platforms
+		- `firefox-6 firefox-7 firefox-8/` -  Common libraries specific to given platforms
 
 		- ...
 	- `release/` - build directory
