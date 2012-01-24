@@ -104,7 +104,7 @@ Here's a real use case for a Firefox plugin:
 ```javascript
 {
 	"plugins": ["common/*", "firefox/*","*"],
-	"build": "firefox"
+	"build": ["sardines","firefox"]
 }
 ```
 

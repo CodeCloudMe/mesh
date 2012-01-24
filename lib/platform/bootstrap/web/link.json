@@ -1,4 +1,4 @@
 {
-  "plugins": ["history","common/some-plugin","common/*"],
-  "include": ["firefox","safari"]
+  "plugins": ["*"],
+  "build": "sardines"
 }

@@ -1,3 +1,4 @@
 {
-  "plugins": []
+  "plugins": [],
+  "build": ["sardines","opera"]
 }

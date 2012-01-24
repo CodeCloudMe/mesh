@@ -1,3 +1,4 @@
 {
-  "plugins": []
+  "build": ["plugins","sardines","phonegap"]
+  "plugins": [],
 }

@@ -1,3 +1,4 @@
 {
-  "plugins": ["client.dnode","session"]
+  "plugins": ["client.dnode","session"],
+  "build": "node"
 }
