@@ -77,7 +77,7 @@ Here's the project structure:
 		- `firefox/`
 		- `safari/`
 		- ...
-	- `release/`
+	- `release/` - build directory
 		- `node/`
 		- `web/`
 		- `firefox/`
