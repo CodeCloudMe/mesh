@@ -1,4 +1,4 @@
-Write one app, deploy to MANY platforms.
+## Write one app, deploy to MANY platforms.
 
 ## Features
 
