@@ -85,7 +85,7 @@ After you're done initializing your project, you can go ahead and build it:
 
 ## Linking
 
-Latte allows you to specify what libraries you want to link together.  Here's an example:
+Latte allows you to include libraries from other platforms.  Here's an example:
 
 ```javascript
 {
