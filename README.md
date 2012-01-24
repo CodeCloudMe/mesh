@@ -1,5 +1,9 @@
 Write one app, deploy to MANY platforms.
 
+## Features
+
+- Work with a single code base.
+- Seemlessly integrate backend code with front-end code (node.js).
 
 ## Supports
 
@@ -15,6 +19,10 @@ Write one app, deploy to MANY platforms.
 - Server Side
 	- Node
 
+- *Soon*
+	- Phonegap (iphone, ipad)
+	- Titanium (iphone, ipad, android, etc)
+
 
 ## Prerequisites
 
@@ -24,19 +32,70 @@ Write one app, deploy to MANY platforms.
 	
 We'll first kick things off by initializing our project. Call:
 
-	latte bootstrap
+	latte bootstrap [path to project] [types]
 
-In your CWD, which should be in your project directory. You can also call `latte bootstrap [path to project]`.
+Here's an example:
 
-You can skip the obnoxious setup process if you want by calling `latte bootstrap --skip-setup`. 
+	latte bootstrap . web node chrome firefox
 
-the bootstrap script will produce a `manifest.json` file. It looks like this:
+You can also have the bootstrap script walk you through the process. Just add `--wizard`.
+
+The bootstrap script will produce a `manifest.json` file. Here's what it looks like:
 
 ```javascript
 {
-	""
+	"name":"project-name",
+	"author": "John Doe",
+	"description": "project-description",
+	"homepage_url": "http://somesite.com",
+	"icons": {
+		"128": "icons/icon128.png",
+		"48": "icons/icon48.png",
+		"16": "icons/icon16.png"
+	},
+	"dependencies": {
+		"common-dep": "0.1.5"
+	},
+	"project_dir": "./project"
 }
 ```
+
+Here's the project structure:
+
+- project/path/
+	- manifest.json
+	- icons/ - default icons
+		- icon128.png 
+		- icon48.png
+		- icon16.png
+	- src - bootstrap code is dumped here
+		- common/
+			- add your common JS files here - stuff that gets used in all platforms
+		- node/
+			- index.js - default entry point
+		- web/
+		- firefox/
+		- safari/
+		- ...
+	- release/
+		- node/
+		- web/
+		- firefox/
+		- safari/
+		
+After you're done initializing your project, you can go ahead any build it:
+
+	latte build [path to project] [output directory=release]
+
+The last parameter is optional.
+
+I'll save some examples - just check out the **examples** directory.
+
+## Commands
+
+
+
+
 
 
 
