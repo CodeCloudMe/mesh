@@ -7,7 +7,7 @@
   "engines": {
   },
   "dependencies": {
-    "browserify":"*",
+    "sardines":"*",
     "dnode":"*"
   },
   "devDependencies": {

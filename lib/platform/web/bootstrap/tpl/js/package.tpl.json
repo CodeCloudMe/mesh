@@ -1,5 +1,5 @@
 {
-  "name": "{{name}}-node",
+  "name": "{{name}}-web",
   "description": "{{description}}",
   "repository": {
   },
