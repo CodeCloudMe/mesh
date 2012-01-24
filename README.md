@@ -9,19 +9,9 @@ Write one app, deploy to MANY platforms.
 
 - Web 
 
-- Browser Extensions
-	- Firefox
-	- Safari
-	- Chrome
-	- Internet Explorer
-	- Bookmarklets
-
-- Server Side
-	- Node
-
-- *Soon*
-	- Phonegap (iphone, ipad)
-	- Titanium (iphone, ipad, android, etc)
+- Browser Extensions: **Firefox**, **Safari**, **Chrome**, **IE**, **Bookmarklets**
+- Server Side: **Node**
+- Soon: Titanium, Phonegap
 
 
 ## Prerequisites
