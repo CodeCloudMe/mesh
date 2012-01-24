@@ -55,24 +55,25 @@ The bootstrap script will produce a `manifest.json` file. Here's what it looks l
 Here's the project structure:
 
 - `project/path/`
-	- `Makefile` - *the generated makefile for your project*
-	- `manifest.json` - *global project config*
-	- `icons/` - *default icons*
+	- `Makefile` - the generated makefile for your project
+	- `manifest.json` - global project config
+	- `icons/` - default icons
 		- `icon128.png` 
 		- `icon48.png`
 		- `icon16.png`
-	- `src` - *bootstrap code is dumped here*
+	- `src` - bootstrap code is dumped here
 		- `common/`
-			- `your common JS files here` - *stuff that gets used in all platforms*
+			- `your common JS files here` - stuff that gets used in all platforms
 		- `node/`
 			- `index.js` - entry point
-			- `link.json` - *tells latte what files to link with this project on build*
+			- `link.json` - tells latte what files to link with this project on build
 		- `web/`
 		- `firefox/`
 		- `safari/`
-		- `firefox-6 firefox-7 firefox-8/` -  *Common libraries specific to given platforms*
+		- `firefox-6 firefox-7 firefox-8/` -  Common libraries specific to given platforms
+
 		- ...
-	- `release/` - *build directory*
+	- `release/` - build directory
 		- `node/`
 		- `web/`
 		- `firefox/`
