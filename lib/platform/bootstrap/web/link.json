@@ -1,4 +1,4 @@
 {
   "plugins": ["*"],
-  "build": "sardines"
+  "build": ["plugins","main","sardines"]
 }
