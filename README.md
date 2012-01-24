@@ -55,6 +55,7 @@ The bootstrap script will produce a `manifest.json` file. Here's what it looks l
 Here's the project structure:
 
 - `project/path/`
+	- `Makefile` - the generated makefile for your project
 	- `manifest.json`
 	- `icons/` - default icons
 		- `icon128.png` 
@@ -85,11 +86,16 @@ After you're done initializing your project, you can go ahead and build it:
 
 ## Linking
 
-Latte allows you to include libraries from other platforms.  Here's an example:
+`link.json` is the file which tells Latte how to build your application. 
+
+- params:
+	- `plugins` - cross-referenced libraries in other apps
+	- `build` - what builder to use: firefox, chrome, web? 
 
 ```javascript
 {
-	"plugins": ["built-in-plugin", "platform/plugin", "platform/*"]
+	"plugins": ["built-in-plugin", "platform/plugin", "platform/*"],
+	"build": "builder"
 }
 ```
 
@@ -97,11 +103,22 @@ Here's a real use case for a Firefox plugin:
 
 ```javascript
 {
-	"plugins": ["common/*", "firefox/*","*"]
+	"plugins": ["common/*", "firefox/*","*"],
+	"build": "firefox"
 }
 ```
 
 The example above would load common javascript plugins, along with common firefox specific plugins. 
+
+Here's another one for the web:
+
+```javascript
+{
+	"plugins": ["common/*","*"],
+	"build": "sardines"
+}
+```
+
 
 ## Commands
 
