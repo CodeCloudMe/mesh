@@ -10,7 +10,7 @@
 ## Supports
 
 - Web 
-- Browser Extensions: **Firefox**, **Safari**, **Chrome**, **IE**, **Bookmarklets**, **Opera**
+- Browser Extensions: **Firefox**, **Safari**, **Chrome**, **IE**, **Opera**, **Bookmarklets**
 - Server Side: **Node**
 - Soon: Titanium, Phonegap
 
