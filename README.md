@@ -62,26 +62,26 @@ The bootstrap script will produce a `manifest.json` file. Here's what it looks l
 
 Here's the project structure:
 
-- project/path/
-	- manifest.json
-	- icons/ - default icons
-		- icon128.png 
-		- icon48.png
-		- icon16.png
-	- src - bootstrap code is dumped here
-		- common/
-			- add your common JS files here - stuff that gets used in all platforms
-		- node/
-			- index.js - default entry point
-		- web/
-		- firefox/
-		- safari/
+- `project/path/`
+	- `manifest.json`
+	- `icons/` - default icons
+		- `icon128.png` 
+		- `icon48.png`
+		- `icon16.png`
+	- `src - bootstrap code is dumped here
+		- `common/`
+			- `your common JS files here` - stuff that gets used in all platforms
+		- `node/`
+			- `index.js` - default entry point
+		- `web/`
+		- `firefox/`
+		- `safari/`
 		- ...
-	- release/
-		- node/
-		- web/
-		- firefox/
-		- safari/
+	- `release/`
+		- `node/`
+		- `web/`
+		- `firefox/`
+		- `safari/`
 		
 After you're done initializing your project, you can go ahead any build it:
 
