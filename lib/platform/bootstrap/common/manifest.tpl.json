@@ -1,0 +1,15 @@
+{
+	"name": "{{name}}",
+	"author": "{{author}}",
+	"description": "{{descripion}}",
+	"homepage_url": "http://api.website.com",
+	"server_url": "http://api.website.com",
+	"icons": {
+        "128": "icons/icon128.png",
+        "48": "icons/icon48.png",
+        "16": "icons/icon16.png"
+    },
+    "dependencies": {
+    },
+    "project_dir": "./project"
+}

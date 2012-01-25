@@ -9,25 +9,23 @@ function build(data) {
 }
 
 
-function bootstrap() {
-	latte.bootstrap(data, function(){});
-}
+function bootstrap(data) {
 
+	data.platforms = decodeURIComponent(data.platforms).split('+');
 
-function bootstrap() {
 	latte.bootstrap(data, function(){});
 }
 
 
 function plugins(data) {
 	latte.plugins(data, function() {
-		
+		//TODO
 	});
 }
 
 function platforms(data) {
 	latte.platforms(data, function() {
-		
+		//TODO
 	});
 }
 
@@ -39,13 +37,13 @@ function version() {
 celeri.option('build :input :output', 'Build a project', build).
 option('platforms', 'Show platforms', platforms).
 option('plugins :platform OR plugins', 'Show plugins', plugins).
-option('bootstrap :path :platform', 'Start a project', bootstrap).
+option('bootstrap :path :platforms', 'Start a project', bootstrap).
 option('version', 'App version', version).
 addHelp({ category: 'examples', command: 'bootstrap . firefox+node+web'}).
 addHelp({ category: 'examples', command: 'plugins firefox'});
 
 
-celeri.parse(process.argv)
+celeri.parse(process.argv);
 
 
 

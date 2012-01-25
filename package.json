@@ -9,7 +9,9 @@
   "dependencies": {
     "sardines":"<0.3",
     "celeri":"*",
-    "ncp":"<0.3"
+    "ncp":"<0.3",
+    "haba": "<0.2.0",
+    "scaffoldit":"<0.2.0"
   },
   "devDependencies": {
   },
