@@ -7,8 +7,8 @@
   "engines": {
   },
   "dependencies": {
-    "sardines":"*",
-    "optimist":"*",
+    "sardines":"<0.3",
+    "celeri":"*",
     "ncp":"<0.3"
   },
   "devDependencies": {

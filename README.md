@@ -27,7 +27,7 @@ We'll first kick things off by initializing our project. Call:
 
 Here's an example:
 
-	latte bootstrap . web node chrome firefox
+	latte bootstrap . web+node+chrome+firefox
 
 You can also have the bootstrap script walk you through the process. Just add `--wizard`.
 
