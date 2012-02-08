@@ -1,22 +1,5 @@
 BaseFileOperation = require "../operations/BaseFileOperation"
-fs = require("fs")
-
-
-###
-###
-
-class GetVars extends BaseFileOperation
-
-	###
-	###
-
-	constructor: (file, @engine) ->
-		super file
-	
-	###
-	###
-
-	_handleContent: (content, callback) -> @engine.getVars content, callback
+fs                = require("fs")
 
 
 ###
@@ -32,6 +15,7 @@ class SetVars extends BaseFileOperation
 
 
 	###
+	 handles the content, fills the tpl, and writes the data
 	###
 
 	_handleContent: (content, callback) -> 
@@ -65,13 +49,6 @@ class Factory
 		type = @_typeFromFile file
 
 		return if type then !!@engines[type] else false
-
-	###
-	 returns the template variables of a file
-	###
-
-	getVars: (file, callback) ->
-		new GetVars(file, @_engineFromFile(file)).onComplete(callback).start()
 
 	###
 	 writes the template file data
