@@ -1,8 +1,8 @@
 BaseOperation = require "../Base"
 fs            = require "fs"
 _             = require "underscore"
-ncp	          = require("ncp").ncp
-mkdirp		  = require "mkdirp"
+ncp           = require("ncp").ncp
+mkdirp        = require "mkdirp"
 
 ###
   merges the sources of a directory into a single directory. Format of the dir should be as such:

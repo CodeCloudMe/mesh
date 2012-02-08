@@ -1,8 +1,8 @@
-BaseOperation     = require "./Base"
-DirMerge          = require "./DirMerge"
-FindFiles		  = require "./FindFiles"
-TplVars 		  = require "./TplVars"
-ncp				  = require "ncp"
+BaseOperation  = require "./Base"
+DirMerge       = require "./DirMerge"
+FindFiles      = require "./FindFiles"
+TplVars        = require "./TplVars"
+ncp	           = require "ncp"
 
 
 ###

@@ -1,5 +1,5 @@
 BaseOperation = require "./Base"
-fs = require("fs")
+fs            = require("fs")
 
 
 module.exports = class HandleFile extends BaseOperation
