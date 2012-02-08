@@ -1,8 +1,8 @@
 EventEmitter  = require("events").EventEmitter
 fs            = require "fs"
 outcome       = require "outcome" 
-_ 			  = require "underscore"
-ncp			  = require("ncp").ncp
+_             = require "underscore"
+ncp	          = require("ncp").ncp
 mkdirp		  = require "mkdirp"
 
 ###
