@@ -49,6 +49,19 @@ class DirMerger extends EventEmitter
 		@_dirs = @_findIncludes dirs
 		@_mergeDirs()
 
+
+	###
+	 recursively move the dirs to a new folder
+	###
+
+	_mergeDirs: ->
+		if not @_dirs.length
+ 			return @emit "complete" 
+
+ 		## merge until there is nothing left
+ 		ncp "#{@input}/#{@_dirs.shift()}", @output, @_on.success => @_mergeDirs()
+
+ 	
 	###
 	 with the dirs given, finds the dirs to used based on the target
 	 platforms
@@ -63,17 +76,6 @@ class DirMerger extends EventEmitter
 			includes.push dir if _.intersection(@targets, dir.split " ").length
 				
 		includes
-
-	###
-	 recursively move the dirs to a new folder
-	###
-
-	_mergeDirs: ->
-		if not @_dirs.length
- 			return @emit "complete" 
-
- 		## merge until there is nothing left
- 		ncp "#{@input}/#{@_dirs.shift()}", @output, @_on.success => @_mergeDirs()
 
 
 
