@@ -11,12 +11,15 @@
     "celeri":"*",
     "ncp":"<0.3",
     "haba": "<0.2.0",
-    "scaffoldit":"<0.2.0"
+    "scaffoldit":"<0.2.0",
+    "outcome":"<0.2.0",
+    "underscore":"*",
+    "mkdirp":"*"
   },
   "devDependencies": {
   },
-  "main":"./lib/core/index.js",
+  "main":"./lib/index.js",
   "bin": {
-    "latte": "./bin/latte"
+    "mesh": "./bin/mesh"
   }
 }

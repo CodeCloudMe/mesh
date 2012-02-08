@@ -2,6 +2,7 @@
 
 ### Note, I've hardly started on this - it's very much a work in progress.
 
+
 ## Features
 
 - Work with a single code base.
@@ -23,11 +24,11 @@
 	
 We'll first kick things off by initializing our project. Call:
 
-	latte bootstrap [path to project] [types]
+	mesh bootstrap [path to project] [types]
 
 Here's an example:
 
-	latte bootstrap . web+node+chrome+firefox
+	mesh bootstrap . web+node+chrome+firefox
 
 You can also have the bootstrap script walk you through the process. Just add `--wizard`.
 
@@ -66,7 +67,7 @@ Here's the project structure:
 			- `your common JS files here` - stuff that gets used in all platforms
 		- `node/`
 			- `index.js` - entry point
-			- `link.json` - tells latte what files to link with this project on build
+			- `link.json` - tells Mesh what files to link with this project on build
 		- `web/`
 		- `firefox/`
 		- `safari/`
@@ -81,12 +82,12 @@ Here's the project structure:
 		
 After you're done initializing your project, you can go ahead and build it:
 
-	latte build [path to project] [output directory=release]
+	mesh build [path to project] [output directory=release]
 
 
 ## Linking
 
-`link.json` is the file which tells Latte how to build your application. 
+`link.json` is the file which tells Mesh how to build your application. 
 
 - params:
 	- `plugins` - cross-referenced libraries in other apps

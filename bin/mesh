@@ -1,0 +1,49 @@
+#!/usr/bin/env node
+
+var fs  = require('fs'),
+mesh    = require('../'),
+celeri  = require('celeri'),
+outcome = require('outcome');
+
+
+var onCmdResult = outcome.error(function(err) {
+	
+	console.error(err);
+
+});
+
+
+var replaceCwd = function(dir) {
+	
+	return dir.replace(/^\./, process.cwd() + '/.');
+
+}
+
+
+celeri.option({
+	command: 'make :platform',
+	description: 'Makes the cwd lib for the target platform',
+	optional: {
+		'--dir': 'The directory to use scan',
+		'--out': 'the output directory'
+	}
+}, function(ops) {
+
+
+	var input = replaceCwd(ops.dir || './src'),
+	output    = replaceCwd(ops.out || input + '/../mesh-lib') + '/' + ops.platform;
+
+	mesh.make({
+		input  : input,
+		output : output,
+		include: ops.platform.split('+') //ability to add additional platforms
+	}, onCmdResult);
+
+});
+
+
+celeri.parse(process.argv);
+
+
+
+

@@ -1,5 +1,6 @@
 var ncp = require('ncp'),
-fs = require('fs');
+fs = require('fs'),
+outcome = require('outcome');
 
 
 module.exports = function(ops, next) {
@@ -7,7 +8,7 @@ module.exports = function(ops, next) {
 	var manifest = ops.manifest;
 
 
-	ncp(ops.src, ops.dest, function(err) {
+	ncp(ops.src, ops.dest, outcome.error(next).success(function() {
 
 		var pkgSrc = ops.dest + '/package.json', main;
 
@@ -31,6 +32,6 @@ module.exports = function(ops, next) {
 		next(null, {
 			entries: [ main ]
 		});
-	});
+	}));
 
 }
