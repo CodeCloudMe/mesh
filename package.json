@@ -14,11 +14,13 @@
     "scaffoldit":"<0.2.0",
     "outcome":"<0.2.0",
     "underscore":"*",
-    "mkdirp":"*"
+    "mkdirp":"*",
+    "mustache":"*",
+    "async":"*"
   },
   "devDependencies": {
   },
-  "main":"./lib/index.js",
+  "main":"./lib/core/index.js",
   "bin": {
     "mesh": "./bin/mesh"
   }

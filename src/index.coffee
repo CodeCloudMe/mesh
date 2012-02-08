@@ -1,3 +1,0 @@
-exports.make = require "./merge"
-
-
