@@ -17,7 +17,7 @@ mkdirp		  = require "mkdirp"
  ###
 
 
-class SourceMesher extends EventEmitter
+class DirMerger extends EventEmitter
 
 	###
 	###
@@ -30,7 +30,7 @@ class SourceMesher extends EventEmitter
 	 entry point to the mesher
 	###
 
-	mesh: ->
+	merge: ->
 		mkdirp @output, 0777, @_on.success () => @_onOutputMade()
 
 
@@ -88,9 +88,9 @@ module.exports = (ops, callback) ->
 	## common is js that's usable across all platforms
 	ops.include.push "common"
 
-	mesher = new SourceMesher ops.input, ops.output, ops.include
+	dm = new DirMerger ops.input, ops.output, ops.include
 
-	mesher.on "complete", callback 
-	mesher.on "error", callback
+	dm.on "complete", callback 
+	dm.on "error", callback
 
-	mesher.mesh();
+	dm.merge();
