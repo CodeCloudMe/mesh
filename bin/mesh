@@ -37,7 +37,7 @@ celeri.option({
 }, function(ops, next) {
 
 	var input = replaceCwd(ops.dir || './src'),
-	output    = replaceCwd(ops.out || input + '/../mesh-lib') + '/' + (ops.platform || '')
+	output    = replaceCwd(ops.out || input + '/../meshed') + '/' + (ops.platform || '')
 	
 	next(null, {
 		input: input,
@@ -98,7 +98,8 @@ celeri.option({
 	optional: _.extend({
 		'--all': 'include all platforms',
 		'--name': 'name of the project',
-		'--description': 'description of the application'
+		'--description': 'description of the application',
+		'--author': 'author of the program'
 	}, dirFlags)
 }, function(ops) {
 
