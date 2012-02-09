@@ -3,6 +3,11 @@ fs 			  = require "fs"
 path          = require "path"
 FindFiles	  = require "../utils/FindFiles"
 
+
+###
+ returns the package path
+###
+
 getPackagePath = (file) ->
 	
 	pathParts = path.dirname(file).split "/"
@@ -18,8 +23,15 @@ getPackagePath = (file) ->
 
 	return null
 
+###
+ returns the package name
+###
+
 getPkgName  = (pkg) -> JSON.parse(fs.readFileSync(pkg, "utf8")).name
 		
+###
+ returns info about the given path ~ module? core? etc.
+###
 
 getPathInfo = (required, from) ->
 	
