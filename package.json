@@ -23,7 +23,7 @@
   },
   "devDependencies": {
   },
-  "main":"./lib/core/index.js",
+  "main":"./lib/index.js",
   "bin": {
     "mesh": "./bin/mesh"
   }

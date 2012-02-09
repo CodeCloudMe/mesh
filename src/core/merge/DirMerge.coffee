@@ -50,17 +50,17 @@ module.exports = class DirMergeOperation extends BaseOperation
 	###
 
 	_mergeDirs: ->
+
 		if not @_dirs.length
  			return @_onDirsMerged() 
 
  		## merge until there is nothing left
- 		ncp "#{@input}/#{@_dirs.shift()}", @output, @_onSuccess @_mergeDirs
-
+ 		return ncp "#{@input}/#{@_dirs.shift()}", @output, @_onSuccess @_mergeDirs
 
  	###
  	###
 
- 	_onDirsMerged: -> @_end
+	_onDirsMerged: -> @_end
 
 
 ###

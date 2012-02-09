@@ -1,3 +1,1 @@
-MergeOperation = require "./Operation"
-
-module.exports = MergeOperation.start
+module.exports = MergeOperation = require "./DirMerge"

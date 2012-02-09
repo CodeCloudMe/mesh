@@ -1,18 +1,18 @@
-BootstrapOperation = require "./Operation"
-
+BootstrapOperation = require "./Bootstrap"
+fs = require "fs"
 
 class Bootstrap
 
 	###
 	###
 
-	constructor: (@tplFactory, @getTplVars) ->
+	constructor: (@bootstrapDir, @tplFactory, @getTplVars) ->
 
 	###
 	###
 
 	start: (ops, callback) ->
-		new BootstrapOperation(ops.input, ops.output, @tplFactory, @_method @_getTplVars, ops.target).
+		new BootstrapOperation(@bootstrapDir, ops.output, @tplFactory, ((cb) => @_getTplVars(cb)), ops.target).
 		onComplete(callback).
 		start()
 
@@ -21,5 +21,9 @@ class Bootstrap
 
 	_getTplVars: (callback) -> if @getTplVars then @getTplVars callback else callback {}
 
+
+
+
 		
-module.exports = (tplFactory, getTplVars) -> new Bootstrap(tplFactory, getTplVars)
+module.exports = (tplFactory, getTplVars) -> 
+	return new Bootstrap(tplFactory, getTplVars)

@@ -1,11 +1,11 @@
-BaseOperation = require "../base/BaseOperation"
+BaseOperation = require "../base/Operation"
 fs            = require("fs")
 
 
 ###
 ###
 
-class SetVars extends BaseFileOperation
+class SetVars extends BaseOperation
 
 	###
 	###

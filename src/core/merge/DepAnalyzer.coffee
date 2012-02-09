@@ -1,7 +1,7 @@
 BaseOperation = require "../base/Operation"
-fs 			  = require "fs"
+fs            = require "fs"
 path          = require "path"
-FindFiles	  = require "../utils/FindFiles"
+FindFiles     = require "../utils/FindFiles"
 
 
 ###
