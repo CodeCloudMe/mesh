@@ -2,6 +2,10 @@ EventEmitter  = require("events").EventEmitter
 outcome       = require "outcome" 
 
 
+###
+ My way of implementing step-like functionality
+###
+
 module.exports = class Operation extends EventEmitter
 
 	###
