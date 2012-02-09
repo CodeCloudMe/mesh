@@ -1,8 +1,8 @@
 BaseOperation  = require "../base/Operation"
-DirMerge       = require "../merge/DirMerge"
 FindFiles      = require "../utils/FindFiles"
 TplVars        = require "./TplVars"
-ncp	           = require "ncp"
+ncp	           = require("ncp").ncp
+mkdirp		   = require "mkdirp"
 
 
 ###
@@ -28,30 +28,29 @@ module.exports = class Bootstrap extends BaseOperation
 	 @param include the platforms we want to include ~ node, web, node+web
 	###
 
-	constructor: (@input, @output, @tplFactory, @getTplData, @include) ->
+	constructor: (@input, @output, @tplFactory, @getTplData) ->
 		super()
 
 	###
 	###
 
 	start: ->
-
-		## first need to merge the bootstrap files into the
-		## intermediate directory
-		DirMerge.start 
-			input: @input
-			output: @output
-			include: @include,
-			@_onSuccess @_onDirMerge
+		mkdirp @output, 0777, @_onSuccess @_onOutputMade
 
 	###
 	###
 
-	_onDirMerge: ->
+	_onOutputMade: ->
+		ncp @input, @output, @_onSuccess @_onDirCopied
+
+	###
+	###
+
+	_onDirCopied: ->
 
 		FindFiles.start 
-			dir: @intermDir
-			test: @tplFactory.test,
+			dir: @output
+			tester: @tplFactory,
 			@_onSuccess @_onTplFiles
 
 	###

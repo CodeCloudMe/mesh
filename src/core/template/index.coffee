@@ -10,7 +10,7 @@ class SetVars extends BaseOperation
 	###
 	###
 
-	constructor: (@file, @data, @engine) ->
+	constructor: (@file, @data, @engine) -> super()
 
 
 	###
@@ -18,13 +18,29 @@ class SetVars extends BaseOperation
 	###
 
 	start: () -> 
-		fs.readfile @file, @_on.success @_onContent
+		fs.readFile @file, "utf8", @_onSuccess @_onContent
 
 	###
 	###
 
 	_onContent: (content) ->
-		@engine.setVars content, @data, @_onSuccess (tplContent) => @_writeFile tplContent, @_method @_end
+		@engine.setVars content, @data, @_onSuccess @_writeFile
+
+
+	###
+	 write the template file to a new file without the tpl ext
+	###
+
+	_writeFile: (content) ->
+		fs.writeFile @file.replace('.' + @engine.name,''), content, @_onSuccess @_onWriteFile
+
+	###
+	 remove the template file
+	###
+
+	_onWriteFile: () ->
+		fs.unlink @file, @_method @_end
+
 
 ###
 ###
@@ -38,12 +54,13 @@ class Factory
 		
 		@engines = {};
 
+		@addEngine require "./engines/mustache"
+
 	###
 	###
 
 	addEngine: (tplEngine) ->
 		@engines[tplEngine.name] = tplEngine
-
 
 	###
 	 tests a file to see if whether it's a template or not
@@ -65,14 +82,13 @@ class Factory
 
 	_typeFromFile: (file) ->
 		type = file.match(/(\w+).\w+$/)
-
 		return if type then type[1] else null
 
 	###
 	###
 
 	_engineFromFile: (file) -> 
-		type @_typeFromTyle file
+		type = @_typeFromFile file
 		@engines[type]
 		
 

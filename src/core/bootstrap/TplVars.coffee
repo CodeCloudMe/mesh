@@ -12,14 +12,14 @@ class SetTplVars extends BaseOperation
 	###
 	###
 
-	constructor: (@files, @data, @tplVactory) ->
+	constructor: (@files, @data, @tplFactory) ->
 		super()
 
 	###
 	###
 
 	start: ->
-		async.forEach @files, @_method @_setVars, @_method @_end
+		async.forEach @files, @_method(@_setVars), @_method(@_end)
 
 	###
 	###

@@ -6,7 +6,8 @@ celeri  = require('celeri'),
 outcome = require('outcome'),
 mesher  = mesh.mesher(),
 colors  = require('colors'),
-_       = require("underscore");
+_       = require("underscore"),
+path    = require("path")
 
 
 var onCmdResult = outcome.error(function(err) {
@@ -31,12 +32,12 @@ var dirFlags = {
  */
 
 celeri.option({
-	command: 'fix input :platform',
+	command: 'fix input OR fix input :platform',
 	optional: dirFlags
 }, function(ops, next) {
 
 	var input = replaceCwd(ops.dir || './src'),
-	output    = replaceCwd(ops.out || input + '/../mesh-lib') + '/' + ops.platform
+	output    = replaceCwd(ops.out || input + '/../mesh-lib') + '/' + (ops.platform || '')
 	
 	next(null, {
 		input: input,
@@ -92,18 +93,17 @@ celeri.option({
 
 
 celeri.option({
-	command: 'fix input :platform -> bootstrap OR bootstrap :platform',
+	command: 'fix input -> bootstrap',
 	description: 'Creates a new project',
 	optional: _.extend({
 		'--all': 'include all platforms'
 	}, dirFlags)
 }, function(ops) {
 
-	console.log(ops.input)
 	
 	mesher.bootstrap({
-		output: ops.output,
-		include: ops.platform ? ops.platform.split('+') : mesher.platforms()
+		output: path.normalize(ops.output)
+		// include: ops.platform ? ops.platform.split('+') : mesher.platforms()
 	}, onCmdResult);
 });
 

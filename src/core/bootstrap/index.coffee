@@ -6,7 +6,7 @@ class Bootstrap
 	###
 	###
 
-	constructor: (@bootstrapDir, @tplFactory, @getTplVars) ->
+	constructor: (@bootstrapDir, @tplFactory, @tplData) ->
 
 	###
 	###
@@ -19,11 +19,11 @@ class Bootstrap
 	###
 	###
 
-	_getTplVars: (callback) -> if @getTplVars then @getTplVars callback else callback {}
+	_getTplVars: (callback) -> callback null, @tplData || {}
 
 
 
 
 		
-module.exports = (tplFactory, getTplVars) -> 
-	return new Bootstrap(tplFactory, getTplVars)
+module.exports = (bootstrapDir, tplFactory, tplData) -> 
+	return new Bootstrap(bootstrapDir, tplFactory, tplData)
