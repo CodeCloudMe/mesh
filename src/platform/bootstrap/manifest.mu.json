@@ -1,7 +1,7 @@
 {
 	"name": "{{name}}",
 	"author": "{{author}}",
-	"description": "{{descripion}}",
+	"description": "{{description}}",
 	"homepage_url": "http://api.website.com",
 	"server_url": "http://api.website.com",
 	"icons": {

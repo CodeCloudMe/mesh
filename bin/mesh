@@ -96,13 +96,16 @@ celeri.option({
 	command: 'fix input -> bootstrap',
 	description: 'Creates a new project',
 	optional: _.extend({
-		'--all': 'include all platforms'
+		'--all': 'include all platforms',
+		'--name': 'name of the project',
+		'--description': 'description of the application'
 	}, dirFlags)
 }, function(ops) {
 
 	
 	mesher.bootstrap({
-		output: path.normalize(ops.output)
+		output: path.normalize(ops.output),
+		tplData: ops
 		// include: ops.platform ? ops.platform.split('+') : mesher.platforms()
 	}, onCmdResult);
 });

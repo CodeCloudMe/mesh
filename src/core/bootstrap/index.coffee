@@ -12,7 +12,9 @@ class Bootstrap
 	###
 
 	start: (ops, callback) ->
-		new BootstrapOperation(@bootstrapDir, ops.output, @tplFactory, ((cb) => @_getTplVars(cb)), ops.target).
+		
+
+		new BootstrapOperation(@bootstrapDir, ops.output, @tplFactory, ((cb) => cb null, ops.tplData || {}), ops.target).
 		onComplete(callback).
 		start()
 
@@ -25,5 +27,5 @@ class Bootstrap
 
 
 		
-module.exports = (bootstrapDir, tplFactory, tplData) -> 
-	return new Bootstrap(bootstrapDir, tplFactory, tplData)
+module.exports = (bootstrapDir, tplFactory) -> 
+	return new Bootstrap(bootstrapDir, tplFactory)
