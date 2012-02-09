@@ -13,4 +13,10 @@ exports.plugin = () ->
 
 
 		
-		router.request("bootstrap").query({ output: '/Users/craig/Desktop/test', platforms: ['node','web'] }).pull();
+		router.
+		request("bootstrap").
+		query({ output: '/Users/craig/Desktop/test', platforms: ['node','web'] }).
+		error((err) ->
+			console.log err
+		).
+		pull();

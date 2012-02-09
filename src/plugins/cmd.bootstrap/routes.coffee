@@ -1,8 +1,10 @@
-ncp   = require("ncp").ncp
-_     = require "underscore"
-fs    = require "fs"
-async = require "asyncjs"
-path  = require "path"
+ncp    = require("ncp").ncp
+_      = require "underscore"
+fs     = require "fs"
+async  = require "asyncjs"
+path   = require "path"
+mkdirp = require "mkdirp" 
+step   = require "step"
 
 
 module.exports = (router, params) ->
@@ -21,7 +23,6 @@ module.exports = (router, params) ->
 		"pull \
 		copy/platforms -> \
 		fill/templates -> \
-			build/makefile -> \
 				bootstrap": (req, res) ->
 
 			console.log "bootstrapped!"
@@ -32,39 +33,61 @@ module.exports = (router, params) ->
 		 over to the output dir
 		###
 
-		"pull v/output -> platform/dirs -> copy/platforms": (req, res, mw) ->
+		"pull v/output -> platforms -> copy/platforms": (req, res, mw) ->
 			
 
 			platforms = mw.data('platforms') || []
 			output    = mw.data('output') + "/src"
-			toCopy = []
+			toCopy    = []
 
-			for dir in req.sanitized.platformDirs
-				
-				## only copy the dir if it's been specified as a target
-				toCopy.push "#{bootstrapSrcDir}/#{dir}" if _.intersection(platforms, dir.split " ").length
+			toCopy.push "#{bootstrapSrcDir}/#{dir}"  for dir in req.sanitized.platformFolders
 
 			
-			async.
-			list(toCopy).
-			each (dir, next) ->
-				ncp dir, "#{output}/#{path.basename dir}", next
-			.
-			end res.success () ->
-				console.log "COPIED"
-
 			console.log "copying target platforms"
-			mw.next()
 
-			
 
-		###
-		 builds a makefile for the target platforms located in the output directory
-		###
+			## first make the output directory
+			step () -> 
+					mkdirp output, 0777,  @
+				
+				## then read the files from the bootstrap dir
+				,() -> 
+					fs.readdir bootstrapDir, res.success @
+				
+				## find the FILES - not directories
+				,(files) ->
+					copiable = [] 
 
-		"pull build/makefile": (req, res, mw) ->
-			console.log "building makefile"
-			mw.next()
+					for file in files
+						file = "#{bootstrapDir}/#{file}"
+						copiable.push file if not fs.lstatSync(file).isDirectory()
+
+					@ copiable
+				
+				## copy the files to the root directory (makefile, package.json, etc.)
+				,(copyFiles = (files) ->
+					return @() if not files.length
+
+					file = files.shift()
+
+					ncp file, "#{output}/#{path.basename file}", res.success () => copyFiles.call @, files
+				)
+
+				## copy the target platforms over
+				, (copyPlatform = () ->
+					return @() if not toCopy.length
+
+					dir = toCopy.shift()
+
+					ncp dir, "#{output}/#{path.basename dir}", res.success () => copyPlatform.call @
+				)
+
+				## move onto the next route, or return true for
+				## success
+				,() ->
+					res.end true if not mw.next()
+					
+
 
 		
 		###
@@ -74,6 +97,9 @@ module.exports = (router, params) ->
 		"pull platform/dirs": (req, res, mw) ->
 			
 			allDirs = []
+
+			# skip
+			mw.next() if req.sanitized.platformDirs
 
 			fs.readdir bootstrapSrcDir, res.success (dirs) ->
 				
@@ -91,17 +117,27 @@ module.exports = (router, params) ->
 		 returns the available platforms
 		###
 
-
 		"pull platform/dirs -> platforms": (req, res, mw) ->
-			
-			allDirs = []
+				
+			# skip 
+			mw.next() if req.sanitized.allPlatforms
 
-			for dir in mw.sanitized.platformDirs				
-				allDirs = allDirs.concat dir.split " "
+			platforms = mw.data('platforms') || []
+
+			allDirs = []
+			platformFolders = []
+
+			for dir in req.sanitized.platformDirs		
+				dirParts = dir.split " "		
+				allDirs = allDirs.concat dirParts
+
+				## only copy the dir if it's been specified as a target
+				platformFolders.push dir if _.intersection(platforms, dirParts).length
 
 				
 			## filter out any duplicate platforms
-			req.sanitized.platforms = allDirs = _.uniq allDirs
+			req.sanitized.allPlatforms      = allDirs = _.uniq allDirs
+			req.sanitized.platformFolders   = platformFolders
 
 			## return the response if this isn't middleware
 			res.end allDirs if not mw.next()
