@@ -1,4 +1,0 @@
-{
-  "plugins": ["client.dnode","session"],
-  "build": ["plugins","node","main"]
-}

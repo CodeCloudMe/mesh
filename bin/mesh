@@ -3,7 +3,9 @@
 var fs  = require('fs'),
 mesh    = require('../'),
 celeri  = require('celeri'),
-outcome = require('outcome');
+outcome = require('outcome'),
+mesher  = mesh.mesher(),
+colors  = require('colors');
 
 
 var onCmdResult = outcome.error(function(err) {
@@ -20,8 +22,37 @@ var replaceCwd = function(dir) {
 }
 
 
+/**
+ */
+
 celeri.option({
-	command: 'make :platform',
+	command: 'merge :platform',
+	description: 'Merges a library for a particular platform',
+	optional: {
+		'--dir': 'The directory to use scan',
+		'--out': 'the output directory'
+	}
+}, function(ops, next) {
+
+	var input = this._input  = replaceCwd(ops.dir || './src'),
+	output    = this._output = replaceCwd(ops.out || input + '/../mesh-lib') + '/' + ops.platform,
+	platform  = ops.platform;
+
+	console.log('Merging %s to %s', input.bold, platform.bold);
+
+
+	mesher.merge({
+		input: input,
+		output: output,
+		include: platform
+	}, onCmdResult.success(next));
+});
+
+/**
+ */
+
+celeri.option({
+	command: 'merge :platform -> make :platform',
 	description: 'Makes the cwd lib for the target platform',
 	optional: {
 		'--dir': 'The directory to use scan',
@@ -29,14 +60,10 @@ celeri.option({
 	}
 }, function(ops) {
 
-
-	var input = replaceCwd(ops.dir || './src'),
-	output    = replaceCwd(ops.out || input + '/../mesh-lib') + '/' + ops.platform;
-
-	mesh.make({
-		input  : input,
-		output : output,
-		include: ops.platform.split('+') //ability to add additional platforms
+	mesher.make({
+		input  : this._input,
+		output : this._output,
+		include: this._platform
 	}, onCmdResult);
 
 });
