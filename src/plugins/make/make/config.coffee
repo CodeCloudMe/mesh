@@ -9,6 +9,39 @@ path		   = require "path"
 
 ### 
  the mesh config value object
+
+ Example config:
+
+
+ {
+ 	
+ 	builders: {
+ 		firefox: {
+ 			script: "./compile-firefox.js"
+ 		}
+ 	},
+
+ 	build: {
+ 		js: {
+ 			debug: ["firefox"]
+ 		}
+ 	},
+
+ 	target: [
+ 		{
+ 			input: "./script.js",
+ 			output: "./script.out.js",
+ 			build: "js"
+ 		},
+ 		{
+ 			input: "./script2.js",
+ 			output: "./script2.out.js",
+ 			build: {
+ 				"release": ["combine","minify"]
+ 			}
+ 		}
+ 	]
+ }
 ###
 
 module.exports = class Config
