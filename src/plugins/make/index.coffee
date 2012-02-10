@@ -11,25 +11,32 @@ exports.plugin = (router, params) ->
 	router.on 
 
 		###
+		 loads the mesh config
 		###
 
-		"pull merge -> make": (req, res) ->
+		"pull make/config": (req, res, mw) ->
+				
+			cfg = req.sanitized.makeConfig = new Config()
+
+			async.forEach makeConfigs,
+				(file, next) ->
+					cfg.loadFile file, next
+				,res.success () ->
+					res.end cfg if not mw.next()
+
+
+		###
+		###
+
+		"pull merge -> make/config -> make": (req, res) ->
 
 			input = req.sanitized.intermediate
-
-			cfg = new Config()
+			cfg   = req.sanitized.makeConfig
 
 			# start the build phase
 
-			# first load the builders
-			step.async () ->
-				async.forEach makeConfigs,
-					(file, next) ->
-						cfg.loadFile file, next
-					,res.success @
-				
 			# load the target mesh file
-			,() ->
+			step.async () ->
 				cfg.loadFile "#{input}/mesh.json", res.success @
 
 			# on load start building
