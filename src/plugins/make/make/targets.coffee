@@ -9,13 +9,13 @@ class BuildTarget
 	###
 	###
 
-	constructor: (@ops, @buildPhases) ->
+	constructor: (@ops, @buildPhase) ->
 		
 	###
 	###
 
 	build: (type, callback) ->
-		buildPhases.start type, @ops, callback
+		buildPhase.start type, @ops, callback
 
 ### 
  chain of targets
