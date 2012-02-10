@@ -1,0 +1,5 @@
+{
+    "modules": ["plugin.dnode"],
+    "entries": ["plugin.entry"],
+    "make": ["entry","node"]
+}

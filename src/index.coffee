@@ -1,25 +1,26 @@
-haba = require "haba"
+haba     = require "haba"
+beanpoll = require "beanpoll"
 
-exports.load = () ->
-
+exports.load = (callback) ->
+	
+	router       = beanpoll.router()
 	pluginLoader = haba.loader()
 
 	pluginLoader.
+	options(router).
 	params({
-		"cmd.bootstrap": {
+		"bootstrap": {
 			"dir": __dirname + "/platform/bootstrap"
 		},
-		"cmd.make": {
+		"make": {
 			"dir": __dirname + "/platform/make"
 		}
 	}).
 	require(__dirname + "/plugins").
-	load();
+	load(() ->
+		callback null, router if callback
+	);
 
-
-
-
-exports.load()
 
 
 	

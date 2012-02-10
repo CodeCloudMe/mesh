@@ -1,25 +1,30 @@
 #!/usr/bin/env node
 
-var fs  = require('fs'),
-mesh    = require('../'),
+var mesh = require("../"),
 celeri  = require('celeri'),
 outcome = require('outcome'),
-mesher  = mesh.mesher(),
 colors  = require('colors'),
 _       = require("underscore"),
-path    = require("path")
+path    = require("path");
 
 
-var onCmdResult = outcome.error(function(err) {
+var on = outcome.error(function(err) {
+	console.error(err.message);
+})
+
+
+
+mesh.load(on.success(function(router) {
 	
-	console.error(err);
 
-});
+	loadCli(router);
+	celeri.parse(process.argv);
 
+}));
 
-var replaceCwd = function(dir) {
-	
-	return dir.replace(/^\./, process.cwd() + '/.');
+function replaceCwd(dir) {
+		
+		return dir.replace(/^\./, process.cwd() + '/.');
 
 }
 
@@ -28,92 +33,105 @@ var dirFlags = {
 	'--out': 'the output directory'
 }
 
-/**
- */
 
-celeri.option({
-	command: 'fix input OR fix input :platform',
-	optional: dirFlags
-}, function(ops, next) {
-
-	var input = replaceCwd(ops.dir || './src'),
-	output    = replaceCwd(ops.out || input + '/../meshed') + '/' + (ops.platform || '')
+function loadCli(router) {
 	
-	next(null, {
-		input: input,
-		output: output
+	
+
+	/**
+	 */
+
+	celeri.option({
+		command: 'fix input OR fix input :platform',
+		optional: dirFlags
+	}, function(ops, next) {
+
+
+		var input = replaceCwd(ops.input || './src'),
+		output    = replaceCwd(ops.output || input + '/../meshed') + '/' + (ops.platform || '')
+		
+		next(null, {
+			input: input,
+			output: output
+		});
+
 	});
 
-});
+
+	/**
+	 */
+
+	celeri.option({
+		command: 'fix input :platform -> merge :platform',
+		description: 'Prepares library for target platform',
+		optional: dirFlags
+	}, function(ops, next) {
+
+		var input = ops.input,
+		output    = ops.output,
+		platform  = ops.platform;
+
+		console.log('Merging %s to %s', input.bold, platform.bold);
 
 
-/**
- */
+		router.
+		request('merge').
+		query(_.defaults({
+			input: path.normalize(input),
+			output: path.normalize(ops.output),
+			platform: platform
+		}, ops)).
+		error(function(err) {
+			console.log(err.stack);
+		}).
+		pull();
+	});
 
-celeri.option({
-	command: 'fix input :platform -> merge :platform',
-	description: 'Prepares library for target platform',
-	optional: dirFlags
-}, function(ops, next) {
+	/**
+	 */
 
-	var input = ops.input,
-	output    = ops.output,
-	platform  = ops.platform;
+	celeri.option({
+		command: 'merge :platform -> make :platform',
+		description: 'Builds project for target platform',
+		optional: dirFlags
+	}, function(ops) {
 
-	console.log('Merging %s to %s', input.bold, platform.bold);
+		mesher.make({
+			input  : ops.input,
+			output : ops.output,
+			include: ops.platform.split('+')
+		}, onCmdResult);
 
-
-	mesher.merge({
-		input: input,
-		output: output,
-		include: platform.split('+')
-	}, onCmdResult.success(next));
-});
-
-/**
- */
-
-celeri.option({
-	command: 'merge :platform -> make :platform',
-	description: 'Builds project for target platform',
-	optional: dirFlags
-}, function(ops) {
-
-	mesher.make({
-		input  : ops.input,
-		output : ops.output,
-		include: ops.platform.split('+')
-	}, onCmdResult);
-
-});
+	});
 
 
-/**
- */
+	/**
+	 */
 
 
-celeri.option({
-	command: 'fix input -> bootstrap',
-	description: 'Creates a new project',
-	optional: _.extend({
-		'--all': 'include all platforms',
-		'--name': 'name of the project',
-		'--description': 'description of the application',
-		'--author': 'author of the program'
-	}, dirFlags)
-}, function(ops) {
+	celeri.option({
+		command: 'fix input -> bootstrap OR bootstrap :platforms',
+		description: 'Creates a new project',
+		optional: _.extend({
+			'--all': 'include all platforms',
+			'--name': 'name of the project',
+			'--description': 'description of the application',
+			'--author': 'author of the program'
+		}, dirFlags)
+	}, function(ops) {
 
-	
-	mesher.bootstrap({
-		output: path.normalize(ops.output),
-		tplData: ops
-		// include: ops.platform ? ops.platform.split('+') : mesher.platforms()
-	}, onCmdResult);
-});
+		router.
+		request('bootstrap').
+		query(_.defaults({
+			output: path.normalize(ops.output),
+			platforms: ops.platforms ? ops.platforms.split('+') : null
+		}, ops)).
+		error(function(err) {
+			console.log(err.stack);
+		}).
+		pull();
+
+	});
 
 
-celeri.parse(process.argv);
-
-
-
-
+}

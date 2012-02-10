@@ -1,4 +1,8 @@
-
+findit   = require "findit"
+ejs      = require "ejs"
+fs 		 = require "fs"
+utils    = require "./utils"
+_		 = require "underscore"
 
 module.exports = (router, params) ->
 
@@ -15,8 +19,15 @@ module.exports = (router, params) ->
 		"pull fill/templates": (req, res, mw) ->
 
 			output = mw.data('output')
+			data   = _.defaults mw.data(), {
+				defaultPlatform: "node"
+			}
 
-			console.log "filling templates"
 
-			mw.next();
+			utils.findAndFillTemplates output, data, res.success () ->
+				return res.end true if not mw.next()
+
+
+
+		
 			
