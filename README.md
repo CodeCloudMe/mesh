@@ -59,14 +59,16 @@ After you're done initializing your project, you can go ahead and make it:
 `mesh.json` is the file which tells Mesh how to build your application. 
 
 - params:
-	- `src` - dir to your source files
-	- `lib` - dir to your library
+	- `src` - javascript sources
+	- `lib` - javascript library directory
 	- `modules` - modules you want to link with the app
 	- `entry` - entry points into the application
 	- `make` - the build phase for the given platform
 
 ```javascript
 {
+	"src": "./src",
+	"lib": "./lib"
 	"modules": ["plugin.dnode"],
 	"entry": ["./index.js"]
 	"make": ["entry","browserify","firefox"]
