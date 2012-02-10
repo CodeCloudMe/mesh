@@ -65,19 +65,42 @@ After you're done initializing your project, you can go ahead and make it:
 	- `make` - array of build phases
 		- `input` - the main entry point for this make instruction
 		- `output` - the output file - variable depending on the build phase
+		- `modules` - modules *specific* to the given entry
+		- `
 
+
+Some psuedocode for perhaps a chrome extension:
 
 ```javascript
 {
 	"merge"   : "./src",
 	"modules" : ["plugin.dnode"],
-	"make"    : [
-		{
-			"input"   : "./src/index.js"
-			"output"  : "./lib/index.js",
-			"debug"   : ["entry", "combine"],
-			"release" : ["entry", "combine", "minify"]
-		}
+	"make"    : {
+
+		"targets": [
+			{
+				"input"     : "./src/background/index.js"
+				"output"    : "./lib/background/index.js",
+				"modules"   : ["plugin.background"],
+				"phase"     : {
+					"debug" : ["combine","minify"]
+				}
+			},
+			{
+				"input"     : "./src/foreground/index.js",
+				"output"    : "./lib/foreground/index.js",
+				"modules"   : ["plugin.foreground"],
+				"phase"     : {
+					"debug" : ["combine","minify"]
+				}
+			},
+			{
+				"input"   : "./manifest.json",
+				"output"  : "./bin/ext.zip",
+				"phase"   : ["build-chrome"]
+			} 
+		]
+
 	]
 }
 ```
