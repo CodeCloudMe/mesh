@@ -58,49 +58,39 @@ After you're done initializing your project, you can go ahead and make it:
 
 `mesh.json` is the file which tells Mesh how to build your application. 
 
-- params:
-	- `merge` - the directory where other sources are merged to
-	- `modules` - modules you want to link with the app - used in all make phases
-	- `entry` - entry points into the application
-	- `make` - array of build phases
-		- `input` - the main entry point for this make instruction
-		- `output` - the output file - variable depending on the build phase
-		- `modules` - modules *specific* to the given entry
-		- `
 
-
-Some psuedocode for perhaps a chrome extension:
+Some psuedocode for a chrome extension:
 
 ```javascript
 {
 	"merge"   : "./src",
 	"modules" : ["plugin.dnode"],
-	"make"    : {
-
-		"targets": [
-			{
-				"input"     : "./src/background/index.js"
-				"output"    : "./lib/background/index.js",
-				"modules"   : ["plugin.background"],
-				"phase"     : {
-					"debug" : ["combine","minify"]
-				}
-			},
-			{
-				"input"     : "./src/foreground/index.js",
-				"output"    : "./lib/foreground/index.js",
-				"modules"   : ["plugin.foreground"],
-				"phase"     : {
-					"debug" : ["combine","minify"]
-				}
-			},
-			{
-				"input"   : "./manifest.json",
-				"output"  : "./bin/ext.zip",
-				"phase"   : ["build-chrome"]
-			} 
-		]
-
+	"build"  : {
+		"js": {
+			"debug": ["combine"],
+			"release": ["combine", "minify"]
+		}	
+	},
+	"targets": [
+		{
+			"input"     : "./src/background/index.js"
+			"output"    : "./lib/background/index.js",
+			"modules"   : ["plugin.background"],
+			"build"     : "js"
+		},
+		{
+			"input"     : "./src/foreground/index.js",
+			"output"    : "./lib/foreground/index.js",
+			"modules"   : ["plugin.foreground"],
+			"build"     : "js"
+		},
+		{
+			"input"   : "./manifest.json",
+			"output"  : "./bin/ext.zip",
+			"build"   : {
+				"debug+release": ["compile-chrome"]
+			}
+		} 
 	]
 }
 ```

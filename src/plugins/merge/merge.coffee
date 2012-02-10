@@ -182,8 +182,8 @@ module.exports = merge = (ops, callback) ->
 		modules = (config.modules || []).concat()
 
 		# combine the make modules
-		if config.make and config.make.targets
-			for target in config.make.targets 
+		if config.targets
+			for target in config.targets 
 				modules = modules.concat target.modules || []
 
 		@ modules
@@ -192,7 +192,6 @@ module.exports = merge = (ops, callback) ->
 	# check to make sure the modules exist
 
 	,(modules) ->
-		
 
 		async.map []
 			,(module, next) =>
