@@ -1,11 +1,11 @@
 step   = require "stepc"
 fs     = require "fs"
-config = require "./config"
+Config = require "./make/config"
+async  = require "async"
 
 exports.plugin = (router, params) ->
-
-	###
-	###
+	
+	makeConfigs = [ params.configPath ] 
 
 
 	router.on 
@@ -17,10 +17,22 @@ exports.plugin = (router, params) ->
 
 			input = req.sanitized.intermediate
 
+			cfg = new Config()
+
 			# start the build phase
 
+			# first load 
 			step.async () ->
-				config.load "#{input}/mesh.json", "utf8", res.success @
+				async.forEach makeConfigs,
+					(file, next) ->
+						cfg.loadFile file, next
+					,res.success @
+				
+			# load the target mesh file
+			,() ->
+				cfg.loadFile "#{input}/mesh.json", res.success @
 
+			# on load start building
 			,(config) ->
-				console.log config
+				cfg.targets.build "debug", res.success (result) -> res.end result 
+

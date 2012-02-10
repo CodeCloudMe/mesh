@@ -16,7 +16,7 @@ exports.load = (callback) ->
 			"modulesDir": __dirname + "/platform/modules"	
 		},
 		"make": {
-			"dir": __dirname + "/platform/make"
+			"configPath": __dirname + "/platform/make/mesh.json"
 		}
 	}).
 	require(__dirname + "/plugins").

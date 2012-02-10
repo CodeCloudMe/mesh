@@ -1,0 +1,21 @@
+{
+	
+	"name": "{{name}}",
+	"description": "{{description}}",
+	"author": "{{author}}"
+	"dependencies": {
+		
+	},
+	"devDependencies": {
+		
+	},
+	"scripts": {
+		"install": "make {{defaultPlatform}}"
+	},
+	"main": "./lib/{{defaultPlatform}}/index.js",
+	"directories": {
+		"src": "./src",
+		"interm": "./intermediate",
+		"lib": "./lib"
+	}
+}

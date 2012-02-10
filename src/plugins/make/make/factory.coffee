@@ -20,7 +20,7 @@ module.exports = class Factory
 		@_builderClasses = []
 
 		# add the default builders
-		@addBuilderClass ChainBuildrer
+		@addBuilderClass ChainBuilder
 		@addBuilderClass ScriptBuilder
 		
 	###
@@ -39,8 +39,8 @@ module.exports = class Factory
 	newBuilder: (name, ops, cwd) ->
 
 		for builderClass in @_builderClasses
-			
-			if builderClass.test name
+
+			if builderClass.test ops
 				
 				# new builder 
 				builder = new builderClass name, @makeConfig

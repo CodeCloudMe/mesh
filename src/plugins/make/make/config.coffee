@@ -5,6 +5,7 @@ Phases         = require "./phases"
 step           = require "stepc"
 fs             = require "fs"
 path		   = require "path"
+outcome        = require "outcome"
 
 
 ### 
@@ -63,7 +64,7 @@ module.exports = class Config
 		# the collection of targets to build
 		@targets     = new MakeTargets @buildPhases
 
-		@_targets = []
+
 
 	###
 	 loads a config from disc - important because they MAY contain
@@ -71,6 +72,8 @@ module.exports = class Config
 	###
 
 	loadFile: (file, callback) ->
+
+		res = outcome.error callback
 			
 		# set the cwd to this config so scripts can be loaded in
 		@cwd = path.dirname file
@@ -82,7 +85,10 @@ module.exports = class Config
 			# parse the JSON
 
 			,(configStr) ->
-				@ JSON.parse configStr
+				try
+					@ JSON.parse configStr
+				catch e 	
+					callback e
 
 			# build the config
 
@@ -95,7 +101,7 @@ module.exports = class Config
 	###
 
 	load: (config) ->
-		
+
 		# physical builders
 		@builders.load config.builders if config.builders
 

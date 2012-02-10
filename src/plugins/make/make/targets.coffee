@@ -27,7 +27,7 @@ module.exports = class BuildTargets
 	###
 
 	constructor: (@buildPhases) ->
-		@_targets
+		@_targets = []
 
 	### 
 	 load targets from config

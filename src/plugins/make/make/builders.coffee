@@ -3,7 +3,7 @@
  collection of builders loaded from configurations
 ###
 
-exports.Builders = class Builders
+module.exports = class Builders
 
 	###
 	###
