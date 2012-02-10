@@ -24,106 +24,53 @@
 	
 We'll first kick things off by initializing our project. Call:
 
-	mesh bootstrap [path to project] [types]
+	mesh bootstrap [platforms]
 
 Here's an example:
 
-	mesh bootstrap . web+node+chrome+firefox
+	mesh bootstrap web+node+chrome+firefox
 
 You can also have the bootstrap script walk you through the process. Just add `--wizard`.
 
-The bootstrap script will produce a `manifest.json` file. Here's what it looks like:
+The bootstrap script will produce some boilerplate code. Here's what it consists of:
 
-```javascript
-{
-	"name":"project-name",
-	"author": "John Doe",
-	"description": "project-description",
-	"homepage_url": "http://somesite.com",
-	"server":"http://api.yournodeserver.com",
-	"icons": {
-		"128": "icons/icon128.png",
-		"48": "icons/icon48.png",
-		"16": "icons/icon16.png"
-	},
-	"dependencies": {
-		"common-dep": "0.1.5"
-	},
-	"project_dir": "./project"
-}
-```
-
-Here's the project structure:
 
 - `project/path/`
-	- `Makefile` - the generated makefile for your project
-	- `manifest.json` - global project config
-	- `icons/` - default icons
-		- `icon128.png` 
-		- `icon48.png`
-		- `icon16.png`
-	- `src` - bootstrap code is dumped here
+	- `makefile` - makes each app - just call `make node`, `make iphone`, etc.
+	- `mesh.json` - tells mesh how to build your project
+	- `src/` - bootstrap code is dumped here
 		- `common/`
 			- `your common JS files here` - stuff that gets used in all platforms
 		- `node/`
 			- `index.js` - entry point
-			- `link.json` - tells Mesh what files to link with this project on build
-		- `web/`
-		- `firefox/`
-		- `safari/`
-		- `firefox-6 firefox-7 firefox-8/` -  Common libraries specific to given platforms
-
-		- ...
-	- `release/` - build directory
-		- `node/`
+			- `mesh.json` - tells mesh how to merge this platform
 		- `web/`
 		- `firefox/`
 		- `safari/`
 		
-After you're done initializing your project, you can go ahead and build it:
+After you're done initializing your project, you can go ahead and make it:
+	mesh make [platform]
 
-	mesh build [path to project] [output directory=release]
 
+## Meshing Libraries Together
 
-## Linking
-
-`link.json` is the file which tells Mesh how to build your application. 
+`mesh.json` is the file which tells Mesh how to build your application. 
 
 - params:
-	- `plugins` - cross-referenced libraries in other apps
-	- `build` - what builder to use: firefox, chrome, web? 
+	- `src` - dir to your source files
+	- `lib` - dir to your library
+	- `modules` - modules you want to link with the app
+	- `entry` - entry points into the application
+	- `make` - the build phase for the given platform
 
 ```javascript
 {
-	"plugins": ["built-in-plugin", "platform/plugin", "platform/*"],
-	"build": ["builder","build-phase2,","..."]
+	"modules": ["plugin.dnode"],
+	"entry": ["./index.js"]
+	"make": ["entry","browserify","firefox"]
 }
 ```
 
-Here's a real use case for a Firefox plugin:
-
-```javascript
-{
-	"plugins": ["common/*", "firefox/*","*"],
-	"build": ["sardines","firefox"]
-}
-```
-
-The example above would load common javascript plugins, along with common firefox specific plugins. 
-
-Here's another one for the web:
-
-```javascript
-{
-	"plugins": ["common/*","*"],
-	"build": "sardines"
-}
-```
-
-
-## Commands
-
-TODO
 
 
 

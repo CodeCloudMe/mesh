@@ -93,7 +93,7 @@ module.exports = merge = (ops, callback) ->
 	# next need to find the mesh files
 	 
 	,(dirs) -> 
-		console.log "reading mesh configs"
+		console.log "reading merge configs"
 		meshFiles = []
 		meshFiles.push "#{dir}/mesh.json" for dir in dirs
 
@@ -161,7 +161,7 @@ module.exports = merge = (ops, callback) ->
 	
 
 	,(meshConfig) ->
-		console.log "writing mesh config"
+		console.log "writing merge config"
 		fs.writeFile "#{outputDir}/mesh.json", JSON.stringify(meshConfig, null, 2), res.success () => @ meshConfig
 
 	# find the modules needed
