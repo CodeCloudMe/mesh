@@ -37,8 +37,8 @@ The bootstrap script will produce some boilerplate code. Here's what it consists
 
 - `project/path/`
 	- `makefile` - makes each app - just call `make node`, `make iphone`, etc.
-	- `mesh.json` - tells mesh how to build your project
-	- `src/` - bootstrap code is dumped here
+	- `package.json` - Info about your project
+	- `src/` - boilerplate code is dumped here
 		- `common/`
 			- `your common JS files here` - stuff that gets used in all platforms
 		- `node/`
@@ -59,19 +59,26 @@ After you're done initializing your project, you can go ahead and make it:
 `mesh.json` is the file which tells Mesh how to build your application. 
 
 - params:
-	- `src` - javascript sources
-	- `lib` - javascript library directory
-	- `modules` - modules you want to link with the app
+	- `merge` - the directory where other sources are merged to
+	- `modules` - modules you want to link with the app - used in all make phases
 	- `entry` - entry points into the application
-	- `make` - the build phase for the given platform
+	- `make` - array of build phases
+		- `input` - the main entry point for this make instruction
+		- `output` - the output file - variable depending on the build phase
+
 
 ```javascript
 {
-	"src": "./src",
-	"lib": "./lib"
-	"modules": ["plugin.dnode"],
-	"entry": ["./index.js"]
-	"make": ["entry","browserify","firefox"]
+	"merge"   : "./src",
+	"modules" : ["plugin.dnode"],
+	"make"    : [
+		{
+			"input"   : "./src/index.js"
+			"output"  : "./lib/index.js",
+			"debug"   : ["entry", "combine"],
+			"release" : ["entry", "combine", "minify"]
+		}
+	]
 }
 ```
 

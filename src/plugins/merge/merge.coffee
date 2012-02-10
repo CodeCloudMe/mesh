@@ -24,19 +24,30 @@ readMeshConfig = (meshPath, callback) ->
 		# directory of the project
 		loaded.dir  = path.dirname meshPath
 
-		# project source
-		loaded.src  = path.normalize "#{loaded.dir}/#{(config.src || '')}"
-
-		# project library
-		loaded.lib  = path.normalize "#{loaded.dir}/#{(config.lib || 'lib')}"
-
-		# project library
-		loaded.interm  = path.normalize "#{loaded.dir}/#{(config.interm || 'intermediate')}"
+		loaded.merge = path.normalize "#{loaded.dir}/#{(config.merge || '')}"
 
 		# preverse the original config -- needs to be merged later on
 		loaded.original = config
 		
 		callback null, loaded
+
+###
+###
+
+readPackageConfig = (pkg, callback) ->
+	fs.readFile pkg, "utf8", outcome.error(callback).success (content) ->
+		config = if content then JSON.parse content else {}
+
+		dir = path.dirname pkg
+
+		dirs = config.directories
+
+		dirs.src     = path.normalize "#{dir}/#{(dirs.src || '')}"
+		dirs.lib     = path.normalize "#{dir}/#{(dirs.lib || 'lib')}"
+		dirs.interm  = path.normalize "#{dir}/#{(dirs.interm || 'intermediate')}"
+
+		callback null, config
+		
 
 ###
 ###
@@ -62,13 +73,14 @@ module.exports = merge = (ops, callback) ->
 
 
 	step.async () -> 
-		readMeshConfig "#{input}/mesh.json", res.success @
+		readPackageConfig "#{input}/package.json", res.success @
 
 	# based on the config, set the SOURCE, and the OUTPUT
 
 	,(config) ->
-		sourceDir = config.src
-		outputDir = outputDir || path.normalize "#{config.interm}/#{platform}"
+		sourceDir = config.directories.src
+		outputDir = outputDir || path.normalize "#{config.directories.interm}/#{platform}"
+
 		@()
 
 	# remove the output file
@@ -118,7 +130,7 @@ module.exports = merge = (ops, callback) ->
 		meshConfigs.splice i, 1
 
 		# where the JS sources are copied to
-		srcDir = path.normalize "#{outputDir}/#{(targetConfig.original.src || '')}"
+		srcDir = path.normalize "#{outputDir}/#{(targetConfig.original.merge || '')}"
 
 
 		# make the directory - it could be something like "js" - for web
@@ -134,7 +146,7 @@ module.exports = merge = (ops, callback) ->
 		console.log "merging sources"
 		async.forEach meshConfigs
 			,(meshConfig, next) ->
-				ncp meshConfig.src, srcDir, next
+				ncp meshConfig.merge, srcDir, next
 			, => 
 
 				# do a bit of cleaning - remove the mesh file stored in the src directory (if it exists)
@@ -177,23 +189,24 @@ module.exports = merge = (ops, callback) ->
 
 	,(moduleDirs) ->
 
-		moduleMeshConfigPaths = []
-
-		moduleMeshConfigPaths.push "#{dir}/mesh.json" for dir in moduleDirs
+		pkgPaths = []
 
 
-		async.filter moduleMeshConfigPaths, path.exists, @
+		pkgPaths.push "#{dir}/package.json" for dir in moduleDirs
+
+
+		async.filter pkgPaths, path.exists, @
 
 	# recursively load the module configs
 
-	,(meshedModuleConfigs) ->
+	,(pkgPaths) ->
 
-		async.forEach meshedModuleConfigs
-			,(dir, next) =>
+		async.forEach pkgPaths
+			,(pkgPath, next) =>
 
 				# merge the module together
 				merge {
-					input: path.dirname(meshedModuleConfigs), # the mesh.json file exists here
+					input: path.dirname(pkgPath), # the mesh.json file exists here
 					platform: platform,
 					router: router
 				}, next
