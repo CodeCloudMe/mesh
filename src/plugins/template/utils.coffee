@@ -1,7 +1,7 @@
-outcome     = require "outcome"
-findit      = require "findit"
-handlebars  = require "handlebars"
 fs          = require "fs"
+findit      = require "findit"
+outcome     = require "outcome"
+handlebars  = require "handlebars"
 
 ###
 ###

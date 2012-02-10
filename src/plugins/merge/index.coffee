@@ -1,6 +1,6 @@
+path  = require "path"
 merge = require "./merge"
 async = require "async"
-path  = require "path"
 
 exports.plugin = (router, params) ->
 		

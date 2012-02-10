@@ -1,11 +1,11 @@
-BuilderFactory = require "./factory"
+fs             = require "fs"
+path           = require "path"
+step           = require "stepc"
+Phases         = require "./phases"
+outcome        = require "outcome"
 Builders       = require "./builders"
 MakeTargets    = require "./targets"
-Phases         = require "./phases"
-step           = require "stepc"
-fs             = require "fs"
-path		   = require "path"
-outcome        = require "outcome"
+BuilderFactory = require "./factory"
 
 
 ### 

@@ -1,10 +1,10 @@
-mkdirp  = require "mkdirp"
+_       = require "underscore"
+fs      = require "fs"
 ncp     = require("ncp").ncp
 step    = require "stepc"
-async   = require "async"
-fs      = require "fs"
-_       = require "underscore"
 path    = require "path"
+async   = require "async"
+mkdirp  = require "mkdirp"
 rmdirr  = require "rmdirr"
 outcome = require "outcome"
 

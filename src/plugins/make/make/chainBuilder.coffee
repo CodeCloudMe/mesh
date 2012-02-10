@@ -1,5 +1,5 @@
-BaseBuilder = require("./base").Builder
 async       = require "async"
+BaseBuilder = require("./base").Builder
 
 
 ###

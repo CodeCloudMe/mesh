@@ -1,7 +1,7 @@
-step   = require "stepc"
 fs     = require "fs"
-Config = require "./make/config"
+step   = require "stepc"
 async  = require "async"
+Config = require "./make/config"
 
 exports.plugin = (router, params) ->
 	

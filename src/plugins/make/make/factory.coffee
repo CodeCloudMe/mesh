@@ -1,9 +1,9 @@
+fs            = require "fs"
+path          = require "path"
+step          = require "stepc"
+outcome       = require "outcome"
 ChainBuilder  = require "./chainBuilder"
 ScriptBuilder = require "./scriptBuilder"
-step           = require "stepc"
-fs             = require "fs"
-outcome        = require "outcome"
-path           = require "path"
 
 
 ###

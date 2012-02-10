@@ -1,8 +1,8 @@
-findit   = require "findit"
-ejs      = require "ejs"
-fs 		 = require "fs"
-utils    = require "./utils"
 _		 = require "underscore"
+fs 		 = require "fs"
+ejs      = require "ejs"
+utils    = require "./utils"
+findit   = require "findit"
 
 exports.plugin = (router, params) ->
 
