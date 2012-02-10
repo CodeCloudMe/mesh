@@ -8,10 +8,11 @@ step   = require("stepc")
 exports.plugin = (router, params) ->
 		
 	# the directory where all the scaffolding stuff lives
-	bootstrapDir = params.dir
+	bootstrapDir    = params.dir
 	bootstrapSrcDir = bootstrapDir + "/src"
 
 	router.on
+
 
 		###
 		 bootstraps a program by copying the target platform
@@ -31,10 +32,9 @@ exports.plugin = (router, params) ->
 		 over to the output dir
 		###
 
-		"pull v/output -> target/platforms -> copy/platforms": (req, res, mw) ->
+		"pull v/output -> target/platform/dirs -> copy/platforms": (req, res, mw) ->
 
 
-			platforms = mw.data('platforms') || []
 			output    = mw.data('output')
 			outputSrc = output + "/src"
 			toCopy    = req.sanitized.targetPlatformDirs
@@ -118,6 +118,10 @@ exports.plugin = (router, params) ->
 
 			## platforms we want to filter out
 			platforms = req.query.platforms || []
+
+			# common libraries
+			platforms.push "common"
+
 
 			allDirs = []
 			targetPlatformDirs = []

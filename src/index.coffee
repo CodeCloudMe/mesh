@@ -12,12 +12,16 @@ exports.load = (callback) ->
 		"bootstrap": {
 			"dir": __dirname + "/platform/bootstrap"
 		},
+		"merge": {
+			"modulesDir": __dirname + "/platform/modules"	
+		},
 		"make": {
 			"dir": __dirname + "/platform/make"
 		}
 	}).
 	require(__dirname + "/plugins").
 	load(() ->
+		router.push("init")
 		callback null, router if callback
 	);
 

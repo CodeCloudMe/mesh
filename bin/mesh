@@ -47,8 +47,8 @@ function loadCli(router) {
 	}, function(ops, next) {
 
 
-		var input = replaceCwd(ops.input || './src'),
-		output    = replaceCwd(ops.output || input + '/../meshed') + '/' + (ops.platform || '')
+		var input = replaceCwd(ops.input || '.'),
+		output    = replaceCwd(ops.output || input + '/meshed') + '/' + (ops.platform || '')
 		
 		next(null, {
 			input: input,
@@ -77,8 +77,7 @@ function loadCli(router) {
 		router.
 		request('merge').
 		query(_.defaults({
-			input: path.normalize(input),
-			output: path.normalize(ops.output),
+			input: ops.input,
 			platform: platform
 		}, ops)).
 		error(function(err) {
