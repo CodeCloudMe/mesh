@@ -8,6 +8,8 @@ path    = require "path"
 rmdirr  = require "rmdirr"
 outcome = require "outcome"
 
+###
+###
 
 readMeshConfig = (meshPath, callback) ->
 	fs.readFile meshPath, "utf8", (err, content) ->
@@ -36,6 +38,8 @@ readMeshConfig = (meshPath, callback) ->
 		
 		callback null, loaded
 
+###
+###
 
 module.exports = merge = (ops, callback) ->
 	
@@ -132,8 +136,13 @@ module.exports = merge = (ops, callback) ->
 			,(meshConfig, next) ->
 				ncp meshConfig.src, srcDir, next
 			, => 
+			
+				# do a bit of cleaning - remove the mesh file stored in the src directory (if it exists)
+				fs.unlink "#{srcDir}/mesh.json"
+
 				@ meshConfigs, mainConfig	
 		
+	
 	
 	# now merge the files together into one mesh file
 
