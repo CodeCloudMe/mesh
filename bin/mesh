@@ -90,16 +90,21 @@ function loadCli(router) {
 	 */
 
 	celeri.option({
-		command: 'merge :platform -> make :platform',
+		command: 'fix input :platform -> make :platform',
 		description: 'Builds project for target platform',
 		optional: dirFlags
 	}, function(ops) {
 
-		mesher.make({
-			input  : ops.input,
-			output : ops.output,
-			include: ops.platform.split('+')
-		}, onCmdResult);
+		router.
+		request('make').
+		query(_.defaults({
+			input: ops.input,
+			platform: ops.platform
+		}, ops)).
+		error(function(err) {
+			console.log(err.stack);
+		}).
+		pull();
 
 	});
 

@@ -179,7 +179,22 @@ module.exports = merge = (ops, callback) ->
 	# find the modules needed
 
 	,(config) ->
-		async.map config.modules || []
+		modules = (config.modules || []).concat()
+
+		# combine the make modules
+		if config.make and config.make.targets
+			for target in config.make.targets 
+				modules = modules.concat target.modules || []
+
+		@ modules
+
+
+	# check to make sure the modules exist
+
+	,(modules) ->
+		
+
+		async.map []
 			,(module, next) =>
 				router.request("find/module/dir").query({ module: module, dirs: ["#{input}/modules", "#{input}/node_modules"] }).response(next).pull()
 			,res.success (moduleDirs) =>
@@ -213,5 +228,5 @@ module.exports = merge = (ops, callback) ->
 
 
 			,res.success (result) ->
-				callback null, true
+				callback null, { output: outputDir }
 	

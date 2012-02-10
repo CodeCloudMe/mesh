@@ -17,8 +17,6 @@ exports.plugin = (router, params) ->
 
 		"pull merge": (req, res, mw) ->
 			
-			# lib dir
-			output  = mw.data('output')
 
 			# src dir
 			input   = mw.data('input')
@@ -26,11 +24,14 @@ exports.plugin = (router, params) ->
 
 			platform = mw.data('platform')
 
+
 			merge {
 				input:  input,
 				platform: platform,
 				router: router
-			}, res.success () -> res.end true
+			}, res.success (result) -> 
+				req.sanitized.intermediate = result.output
+				res.end result if not mw.next()
 
 
 		###
