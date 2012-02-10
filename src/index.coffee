@@ -10,13 +10,13 @@ exports.load = (callback) ->
 	options(router).
 	params({
 		"bootstrap": {
-			"dir": __dirname + "/platform/bootstrap"
+			"dir": __dirname + "/default/bootstrap"
 		},
 		"merge": {
-			"modulesDir": __dirname + "/platform/modules"	
+			"modulesDir": __dirname + "/default/modules"	
 		},
 		"make": {
-			"configPath": __dirname + "/platform/make/mesh.json"
+			"configPath": __dirname + "/default/make/mesh.json"
 		}
 	}).
 	require(__dirname + "/plugins").
