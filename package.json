@@ -6,7 +6,7 @@
   "engines": {},
   "dependencies": {
     "sardines": "<0.3",
-    "celeri": "*",
+    "celeri": "<0.3",
     "ncp": "<0.3",
     "haba": "<0.2.0",
     "scaffoldit": "<0.2.0",
@@ -16,7 +16,6 @@
     "async": "0.1.x",
     "findit": "0.1.x",
     "colors": "0.6.x",
-    "async": "0.0.x",
     "beanpoll": "0.2.x",
     "stepc":"0.0.x",
     "handlebars":"1.0.5"
