@@ -6,7 +6,7 @@
 ## Features
 
 - Work with a single code base.
-- Seemlessly integrate backend code with front-end code (node.js).
+- Seemlessly integrate between other platforms (front-end / backend).
 
 ## Supports
 
@@ -29,8 +29,6 @@ We'll first kick things off by initializing our project. Call:
 Here's an example:
 
 	mesh bootstrap web+node+chrome+firefox
-
-You can also have the bootstrap script walk you through the process. Just add `--wizard`.
 
 The bootstrap script will produce some boilerplate code. Here's what it consists of:
 
@@ -94,6 +92,7 @@ Some psuedocode for a chrome extension:
 	]
 }
 ```
+
 
 
 
