@@ -25,13 +25,13 @@ readMeshConfig = (meshPath, callback) ->
 		loaded.dir  = path.dirname meshPath
 
 		# project source
-		loaded.src  = path.normalize if config.src then "#{loaded.dir}/#{config.src}" else loaded.dir
+		loaded.src  = path.normalize "#{loaded.dir}/#{(config.src || '')}"
 
 		# project library
-		loaded.lib  = path.normalize if config.src then "#{loaded.dir}/#{config.lib}" else loaded.dir
+		loaded.lib  = path.normalize "#{loaded.dir}/#{(config.lib || 'lib')}"
 
 		# project library
-		loaded.merge  = path.normalize if config.src then "#{loaded.dir}/#{config.merge}" else loaded.dir
+		loaded.interm  = path.normalize "#{loaded.dir}/#{(config.interm || 'intermediate')}"
 
 		# preverse the original config -- needs to be merged later on
 		loaded.original = config
@@ -68,7 +68,7 @@ module.exports = merge = (ops, callback) ->
 
 	,(config) ->
 		sourceDir = config.src
-		outputDir = outputDir || path.normalize "#{config.merge}/#{platform}"
+		outputDir = outputDir || path.normalize "#{config.interm}/#{platform}"
 		@()
 
 	# remove the output file
@@ -136,7 +136,7 @@ module.exports = merge = (ops, callback) ->
 			,(meshConfig, next) ->
 				ncp meshConfig.src, srcDir, next
 			, => 
-			
+
 				# do a bit of cleaning - remove the mesh file stored in the src directory (if it exists)
 				fs.unlink "#{srcDir}/mesh.json"
 
