@@ -1,5 +1,6 @@
 
 ###
+ collection of builders loaded from configurations
 ###
 
 exports.Builders = class Builders
@@ -13,7 +14,7 @@ exports.Builders = class Builders
 	###
 	###
 
-	parse: (builders) ->
+	load: (builders) ->
 		
 		@add builderName, @factory.newBuilder(builderName, builders[builderName]) for builderName of builders
 			

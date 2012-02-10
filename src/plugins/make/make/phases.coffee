@@ -38,7 +38,7 @@ module.exports = class BuildPhases
 	###
 	###
 
-	parse: (ops) ->
+	load: (ops) ->
 
 		@add phase.name, phase for phase of phases
 

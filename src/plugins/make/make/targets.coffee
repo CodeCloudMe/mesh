@@ -30,10 +30,10 @@ module.exports = class BuildTargets
 		@_targets
 
 	### 
-	 parse targets from config
+	 load targets from config
 	###
 
-	parse: (targets) ->
+	load: (targets) ->
 
 		for target in targets
 			@add new BuildTarget target, @buildPhases.get target.build

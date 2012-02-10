@@ -3,9 +3,11 @@ async       = require "async"
 
 
 ###
-{
-	"firefox": ["combine","compile-firefox"]
-}
+ a chain of builders
+
+ Example:
+
+ "firefox":["combine","compile-firefox"]
 ###
 
 module.exports = class ChainBuilder extends BaseBuilder

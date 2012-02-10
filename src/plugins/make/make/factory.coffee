@@ -39,6 +39,17 @@ module.exports = class Factory
 	newBuilder: (name, ops, cwd) ->
 
 		for builderClass in @_builderClasses
-			builder = new builderClass name, @makeConfig if builderClass.test name
-			builder.load ops, cwd || @makeConfig.cwd
-			return builder
+			
+			if builderClass.test name
+				
+				# new builder 
+				builder = new builderClass name, @makeConfig
+
+				# load it with the options given
+				builder.load ops, cwd || @makeConfig.cwd
+
+				# return the builder
+				return builder
+		
+		# no builder? return null
+		null

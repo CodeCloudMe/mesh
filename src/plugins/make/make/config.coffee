@@ -7,6 +7,9 @@ fs             = require "fs"
 path		   = require "path"
 
 
+### 
+ the mesh config value object
+###
 
 module.exports = class Config
 
@@ -34,7 +37,7 @@ module.exports = class Config
 	 scripts - in which case we'll need the CWD
 	###
 
-	load: (file, callback) ->
+	loadFile: (file, callback) ->
 			
 		# set the cwd to this config so scripts can be loaded in
 		@cwd = path.dirname file
@@ -51,20 +54,23 @@ module.exports = class Config
 			# build the config
 
 			,(config) =>
-				@.parse config
+				@.load config
 				callback null, @
+	
 	###
+	 parses a mesh config
 	###
 
-	parse: (config) ->
+	load: (config) ->
 		
-		@builders.parse config.builders if config.builders
+		# physical builders
+		@builders.load config.builders if config.builders
 
-		# phases first
-		@buildPhases.parse config.build if config.build
+		# phases compiled of builders
+		@buildPhases.load config.build if config.build
 
 		# next parse the targets
-		@targets.parse config.targets if config.targets
+		@targets.load config.targets if config.targets
 
 
 
