@@ -21,7 +21,7 @@ exports.plugin = (router, params) ->
 
 			# start the build phase
 
-			# first load 
+			# first load the builders
 			step.async () ->
 				async.forEach makeConfigs,
 					(file, next) ->
@@ -35,4 +35,13 @@ exports.plugin = (router, params) ->
 			# on load start building
 			,(config) ->
 				cfg.targets.build "debug", res.success (result) -> res.end result 
+
+
+		###
+		 ability for third-party modules to extend the build system
+		###
+
+		"push make/config/path": (configPath) ->
+
+			makeConfigs.push configPath
 
