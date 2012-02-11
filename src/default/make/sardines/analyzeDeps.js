@@ -184,6 +184,7 @@ function resolvePath(module, cwd) {
 
 			fs.lstatSync(moduleDir);
 				
+			//this is a bit redundant since we're about to load the package *again* - cache?
 			return path.normalize(moduleDir + "/" + loadPackage(moduleDir + "/package.json").main);
 		} catch(e) {
 			
