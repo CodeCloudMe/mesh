@@ -9,11 +9,11 @@ _           = require("underscore");
 
 
 /** 
- * the real entry point into t
+ * the real entry point
  */
 
 module.exports = function findAllDependencies(entry, callback) {
-	
+
 	var on = outcome.error(callback);
 
 	step(
@@ -35,7 +35,7 @@ module.exports = function findAllDependencies(entry, callback) {
  */
 
 function findDependencies(entry, callback, loaded) {
-	
+
 
 	//loaded - files already scanned
 	if(!loaded) loaded = { modules: {}, filesByPath: {}, files: [] };
@@ -52,6 +52,7 @@ function findDependencies(entry, callback, loaded) {
 		},
 
 		function(content) {
+
 
 			scanRequired(content, cwd, on.success(this));
 
@@ -71,10 +72,11 @@ function findDependencies(entry, callback, loaded) {
 				loaded.files.push(pi);
 
 				//module? make sure not to check the module twice - it CAN be used in other dependencies
-				if(pi.moduleName) loaded.modules[pi.moduleName] = true;
+				if(pi.module && pi.moduleName) loaded.modules[pi.moduleName] = true;
 
 				if(!pi.core) usable.push(pi);
 			});
+
 
 			async.forEach(usable,
 				function(pi, next) {
@@ -96,6 +98,8 @@ function findDependencies(entry, callback, loaded) {
 
 function scanRequired(content, cwd, callback) {
 
+
+
 	//for speed.
 	var required = String(content).match(/require\(["'].*?["']\)/g) || [],
 	pathInfo = []
@@ -105,7 +109,6 @@ function scanRequired(content, cwd, callback) {
 	async.forEach(required, function(fn, next) {
 
 		relPath = fn.match(/["'](.*?)["']/)[1]
-
 
 		var pi = getPathInfo(relPath, cwd);
 
@@ -131,11 +134,11 @@ function getPathInfo(required, cwd) {
 	}
 
 	try {
+
 		
-		var realPath = require.resolve(required),
+		var realPath = resolvePath(required, cwd),
 		pkgPath      = findPackagePath(realPath),
 		name         = pkgPath ? getPackageName(pkgPath) : null;
-
 
 		return {
 			path: realPath,
@@ -150,16 +153,43 @@ function getPathInfo(required, cwd) {
 			module: true,
 
 			//built into node?
-			core: realPath.split('/').length == 1
+			core: realPath && realPath.split('/').length == 1
 		};
 
 	} catch(e) {
-
 		console.error("cannot get path info for " + required);
-
 		//something went wront
 		return null
 	}
+}
+
+/**
+ * RELATIVE require.resolve to cwd since we might
+ * be going into module dirs - we want to find relative modules to modules...
+ */
+
+function resolvePath(module, cwd) {
+
+	//not local?
+	try {
+		return require.resolve(module);
+	} catch(e) {
+		return null;
+	}
+
+	return eachDir(cwd, function(dir) {
+
+		try {
+			var moduleDir = dir + '/node_modules/' + module;
+
+			fs.lstatSync(moduleDir);
+				
+			return path.normalize(moduleDir + "/" + loadPackage(moduleDir + "/package.json").main);
+		} catch(e) {
+			
+		}
+	});
+
 }
 
 /**
@@ -168,24 +198,38 @@ function getPathInfo(required, cwd) {
 
 function findPackagePath(file) {
 	
-	pathParts = path.dirname(file).split('/')
+	var found = null;
 
-	while(pathParts.length) {
-		
+	return eachDir(path.dirname(file), function(dir) {
 		try {
 			
-			var pkgPath = pathParts.join("/") + "/package.json"
+			var pkgPath = dir + "/package.json"
 
 			//throws error
 			fs.lstatSync(pkgPath)
-			return pkgPath
+			
+			return pkgPath;
 
 		} catch(e) {
 			
 		}
+	});
+	
+	return found;
+}
 
+/**
+ * loops through each dir
+ */
+
+
+function eachDir(dir, each) {
+	
+	pathParts = dir.split('/');
+	var result;
+	while(pathParts.length) {
+		if((result = each(pathParts.join("/"))) !== undefined) return result;
 		pathParts.pop();
-
 	}
 }
 
@@ -195,7 +239,14 @@ function findPackagePath(file) {
  */
 
 function getPackageName(pkgPath) {
-	return JSON.parse(fs.readFileSync(pkgPath, "utf8")).name;
+	return loadPackage(pkgPath).name;
+}
+
+/**
+ */
+
+function loadPackage(pkgPath) {
+	return JSON.parse(fs.readFileSync(pkgPath, "utf8"));	
 }
 
 
