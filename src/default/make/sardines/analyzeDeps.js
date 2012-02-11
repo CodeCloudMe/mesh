@@ -98,12 +98,9 @@ function findDependencies(entry, callback, loaded) {
 
 function scanRequired(content, cwd, callback) {
 
-
-
-	//for speed.
+	//for speed. 
 	var required = String(content).match(/require\(["'].*?["']\)/g) || [],
-	pathInfo = []
-
+	pathInfo = [];
 
 
 	async.forEach(required, function(fn, next) {
