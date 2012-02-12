@@ -270,6 +270,8 @@ module.exports = merge = (ops, callback) ->
 				# merge the module together
 				merge {
 					input: modInput, # the mesh.json file exists here
+
+					# output is copied to new node_modules dir since main entry point could be different.
 					output: "#{outputDir}/node_modules/#{path.basename(modInput)}"
 					platform: platform,
 					router: router
