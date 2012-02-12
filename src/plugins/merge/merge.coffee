@@ -236,7 +236,7 @@ module.exports = merge = (ops, callback) ->
 
 	# copy modules over to node_modules dir
 
-	,(moduleDirs) ->
+	###,(moduleDirs) ->
 
 		async.map moduleDirs
 			, (dir, next) =>
@@ -246,6 +246,7 @@ module.exports = merge = (ops, callback) ->
 			, res.success (newDirs) =>
 				@ newDirs
 
+	###
 	# filter out any modules that CANNOT be meshed
 	, (moduleDirs) ->
 
