@@ -18,7 +18,6 @@ exports.plugin = (router, params) ->
 
 		"pull find/files": (req, res, mw) ->
 			
-			console.log "find file"
 
 			search = req.query.search
 			dir    = req.query.input

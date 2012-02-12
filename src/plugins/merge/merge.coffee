@@ -36,22 +36,92 @@ readMeshConfig = (meshPath, callback) ->
 
 readPackageConfig = (pkg, callback) ->
 	fs.readFile pkg, "utf8", (err, content) ->
-		return callback null, {} if err
 		config = if content then JSON.parse content else {}
 
 		dir = path.dirname pkg
 
+		loaded = { dir: dir }
+
+		config.directories = {} if not config.directories
+
 		dirs = config.directories
 
-		dirs.src     = path.normalize "#{dir}/#{(dirs.src || '')}"
-		dirs.lib     = path.normalize "#{dir}/#{(dirs.lib || 'lib')}"
-		dirs.interm  = path.normalize "#{dir}/#{(dirs.interm || 'intermediate')}"
+		loaded.src     = path.normalize "#{dir}/#{(dirs.src || '')}"
+		loaded.lib     = path.normalize "#{dir}/#{(dirs.lib || 'lib')}"
+		loaded.interm  = path.normalize "#{dir}/#{(dirs.interm || 'intermediate')}"
 
-		callback null, config
+		loaded.original = config
+
+		callback null, loaded
+		
+###
+###
+
+copyMergeable = (input, output, next) ->
+	
+	output = output.replace(".merge", "");
+
+	step.async () ->
+			path.exists output, @
+		,(outExists) ->
+			return copyFile2 input, output, next if not outExists
+
+			ocfg = JSON.parse(fs.readFileSync(output, "utf8"))
+			icfg = JSON.parse(fs.readFileSync(input, "utf8"))
+
+			ofg = _.extend(ocfg, icfg);
+
+			fs.writeFile output, JSON.stringify(ofg, null, 2), next
+
+
+###
+###
+
+copyFile2 = (input, output, next) ->
+	readStream  = fs.createReadStream input
+	writeStream = fs.createWriteStream output
+	readStream.pipe(writeStream)
+	readStream.once('end', next)
+###
+###
+
+copyFile = (input, output, next) ->
+		
+	return copyMergeable input, output, next if input.match(/\.merge\.json/)
+	copyFile2 input, output, next
+	
 		
 
+copyDir = (input, output, next) ->
+	
+	res = outcome.error next
+
+
+	step.async () ->
+			mkdirp output, 0777, @
+		,() ->
+			fs.readdir input, res.success @
+		,(files) ->	
+			async.forEach files,
+				(file, next) ->
+					ifile = "#{input}/#{file}"
+					ofile   = "#{output}/#{file}"
+					copyr ifile, ofile, next
+				, next
+		
 ###
 ###
+
+copyr = (input, output, next) ->
+
+	res = outcome.error next
+
+
+	fs.lstat input, res.success (stat) ->
+
+		return copyDir(input, output, next) if stat.isDirectory()
+		return copyFile input, output, next
+
 
 module.exports = merge = (ops, callback) ->
 	
@@ -74,7 +144,8 @@ module.exports = merge = (ops, callback) ->
 
 	platformDirs = null
 
-	incModules = null
+	incModules = []
+
 
 
 
@@ -84,8 +155,9 @@ module.exports = merge = (ops, callback) ->
 	# based on the config, set the SOURCE, and the OUTPUT
 
 	,(config) ->
-		sourceDir = config.directories.src
-		outputDir = outputDir || path.normalize "#{config.directories.interm}/#{platform}"
+		sourceDir = config.src
+		outputDir = outputDir || path.normalize "#{config.interm}/#{platform}"
+
 
 		@()
 
@@ -109,67 +181,63 @@ module.exports = merge = (ops, callback) ->
 	# next need to find the mesh files
 	 
 	,(dirs) -> 
+		
+		
+		pkgFiles = []
+		pkgFiles.push "#{dir}/package.json" for dir in dirs
 		platformDirs = dirs
-		meshFiles = []
-		meshFiles.push "#{dir}/mesh.json" for dir in dirs
 
-		async.map meshFiles, readMeshConfig, res.success @
+
+		async.map pkgFiles, readPackageConfig, res.success @
 	
 	# find the target config, and make the lib directory
 
-	,(meshConfigs) ->
+	,(pkgs) ->
 
-		
-
-		# filter through all the configs and find the platform config - it shouldn't have spaces.
-		for meshConfig, i in meshConfigs
-			if path.basename(meshConfig.dir) == platform
-				targetConfig = meshConfig
-				break
+		# want the target platform to be copied last
+		pkgs = pkgs.sort (a, b) -> if path.basename(a.dir) == platform  then 1 else -1
 
 
-		return callback new Error("platform \"#{platform}\" does not exist for \"#{input}\"") if not targetConfig
+		for pkg in pkgs
+			incModules = incModules.concat Object.keys pkg.original.dependencies || []
 
-		#it's copied over - we don't want it
-		meshConfigs.splice i, 1
-
-
-		# where the JS sources are copied to
-		srcDir = path.normalize "#{outputDir}/#{(targetConfig.original.merge || '')}"
+		targetPkg = pkgs.pop()
 
 
-		# make the directory - it could be something like "js" - for web
-		mkdirp srcDir, 0777, res.success () => 
-			ncp targetConfig.dir, outputDir, res.success () =>
-				@ meshConfigs, targetConfig, srcDir
+
+		libDir = path.normalize "#{outputDir}/#{targetPkg.original.directories.src || ''}"
+
+		@ pkgs, targetPkg, libDir
+
 
 
 	# copy the target platforms to the output directory
 
-	,(meshConfigs, mainConfig, srcDir) ->
+	,(pkgs, mainPkg, dir) ->
 		
-		async.forEach meshConfigs
+		async.forEach pkgs
 			,(meshConfig, next) ->
-				ncp meshConfig.merge, srcDir, next
+				copyr meshConfig.src, dir, ->
+					copyr "#{meshConfig.dir}/mesh.merge.json", "#{outputDir}/mesh.merge.json", next
 			, => 
-
-				# do a bit of cleaning - remove the mesh file stored in the src directory (if it exists)
-				# fs.unlink "#{srcDir}/mesh.json"
-
-				@ meshConfigs, mainConfig	
+				@ pkgs, mainPkg	
 		
-	
+	,(pkgs, mainPkg) ->
+		
+
+		# make the directory - it could be something like "js" - for web
+		copyr mainPkg.dir, outputDir, res.success () =>
+			@ pkgs, mainPkg
 	
 	# now merge the files together into one mesh file
 
-	,(meshConfigs, mainConfig) ->
+	,(pkgs, mainPkg) ->
 
-		originalConfigs = []
-		originalConfigs.push config.original for config in meshConfigs
-		originalConfigs.push mainConfig.original
+		originalPkgs = []
+		originalPkgs.push pkg.original for pkg in pkgs
+		originalPkgs.push mainPkg.original
 
-
-		@ _.extend.apply(null, originalConfigs) || {}
+		@ _.extend.apply(null, originalPkgs) || {}
 
 	
 	# save the mesh config
@@ -177,35 +245,7 @@ module.exports = merge = (ops, callback) ->
 
 	,(config) ->
 
-		incModules = (config.modules || []).concat()
-
-		# combine the make modules
-		if config.targets
-			for target in config.targets 
-				incModules = modules.concat target.modules || []
-
-
-		fs.writeFile "#{outputDir}/mesh.json", JSON.stringify(config, null, 2), res.success @
-
-		
-	# next merge the packages
-
-	,() ->
-
-
-		pkgFiles = ["#{input}/package.json"]
-		pkgFiles.push "#{dir}/package.json" for dir in platformDirs
-		async.map pkgFiles, readPackageConfig, res.success @
-
-	# write the package
-	,(pkgs) ->
-
-		pkg = _.extend.apply null, pkgs
-
-		incModules = incModules.concat Object.keys(pkg.dependencies || {})
-		incModules = _.uniq incModules
-		
-		fs.writeFile "#{outputDir}/package.json", JSON.stringify(pkg, null, 2), res.success @
+		fs.writeFile "#{outputDir}/package.json", JSON.stringify(config, null, 2), res.success @
 
 	# check to make sure the modules exist
 
@@ -224,8 +264,8 @@ module.exports = merge = (ops, callback) ->
 		async.map moduleDirs
 			, (dir, next) =>
 				od = "#{input}/node_modules/#{path.basename dir}"
-				mkdirp od, 0777, =>
-					ncp dir, od, => next null, od
+				
+				copyr dir, od, => next null, od
 			, res.success (newDirs) =>
 				@ newDirs
 
