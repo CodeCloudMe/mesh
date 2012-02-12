@@ -69,7 +69,7 @@ Some psuedocode for a chrome extension:
 	},
 	"targets": [
 		{
-			"input"     : "./src/background/index.js"//
+			"input"     : "./src/background/index.js",
 			"output"    : "./lib/background/index.js",
 			"modules"   : ["plugin.background"],
 			"build"     : "web:*"
