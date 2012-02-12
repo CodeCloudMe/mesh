@@ -1,4 +1,4 @@
-async = require "async"
+seq = require "seq"
 
 ###
  target for the build scripts
@@ -9,12 +9,8 @@ class BuildTarget
 	###
 	###
 
-	constructor: (@ops, @builderSearch) ->
-	###
-	###
+	constructor: (@options, @cwd, @targets) ->
 
-	build: (builder, next) ->
-		builder.start @ops, next
 
 ### 
  chain of targets
@@ -32,10 +28,10 @@ module.exports = class BuildTargets
 	 load targets from config
 	###
 
-	load: (targets) ->
-
+	load: (targets, cwd) ->
+	
 		for target in targets
-			@add new BuildTarget target, target.build
+			@add new BuildTarget target, cwd, @
 
 	###
 	###
@@ -50,11 +46,14 @@ module.exports = class BuildTargets
 
 	build: (type, callback) ->
 
-		async.forEach @_targets,
-			(target, next) =>
+		index = 0
+		self = @
 
-				# replace the build target star with the phase ~ web:* -> web:debug, web:release
-				builder = @builders.find target.builderSearch.replace('*',type)
+		seq(@_targets).
+		seqEach (target) ->
+			console.log "* target %d", ++index
 
-				target.build builder, next
-			,callback
+			# target.build builder, next
+			self.builders.build target.options.build.replace('*',type), target, this
+		.seq callback
+			

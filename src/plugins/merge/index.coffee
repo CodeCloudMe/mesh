@@ -42,6 +42,7 @@ exports.plugin = (router, params) ->
 			# module to find
 			module = req.query.module
 
+
 			# dirs to scan
 			allModuleDirs = moduleDirs.concat req.query.dirs || []
 			
@@ -49,6 +50,7 @@ exports.plugin = (router, params) ->
 
 			# push the possible directories
 			possibilities.push "#{dir}/#{module}" for dir in allModuleDirs
+
 
 
 			# find the files that exist, and return the first result

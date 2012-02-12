@@ -32,7 +32,6 @@ module.exports = class Builders
 	find: (search) -> 
 		tester = @_nameTester search
 
-
 		for name of @_builders
 			return @_builders[name] if tester.test name
 
@@ -44,6 +43,17 @@ module.exports = class Builders
 
 	add: (builder) -> 
 		@_builders[builder.name] = builder
+
+	###
+	###
+
+	build: (name, options, next) ->
+		
+		builder = @find name
+
+		console.log "--> build %s", builder.name
+
+		builder.start options, next
 
 
 	###

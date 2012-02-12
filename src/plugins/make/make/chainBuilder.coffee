@@ -1,4 +1,4 @@
-async       = require "async"
+seq			= require "seq"
 BaseBuilder = require("./base").Builder
 
 
@@ -16,17 +16,19 @@ module.exports = class ChainBuilder extends BaseBuilder
 	###
 
 	load: (@chains) ->
-
+					
 	###
 	###
 
 	start: (input, callback) ->
-		
-		async.forEach @chains,
-			(chain, next) =>
-				@makeConfig.builders.get(chain).start input, next
-			,callback
 
+		self = @
+
+		seq(@chains).
+		seqEach( (chain, next) ->
+			self.makeConfig.builders.build chain, input, this
+		).seq(callback)
+	
 
 
 module.exports.test = (config) ->

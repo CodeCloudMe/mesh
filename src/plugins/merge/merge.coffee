@@ -35,7 +35,8 @@ readMeshConfig = (meshPath, callback) ->
 ###
 
 readPackageConfig = (pkg, callback) ->
-	fs.readFile pkg, "utf8", outcome.error(callback).success (content) ->
+	fs.readFile pkg, "utf8", (err, content) ->
+		return callback null, {} if err
 		config = if content then JSON.parse content else {}
 
 		dir = path.dirname pkg
@@ -69,7 +70,12 @@ module.exports = merge = (ops, callback) ->
 	sourceDir  = null
 
 	# the OUTPUT directory from mesh.json
-	outputDir  = if ops.output then "#{ops.output}/#{platform}" else null
+	outputDir  = ops.output
+
+	platformDirs = null
+
+	incModules = null
+
 
 
 	step.async () -> 
@@ -86,26 +92,24 @@ module.exports = merge = (ops, callback) ->
 	# remove the output file
 
 	,() ->
-		console.log "rm #{outputDir}"
 		rmdirr outputDir, @
 
 	# first make the output dir
 
 	,() ->
-		console.log "mk #{outputDir}"
 		mkdirp outputDir, 0777, res.success @
 
 
 	# find the target platform first
 
 	,() ->
-		console.log "finding sources"
 		router.request("target/platform/dirs").query({ platformDir: sourceDir, platforms: [platform] }).response(res.success @).pull()
-	
+
+
 	# next need to find the mesh files
 	 
 	,(dirs) -> 
-		console.log "reading merge configs"
+		platformDirs = dirs
 		meshFiles = []
 		meshFiles.push "#{dir}/mesh.json" for dir in dirs
 
@@ -115,7 +119,7 @@ module.exports = merge = (ops, callback) ->
 
 	,(meshConfigs) ->
 
-		targetConfig
+		
 
 		# filter through all the configs and find the platform config - it shouldn't have spaces.
 		for meshConfig, i in meshConfigs
@@ -128,6 +132,7 @@ module.exports = merge = (ops, callback) ->
 
 		#it's copied over - we don't want it
 		meshConfigs.splice i, 1
+
 
 		# where the JS sources are copied to
 		srcDir = path.normalize "#{outputDir}/#{(targetConfig.original.merge || '')}"
@@ -143,7 +148,6 @@ module.exports = merge = (ops, callback) ->
 
 	,(meshConfigs, mainConfig, srcDir) ->
 		
-		console.log "merging sources"
 		async.forEach meshConfigs
 			,(meshConfig, next) ->
 				ncp meshConfig.merge, srcDir, next
@@ -159,7 +163,6 @@ module.exports = merge = (ops, callback) ->
 	# now merge the files together into one mesh file
 
 	,(meshConfigs, mainConfig) ->
-		console.log "merging mesh configs"
 
 		originalConfigs = []
 		originalConfigs.push config.original for config in meshConfigs
@@ -172,36 +175,62 @@ module.exports = merge = (ops, callback) ->
 	# save the mesh config
 	
 
-	,(meshConfig) ->
-		console.log "writing merge config"
-		fs.writeFile "#{outputDir}/mesh.json", JSON.stringify(meshConfig, null, 2), res.success () => @ meshConfig
-
-	# find the modules needed
-
 	,(config) ->
-		modules = (config.modules || []).concat()
+
+		incModules = (config.modules || []).concat()
 
 		# combine the make modules
 		if config.targets
 			for target in config.targets 
-				modules = modules.concat target.modules || []
+				incModules = modules.concat target.modules || []
 
-		@ modules
 
+		fs.writeFile "#{outputDir}/mesh.json", JSON.stringify(config, null, 2), res.success @
+
+		
+	# next merge the packages
+
+	,() ->
+
+
+		pkgFiles = ["#{input}/package.json"]
+		pkgFiles.push "#{dir}/package.json" for dir in platformDirs
+		async.map pkgFiles, readPackageConfig, res.success @
+
+	# write the package
+	,(pkgs) ->
+
+		pkg = _.extend.apply null, pkgs
+
+		incModules = incModules.concat Object.keys(pkg.dependencies || {})
+		incModules = _.uniq incModules
+		
+		fs.writeFile "#{outputDir}/package.json", JSON.stringify(pkg, null, 2), res.success @
 
 	# check to make sure the modules exist
 
-	,(modules) ->
+	,() ->
 
-		async.map []
+		async.map incModules
 			,(module, next) =>
 				router.request("find/module/dir").query({ module: module, dirs: ["#{input}/modules", "#{input}/node_modules"] }).response(next).pull()
 			,res.success (moduleDirs) =>
 				@ moduleDirs
 
-	# filter out any modules that CANNOT be meshed
+	# copy modules over to node_modules dir
 
 	,(moduleDirs) ->
+
+		async.map moduleDirs
+			, (dir, next) =>
+				od = "#{input}/node_modules/#{path.basename dir}"
+				mkdirp od, 0777, =>
+					ncp dir, od, => next null, od
+			, res.success (newDirs) =>
+				@ newDirs
+
+	# filter out any modules that CANNOT be meshed
+	, (moduleDirs) ->
 
 		pkgPaths = []
 
@@ -211,6 +240,7 @@ module.exports = merge = (ops, callback) ->
 
 		async.filter pkgPaths, path.exists, @
 
+
 	# recursively load the module configs
 
 	,(pkgPaths) ->
@@ -218,9 +248,12 @@ module.exports = merge = (ops, callback) ->
 		async.forEach pkgPaths
 			,(pkgPath, next) =>
 
+				modInput = path.dirname(pkgPath);
+
 				# merge the module together
 				merge {
-					input: path.dirname(pkgPath), # the mesh.json file exists here
+					input: modInput, # the mesh.json file exists here
+					output: "#{outputDir}/node_modules/#{path.basename(modInput)}"
 					platform: platform,
 					router: router
 				}, next

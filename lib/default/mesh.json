@@ -1,0 +1,10 @@
+{
+	"build": {
+		"combine": {
+			"script": "./make/sardines/builder.js"
+		},
+		"entry": {
+			"script": "./make/entry/builder.js"
+		}
+	}
+}

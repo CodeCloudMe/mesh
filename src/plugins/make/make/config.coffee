@@ -5,6 +5,7 @@ outcome        = require "outcome"
 Builders       = require "./builders"
 MakeTargets    = require "./targets"
 BuilderFactory = require "./factory"
+Modules		   = require "./modules"
 
 
 ### 
@@ -53,6 +54,9 @@ module.exports = class Config
 		@targets     = new MakeTargets @builders
 
 
+		# @modules     = new Modules()
+
+
 
 	###
 	 loads a config from disc - important because they MAY contain
@@ -90,12 +94,13 @@ module.exports = class Config
 
 	load: (config) ->
 
+		# @modules.addDir config.directories.modules if config.directories and config.directories.modules
 
 		# physical builders
-		@builders.load config.build if config.build
+		@builders.load(config.build) if config.build
 
 		# next parse the targets
-		@targets.load config.targets if config.targets
+		@targets.load(config.targets, @cwd) if config.targets
 
 
 
