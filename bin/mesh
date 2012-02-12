@@ -90,7 +90,7 @@ function loadCli(router) {
 	 */
 
 	celeri.option({
-		command: 'fix input :platform -> make :platform',
+		command: 'fix input :platform -> make :platform OR make :platform :phase',
 		description: 'Builds project for target platform',
 		optional: dirFlags
 	}, function(ops) {
@@ -99,7 +99,8 @@ function loadCli(router) {
 		request('make').
 		query(_.defaults({
 			input: ops.input,
-			platform: ops.platform
+			platform: ops.platform,
+			phase: ops.phase || "debug"
 		}, ops)).
 		error(function(err) {
 			console.log(err.stack);

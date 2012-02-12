@@ -1,7 +1,7 @@
 {
-	"builders": {
+	"build": {
 		"sardines": {
-			"script": "./sardines/index.js"
+			"script": "./sardines/builder.js"
 		}
 	}
 }

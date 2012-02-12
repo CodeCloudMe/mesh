@@ -1,7 +1,6 @@
 fs             = require "fs"
 path           = require "path"
 step           = require "stepc"
-Phases         = require "./phases"
 outcome        = require "outcome"
 Builders       = require "./builders"
 MakeTargets    = require "./targets"
@@ -16,30 +15,22 @@ BuilderFactory = require "./factory"
 
  {
  	
- 	builders: {
- 		firefox: {
- 			script: "./compile-firefox.js"
- 		}
- 	},
 
  	build: {
- 		js: {
- 			debug: ["firefox"]
- 		}
+ 		"web:debug": ["sardines"],
+ 		"web:release": ["web:debug", "minify"]
  	},
 
  	target: [
  		{
  			input: "./script.js",
  			output: "./script.out.js",
- 			build: "js"
+ 			build: "web:*"
  		},
  		{
  			input: "./script2.js",
  			output: "./script2.out.js",
- 			build: {
- 				"release": ["combine","minify"]
- 			}
+ 			build: "web:*"
  		}
  	]
  }
@@ -58,11 +49,8 @@ module.exports = class Config
 		# the collection of available builders
 		@builders    = new Builders @buildFactory
 
-		# phases for targets such as debug, and release
-		@buildPhases = new Phases @buildFactory
-
 		# the collection of targets to build
-		@targets     = new MakeTargets @buildPhases
+		@targets     = new MakeTargets @builders
 
 
 
@@ -102,11 +90,9 @@ module.exports = class Config
 
 	load: (config) ->
 
-		# physical builders
-		@builders.load config.builders if config.builders
 
-		# phases compiled of builders
-		@buildPhases.load config.build if config.build
+		# physical builders
+		@builders.load config.build if config.build
 
 		# next parse the targets
 		@targets.load config.targets if config.targets

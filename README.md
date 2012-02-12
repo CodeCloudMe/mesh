@@ -64,30 +64,26 @@ Some psuedocode for a chrome extension:
 	"merge"   : "./src",
 	"modules" : ["plugin.dnode"],
 	"build"  : {
-		"js": {
-			"debug": ["combine"],
-			"release": ["combine", "minify"]
-		}	
+		"web:debug": ["combine"],
+		"web:release": ["web:debug", "minify"]
 	},
 	"targets": [
 		{
-			"input"     : "./src/background/index.js"
+			"input"     : "./src/background/index.js"//
 			"output"    : "./lib/background/index.js",
 			"modules"   : ["plugin.background"],
-			"build"     : "js"
+			"build"     : "web:*"
 		},
 		{
 			"input"     : "./src/foreground/index.js",
 			"output"    : "./lib/foreground/index.js",
 			"modules"   : ["plugin.foreground"],
-			"build"     : "js"
+			"build"     : "web:*"
 		},
 		{
 			"input"   : "./manifest.json",
 			"output"  : "./bin/ext.zip",
-			"build"   : {
-				"debug+release": ["compile-chrome"]
-			}
+			"build"   : "compile-chrome"
 		} 
 	]
 }

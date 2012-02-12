@@ -150,7 +150,7 @@ module.exports = merge = (ops, callback) ->
 			, => 
 
 				# do a bit of cleaning - remove the mesh file stored in the src directory (if it exists)
-				fs.unlink "#{srcDir}/mesh.json"
+				# fs.unlink "#{srcDir}/mesh.json"
 
 				@ meshConfigs, mainConfig	
 		

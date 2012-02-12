@@ -9,13 +9,12 @@ class BuildTarget
 	###
 	###
 
-	constructor: (@ops, @buildPhase) ->
-		
+	constructor: (@ops, @builderSearch) ->
 	###
 	###
 
-	build: (type, callback) ->
-		buildPhase.start type, @ops, callback
+	build: (builder, next) ->
+		builder.start @ops, next
 
 ### 
  chain of targets
@@ -26,7 +25,7 @@ module.exports = class BuildTargets
 	###
 	###
 
-	constructor: (@buildPhases) ->
+	constructor: (@builders) ->
 		@_targets = []
 
 	### 
@@ -36,7 +35,7 @@ module.exports = class BuildTargets
 	load: (targets) ->
 
 		for target in targets
-			@add new BuildTarget target, @buildPhases.get target.build
+			@add new BuildTarget target, target.build
 
 	###
 	###
@@ -50,8 +49,12 @@ module.exports = class BuildTargets
 	###
 
 	build: (type, callback) ->
-		
+
 		async.forEach @_targets,
-			(target, next) ->
-				target.build type, next
+			(target, next) =>
+
+				# replace the build target star with the phase ~ web:* -> web:debug, web:release
+				builder = @builders.find target.builderSearch.replace('*',type)
+
+				target.build builder, next
 			,callback

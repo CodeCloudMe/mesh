@@ -8,7 +8,7 @@ exports.Builder = class
 	###
 
 	constructor: (@name, @makeConfig) ->
-
+	
 	###
 	 load from raw config
 	###

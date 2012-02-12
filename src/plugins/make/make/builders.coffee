@@ -14,18 +14,45 @@ module.exports = class Builders
 	###
 
 	load: (builders) ->
-		
-		@add builderName, @factory.newBuilder(builderName, builders[builderName]) for builderName of builders
+
+		@add @factory.newBuilder(builderName, builders[builderName]) for builderName of builders
 			
 
 	###
+	 returns a builder based on the name
 	###
 
-	get: (name) -> @_builders[name]
+	get: (name) -> 
+		@_builders[name]
+
+	###
+	 finds a builder based on the pattern given
+	###
+
+	find: (search) -> 
+		tester = @_nameTester search
+
+
+		for name of @_builders
+			return @_builders[name] if tester.test name
+
+		return null
+		
 
 	###
 	###
 
-	add: (builder) -> @_builders[builder.name] = builder
+	add: (builder) -> 
+		@_builders[builder.name] = builder
+
+
+	###
+	###
+
+	_nameTester: (search) ->
+		
+		return search if search instanceof RegExp
+		return { test: search } if search instanceof Function
+		return new RegExp("^#{search.replace(/\./g,"\\.").replace(/\*\*/g,".*").replace(/\*/g,"[^\\.]")}$") if typeof search == "string"
 
 			
