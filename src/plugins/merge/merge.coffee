@@ -25,7 +25,7 @@ readPackageConfig = (pkg, callback) ->
 
 		loaded.src     = path.normalize "#{dir}/#{(dirs.src || '')}"
 		loaded.lib     = path.normalize "#{dir}/#{(dirs.lib || 'lib')}"
-		loaded.interm  = path.normalize "#{dir}/#{(dirs.interm || 'intermediate')}"
+		## loaded.interm  = path.normalize "#{dir}/#{(dirs.interm || 'intermediate')}"
 
 		loaded.original = config
 
@@ -133,7 +133,7 @@ module.exports = merge = (ops, callback) ->
 
 	,(config) ->
 		sourceDir = config.src
-		outputDir = outputDir || path.normalize "#{config.interm}/#{platform}"
+		outputDir = outputDir || path.normalize "#{config.lib}/#{platform}"
 
 
 		@()
@@ -182,7 +182,7 @@ module.exports = merge = (ops, callback) ->
 
 
 
-		libDir = path.normalize "#{outputDir}/#{targetPkg.original.directories.src || ''}"
+		libDir = path.normalize "#{outputDir}/#{targetPkg.original.directories.lib || ''}"
 
 		@ pkgs, targetPkg, libDir
 
@@ -234,19 +234,7 @@ module.exports = merge = (ops, callback) ->
 			,res.success (moduleDirs) =>
 				@ moduleDirs
 
-	# copy modules over to node_modules dir
-
-	###,(moduleDirs) ->
-
-		async.map moduleDirs
-			, (dir, next) =>
-				od = "#{input}/node_modules/#{path.basename dir}"
-				
-				copyr dir, od, => next null, od
-			, res.success (newDirs) =>
-				@ newDirs
-
-	###
+	
 	# filter out any modules that CANNOT be meshed
 	, (moduleDirs) ->
 
