@@ -11,29 +11,6 @@ outcome = require "outcome"
 ###
 ###
 
-readMeshConfig = (meshPath, callback) ->
-	fs.readFile meshPath, "utf8", (err, content) ->
-		
-		config = if content then JSON.parse content else {}
-
-		loaded = {}
-
-		# path to mesh config
-		loaded.path = meshPath
-
-		# directory of the project
-		loaded.dir  = path.dirname meshPath
-
-		loaded.merge = path.normalize "#{loaded.dir}/#{(config.merge || '')}"
-
-		# preverse the original config -- needs to be merged later on
-		loaded.original = config
-		
-		callback null, loaded
-
-###
-###
-
 readPackageConfig = (pkg, callback) ->
 	fs.readFile pkg, "utf8", (err, content) ->
 		config = if content then JSON.parse content else {}
