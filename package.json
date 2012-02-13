@@ -5,7 +5,6 @@
   "repository": {},
   "engines": {},
   "dependencies": {
-    "sardines": "<0.3",
     "celeri": "<0.3",
     "ncp": "<0.3",
     "haba": "<0.2.0",
@@ -18,7 +17,7 @@
     "colors": "0.6.x",
     "beanpoll": "0.2.x",
     "stepc":"0.0.x",
-    "handlebars":"1.0.5",
+    "handlebars":"1.0.x",
     "seq":"0.3.x",
     "resolve":"0.1.x"
   },
