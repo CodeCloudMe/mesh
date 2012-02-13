@@ -88,9 +88,3 @@ findDeps        = require('./analyzeDeps').findDependencies;
 
  	)
  }
-
-
-
-module.exports("/Users/craig/Dropbox/Developer/Jobs/Spice/private/spice.io", function(err, deps) {
-	console.log(deps.length)
-});

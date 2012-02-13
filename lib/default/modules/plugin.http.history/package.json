@@ -1,0 +1,7 @@
+{
+	"main": "./lib/node/index.js",
+	"directories": {
+		"src":"./src",
+		"lib":"./lib"
+	}
+}
