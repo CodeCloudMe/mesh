@@ -162,7 +162,6 @@ var findRequiredDeps = exports.findRequiredDeps = function(entry, callback, load
 
 				var key = dep.module ? dep.moduleName : dep.path;
 
-				// console.log(loaded.filesByKey[key])
 
 				if(loaded.filesByKey[key]) return;
 				loaded.filesByKey[key] = true;

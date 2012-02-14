@@ -29,3 +29,8 @@ exports.build = function(target, next) {
 		}))
 	});
 }
+
+
+exports.buildMessage = function(target) {
+	return "combining " + target.options.input;
+}

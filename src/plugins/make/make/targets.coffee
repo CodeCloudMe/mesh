@@ -54,6 +54,7 @@ module.exports = class BuildTargets
 			console.log "* target %d", ++index
 
 			# target.build builder, next
-			self.builders.build target.options.build.replace('*',type), target, this
-		.seq callback
+			self.builders.build target.options.build.replace('*',type), target, => @()
+		.seq () ->
+			callback()
 			

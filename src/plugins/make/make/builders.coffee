@@ -47,13 +47,13 @@ module.exports = class Builders
 	###
 	###
 
-	build: (name, options, next) ->
+	build: (name, target, next) ->
 		
 		builder = @find name
 
-		console.log "--> build %s", builder.name
+		console.log "--> #{builder.buildMessage target}"
 
-		builder.start options, next
+		builder.start target, next
 
 
 	###

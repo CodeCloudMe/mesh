@@ -19,4 +19,10 @@ exports.Builder = class
 	 start the build phase
 	###
 
-	start: (input, callback) ->
+	start: (target, callback) ->
+
+	###
+	###
+
+	buildMessage: (target) -> "build #{@name}"
+

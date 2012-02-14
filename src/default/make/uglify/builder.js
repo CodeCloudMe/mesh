@@ -53,6 +53,6 @@ exports.build = function(target, next) {
 
 
 exports.buildMessage = function(target) {
-	return "WOOT!"
+	return "uglifying - beautify: " + (!!target.options.beautfy)
 }
 
