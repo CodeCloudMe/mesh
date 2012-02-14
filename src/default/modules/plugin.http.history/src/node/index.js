@@ -1,19 +1,19 @@
 var connect = require('connect'),
 path        = require('path');
 
-exports.plugin = function(router) {
+exports.plugin = function(router, params) {
 
-	var platformDir = path.normalize(__dirname + '/../../../web');
 
-	console.log(platformDir)
-	
+	var publicDir = (params || {}).publicDir;
+
+
 
 	var srv = connect.createServer();
 	
-	srv.use(connect.static(platformDir));
+	if(publicDir) srv.use(connect.static(publicDir));
 	srv.use(require('./checkAgent'));
 	srv.use(require('./beanpoll')(router));
-	srv.use(connect.static(platformDir));
+	if(publicDir) srv.use(connect.static(publicDir));
 
 
 	srv.listen(8005);

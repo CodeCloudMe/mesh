@@ -148,7 +148,7 @@ function exists(file) {
 	}
 }
 
-function modulePath(script) {
+var modulePath = exports.modulePath = function(script) {
 	return 'modules/' + (script.moduleName || crc32(script.pkgPath));
 }
 

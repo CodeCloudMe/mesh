@@ -3,7 +3,9 @@ async            = require('async'),
 step             = require('stepc'),
 fs               = require('fs'),
 outcome          = require('outcome'),
-getPkgName 		 = require('./utils').getPackageName,
+utils            = require('./utils'),
+getPkgName 		 = utils.getPackageName,
+modulePath 		 = utils.modulePath,
 crc32			 = require('crc32');
 
 /**
@@ -71,7 +73,7 @@ function stringifyEntries(entries) {
  		},
  		on.success(function(content) {
 
- 			var path = entries[i].alias, tplFile = __dirname + '/tpl/module.tpl.js';
+ 			var path = script.alias, tplFile = __dirname + '/tpl/module.tpl.js';
 
 
  			var buffer = parseFile({ path: path, content: content}, tplFile);
