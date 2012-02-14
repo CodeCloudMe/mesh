@@ -1,0 +1,7 @@
+{
+  "directories": {},
+  "name": "plugin.http.history",
+  "dependencies": {
+    "underscore": "*"
+  }
+}

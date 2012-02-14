@@ -1,6 +1,6 @@
 var parseFile    = require('./tpl/parser').parseFile,
 async            = require('async'),
-step             = require('step'),
+step             = require('stepc'),
 fs               = require('fs'),
 outcome          = require('outcome'),
 getPkgName 		 = require('./utils').getPackageName,

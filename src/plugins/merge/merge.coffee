@@ -76,27 +76,39 @@ copyDir = (input, output, next) ->
 	step.async () ->
 			mkdirp output, 0777, @
 		,() ->
-			fs.readdir input, res.success @
-		,(files) ->	
+			fs.readdir input, @
+		,res.success( (files) ->	
 			async.forEach files,
 				(file, next) ->
 					ifile = "#{input}/#{file}"
 					ofile   = "#{output}/#{file}"
+
 					copyr ifile, ofile, next
 				, next
+		)
 		
 ###
 ###
 
 copyr = (input, output, next) ->
 
-	res = outcome.error next
+	res = outcome.error () ->
+		return next new Error "#{input} does not exist"
 
-
-	fs.lstat input, res.success (stat) ->
+	fs.lstat input,	res.success (stat) ->
 
 		return copyDir(input, output, next) if stat.isDirectory()
 		return copyFile input, output, next
+
+
+linkToParent = (outputDir, to, callback) ->
+	return callback() if not to
+
+	step.async () ->
+			fs.unlink to, @
+		,() ->
+			fs.symlink outputDir, to, @
+		, callback
 
 
 module.exports = merge = (ops, callback) ->
@@ -116,7 +128,7 @@ module.exports = merge = (ops, callback) ->
 	sourceDir  = null
 
 	# the OUTPUT directory from mesh.json
-	outputDir  = ops.output
+	outputDir  = null #ops.output
 
 	platformDirs = null
 
@@ -124,42 +136,58 @@ module.exports = merge = (ops, callback) ->
 
 	incModules = []
 
+	nodeModulesDir = "#{input}/node_modules"
+	outputModulesDir = null
+	linkTo  = ops.link
 
 
 
 	step.async () -> 
-		readPackageConfig "#{input}/package.json", res.success @
+		readPackageConfig "#{input}/package.json",  @
 
 	# based on the config, set the SOURCE, and the OUTPUT
 
-	,(config) ->
+	,res.success( (config) ->
 		appPkg    = config.original
 		sourceDir = config.src
 		outputDir = outputDir || path.normalize "#{config.lib}/#{platform}"
-
-
+		outputModulesDir = "#{outputDir}/node_modules"
 		@()
-
-	# remove the output file
-
-	,() ->
-		rmdirr outputDir, @
+	)
 
 	# first make the output dir
 
 	,() ->
-		mkdirp outputDir, 0777, res.success @
+		mkdirp outputModulesDir, 0777, @
 
+	,() ->	
+		fs.readdir nodeModulesDir, @
+
+	,(err, dirs) ->
+
+		# node modules does not exist.
+		return @() if err
+
+		async.forEach dirs, 
+			(dir, next) ->
+				fs.symlink "#{nodeModulesDir}/#{dir}", "#{outputModulesDir}/#{dir}", () -> next()
+			,@ 
+	
+
+	,res.success( () ->
+		linkToParent outputDir, linkTo, @
 
 	# find the target platform first
+	)
 
-	,() ->
-		router.request("target/platform/dirs").query({ platformDir: sourceDir, platforms: [platform] }).response(res.success @).pull()
+	,res.success( () ->
+		router.request("target/platform/dirs").query({ platformDir: sourceDir, platforms: [platform] }).response(@).pull()
+	)
 
 
 	# next need to find the mesh files
-	 
-	,(dirs) -> 
+
+	,res.success( (dirs) -> 
 		
 		
 		pkgFiles = []
@@ -167,11 +195,11 @@ module.exports = merge = (ops, callback) ->
 		platformDirs = dirs
 
 
-		async.map pkgFiles, readPackageConfig, res.success @
-	
+		async.map pkgFiles, readPackageConfig, @
+	)
 	# find the target config, and make the lib directory
 
-	,(pkgs) ->
+	,res.success( (pkgs) ->
 
 		# want the target platform to be copied last
 		pkgs = pkgs.sort (a, b) -> if path.basename(a.dir) == platform  then 1 else -1
@@ -187,22 +215,22 @@ module.exports = merge = (ops, callback) ->
 		libDir = path.normalize "#{outputDir}/#{targetPkg.original.directories.lib || ''}"
 
 		@ pkgs, targetPkg, libDir
-
+	)
 
 
 	# copy the target platforms to the output directory
 
 	,(pkgs, mainPkg, dir) ->
-		
+			
 		async.forEach pkgs
 			,(meshConfig, next) ->
 				copyr meshConfig.src, dir, ->
-					copyr "#{meshConfig.dir}/mesh.merge.json", "#{outputDir}/mesh.merge.json", next
+					# merge might not exist
+					copyr "#{meshConfig.dir}/mesh.merge.json", "#{outputDir}/mesh.merge.json", () -> next()
 			, => 
 				@ pkgs, mainPkg	
 		
 	,(pkgs, mainPkg) ->
-		
 
 		# make the directory - it could be something like "js" - for web
 		copyr mainPkg.dir, outputDir, res.success () =>
@@ -231,21 +259,21 @@ module.exports = merge = (ops, callback) ->
 
 	,(config) ->
 
-		fs.writeFile "#{outputDir}/package.json", JSON.stringify(config, null, 2), res.success @
+		fs.writeFile "#{outputDir}/package.json", JSON.stringify(config, null, 2), @
 
 	# check to make sure the modules exist
 
-	,() ->
+	,res.success( () ->
 
 		async.map incModules
 			,(module, next) =>
 				router.request("find/module/dir").query({ module: module, dirs: ["#{input}/modules", "#{input}/node_modules"] }).response(next).pull()
-			,res.success (moduleDirs) =>
-				@ moduleDirs
+			,@
 
-	
+	)
+		
 	# filter out any modules that CANNOT be meshed
-	, (moduleDirs) ->
+	,res.success( (moduleDirs) ->
 
 		pkgPaths = []
 
@@ -254,7 +282,7 @@ module.exports = merge = (ops, callback) ->
 
 
 		async.filter pkgPaths, path.exists, @
-
+	)
 
 	# recursively load the module configs
 
@@ -270,12 +298,14 @@ module.exports = merge = (ops, callback) ->
 					input: modInput, # the mesh.json file exists here
 
 					# output is copied to new node_modules dir since main entry point could be different.
-					output: "#{outputDir}/node_modules/#{path.basename(modInput)}"
+					link: "#{outputModulesDir}/#{path.basename(modInput)}"
 					platform: platform,
 					router: router
 				}, next
 
 
-			,res.success (result) ->
-				callback null, { output: outputDir }
+			,@
 	
+	, res.success( () ->
+		callback null, { output: outputDir }
+	)

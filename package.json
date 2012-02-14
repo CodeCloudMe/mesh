@@ -21,7 +21,8 @@
     "seq":"0.3.x",
     "resolve":"0.1.x",
     "uglify-js":"1.2.x",
-    "crc32":"0.2.x"
+    "crc32":"0.2.x",
+    "rmdirr":"0.0.x"
   },
   "devDependencies": {},
   "main": "./lib/index.js",

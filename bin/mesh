@@ -9,7 +9,7 @@ path    = require("path");
 
 
 var on = outcome.error(function(err) {
-	console.error(err.message);
+	console.error(err.stack);
 })
 
 

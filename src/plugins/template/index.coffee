@@ -1,6 +1,5 @@
 _        = require "underscore"
 fs       = require "fs"
-ejs      = require "ejs"
 utils    = require "./utils"
 findit   = require "findit"
 
