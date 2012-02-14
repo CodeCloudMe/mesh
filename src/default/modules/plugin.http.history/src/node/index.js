@@ -9,11 +9,11 @@ exports.plugin = function(router) {
 	
 
 	var srv = connect.createServer();
+	
 	srv.use(connect.static(platformDir));
-
-
 	srv.use(require('./checkAgent'));
 	srv.use(require('./beanpoll')(router));
+	srv.use(connect.static(platformDir));
 
 
 	srv.listen(8005);

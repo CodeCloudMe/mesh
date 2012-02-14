@@ -46,7 +46,8 @@ copyMergeable = (input, output, next) ->
 
 			ofg = _.extend(ocfg, icfg);
 
-			fs.writeFile output, JSON.stringify(ofg, null, 2), next
+			fs.writeFileSync output, JSON.stringify(ofg, null, 2);
+			next()
 
 
 ###
