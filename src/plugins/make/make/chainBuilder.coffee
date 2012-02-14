@@ -27,7 +27,8 @@ module.exports = class ChainBuilder extends BaseBuilder
 		seq(@chains).
 		seqEach( (chain, next) ->
 			self.makeConfig.builders.build chain, input, this
-		).seq(callback)
+		).seq ->
+			callback()
 	
 
 

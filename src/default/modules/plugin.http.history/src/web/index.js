@@ -1,7 +1,7 @@
 require('./history');
 
 var utils = require('./utils'),
-Structr = require('structr'),
+_    = require('underscore'),
 Url = require('url'),
 logger = require('winston').loggers.get('history.core'),
 beanpoll = require('beanpoll');
@@ -51,7 +51,7 @@ exports.plugin = function(router)
 
 		logger.info('navigate to ' + parts.pathname);
 
-		router.request(parts.pathname).query(Structr.copy(parts.query, data, true)).headers({ subdomain: subdomain, stream: true }).success(function(stream)
+		router.request(parts.pathname).query(_.extend(parts.query, data, true)).headers({ subdomain: subdomain, stream: true }).success(function(stream)
 		{
 
 			logger.info('dumping stream data');
@@ -121,7 +121,7 @@ exports.plugin = function(router)
 			var uri = urlParts.pathname,
 			newChannel = normalizeChannel(uri);
 
-			data = Structr.copy(urlParts.query, data, true);
+			data = _.extend(urlParts.query, data);
 
 
 			if(router.request(uri).type('pull').tag('http', true).hasListeners())
@@ -151,8 +151,7 @@ exports.plugin = function(router)
 		/**
 		 */
 
-		'push -one -hook :app/ready': function()
-		{    
+		'push -one init': function() {
 			logger.info('app ready');
 
 

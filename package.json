@@ -20,7 +20,8 @@
     "handlebars":"1.0.x",
     "seq":"0.3.x",
     "resolve":"0.1.x",
-    "uglify-js":"1.2.x"
+    "uglify-js":"1.2.x",
+    "crc32":"0.2.x"
   },
   "devDependencies": {},
   "main": "./lib/index.js",

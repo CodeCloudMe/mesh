@@ -139,49 +139,63 @@ exports.findFiles = function(file, search, onFile, onEnd) {
 }
 
 
+function exists(file) {
+	try {
+		return !!fs.lstatSync(file);
+	} catch(e) {
+		return false;
+	}
+}
+
 /**
  * gets info about the given js file - core module? third-party? relative?
  */
 
 exports.getPathInfo = function(required, cwd) {
 	
-	//relative?
-	/*if(cwd && required.substr(0, 1) == ".") {
-		return { path: require.resolve(cwd + "/" + required) };
-	}*/
 
 	try {
 
 		
-		var realPath = resolvePath(required, cwd),
-		pkgPath      = exports.findPackagePath(path.dirname(realPath)),
-		name         = pkgPath ? getPackageName(pkgPath) : null,
-		im           = pkgPath ? exports.isMain(realPath, pkgPath) : pkgPath;
- 	
-		return {
+		var coreModulePath = __dirname + "/builtin/" + required + ".js";
 
+		var ret = {
 			stmt: required,
-
-			path: realPath,
-
-			//name of the module IF it exists
-			moduleName: name,
-
-			//path to package.json - yep it's a module
-			pkgPath: pkgPath,
-
-			pathFromPkg: (realPath || '').replace(path.dirname(pkgPath), "."),
-
-			//module? - core, or third party
-			module: required.substr(0,1) != '.',
-
-			isMain: !!im,
-
-			//built into node?
-			core: realPath && realPath.split('/').length == 1
+			module: required.substr(0,1) != '.'
 		};
 
+		if(exists(coreModulePath)) {
+
+			ret.core = true;
+			ret.moduleName = required;
+			ret.pathFromPkg = '.';
+			ret.module = true;
+			ret.path = coreModulePath;
+
+		} else {
+
+			var realPath = resolvePath(required, cwd),
+			pkgPath      = exports.findPackagePath(path.dirname(realPath)),
+			name         = pkgPath ? getPackageName(pkgPath) : null,
+			im           = pkgPath ? exports.isMain(realPath, pkgPath) : pkgPath;
+
+			ret.path = realPath;
+			ret.moduleName = name;
+			ret.pkgPath = pkgPath;
+			ret.isMain = !!im;
+			ret.pathFromPkg = (realPath || '').replace(path.dirname(pkgPath), ".");
+
+		}
+
+ 		 
+ 		return ret;
+
 	} catch(e) {
+
+		console.log(e.stack)
+
+		console.error('cannot load "%s" in "%s"', required, cwd);
+
 		//something went wront
 		return {
 			stmt: required,
@@ -229,6 +243,8 @@ function resolvePath(module, cwd) {
 	});
 
 }
+
+
 
 
 

@@ -37,7 +37,6 @@ module.exports = class BuildTargets
 	###
 
 	add: (target) ->
-
 		@_targets.push target
 
 
@@ -53,8 +52,10 @@ module.exports = class BuildTargets
 		seqEach (target) ->
 			console.log "* target %d", ++index
 
+			return this() if not target.options.build
+
 			# target.build builder, next
-			self.builders.build target.options.build.replace('*',type), target, => @()
+			self.builders.build target.options.build.replace('*',type), target, @
 		.seq () ->
 			callback()
 			

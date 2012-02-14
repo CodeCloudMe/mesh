@@ -1,7 +1,6 @@
 var _sardines = (function()
 {
-	var paths = { '':1 }, 
-	nodeRequire,
+	var nodeRequire,
 	allFiles = {};
 
 	var moduleDoesntExist = function(path)
@@ -32,15 +31,7 @@ var _sardines = (function()
 		addPathToTree(path);
 
 		_sardines.moduleFactories[path] = moduleFactory,
-		dir = dirname(path),
-		modulePaths = dir.split('node_modules');
-
-		for(var i = 0, n = modulePaths.length; i < n; i++)
-		{
-			var cpath = [cpath, modulePaths[i], 'node_modules'].join('/').replace(/\/+/g,'/');
-
-			paths[cpath] = 1;
-		}
+		dir = dirname(path);
 
 		return moduleFactory;
 	}
@@ -148,16 +139,16 @@ var _sardines = (function()
 
 	function findModulePath(path)
 	{
-		var tryPaths = [path, path + '/index.js', path + '.js'];
+		var tryPaths = [path, path + '/index.js', path + '.js'],
+		modulePaths = ['modules',''];
 
 
-		for(var requirePath in paths)
+		for(var j = modulePaths.length; j--;)
 		{
 			for(var i = tryPaths.length; i--;)
 			{
-				var fullPath = normalizePath(requirePath+'/'+tryPaths[i]);
-
-
+				var fullPath = normalizePath('/'+modulePaths[j]+'/'+tryPaths[i]);
+				
 				if(_sardines.moduleFactories[fullPath]) return fullPath;
 			}
 		}		

@@ -17,17 +17,18 @@ exports.build = function(target, next) {
 	 * 2. entry point specified, so scan ONLY scripts which are used ~ (look for require() stmts)
 	 */
 
-	analyzeDeps.includeProject(target.cwd + "/" + ops.input, function(err, deps) {
+	analyzeDeps.includeProject(target.cwd + "/" + ops.input, on.success(function(deps) {
 
 		//next item should take this script
 		ops.input = ops.output;
 
 		combineScripts({
-			include: deps
+			include: deps,
+			entries: [deps[0]]
 		}, on.success(function(content) {
 			fs.writeFile(target.cwd + "/" + ops.input, content, next);
 		}))
-	});
+	}));
 }
 
 

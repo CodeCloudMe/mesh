@@ -41,9 +41,7 @@ copyMergeable = (input, output, next) ->
 	step.async () ->
 			path.exists output, @
 		,(outExists) ->
-			return copyFile2 input, output, next if not outExists
-
-			ocfg = JSON.parse(fs.readFileSync(output, "utf8"))
+			ocfg = if outExists then JSON.parse(fs.readFileSync(output, "utf8")) else {}
 			icfg = JSON.parse(fs.readFileSync(input, "utf8"))
 
 			ofg = _.extend(ocfg, icfg);
@@ -121,6 +119,8 @@ module.exports = merge = (ops, callback) ->
 
 	platformDirs = null
 
+	appPkg = null
+
 	incModules = []
 
 
@@ -132,6 +132,7 @@ module.exports = merge = (ops, callback) ->
 	# based on the config, set the SOURCE, and the OUTPUT
 
 	,(config) ->
+		appPkg    = config.original
 		sourceDir = config.src
 		outputDir = outputDir || path.normalize "#{config.lib}/#{platform}"
 
@@ -214,8 +215,15 @@ module.exports = merge = (ops, callback) ->
 		originalPkgs.push pkg.original for pkg in pkgs
 		originalPkgs.push mainPkg.original
 
-		@ _.extend.apply(null, originalPkgs) || {}
 
+		pkg = _.extend.apply(null, originalPkgs) || {}
+		
+		delete appPkg.main
+
+		# copy the root package to the new package - don't copy some stuff (main)
+		_.defaults pkg, appPkg
+
+		@ pkg
 	
 	# save the mesh config
 	

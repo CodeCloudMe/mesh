@@ -1,7 +1,11 @@
 {
+	"name":"plugin.http.history",
 	"main": "./lib/node/index.js",
 	"directories": {
 		"src":"./src",
 		"lib":"./lib"
+	},
+	"dependencies": {
+		"underscore":"*"
 	}
 }
