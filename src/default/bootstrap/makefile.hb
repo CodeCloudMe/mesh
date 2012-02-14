@@ -1,4 +1,6 @@
 all:{{#each platforms}} {{this}}{{/each}}
 
-%:
-	./node_modules/mesh/bin/cli make $@ 
+{{#each platforms}}
+{{this}}:
+	./node_modules/mesh/bin/mesh make {{this}} 
+{{/each}}

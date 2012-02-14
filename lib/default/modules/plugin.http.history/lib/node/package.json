@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "express": "*"
-  },
-  "directories": {},
-  "name": "plugin.http.history"
-}

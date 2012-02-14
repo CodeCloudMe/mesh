@@ -2,9 +2,9 @@
 	
 	"name": "{{name}}",
 	"description": "{{description}}",
-	"author": "{{author}}"
+	"author": "{{author}}",
 	"dependencies": {
-		
+		"mesh":"*"
 	},
 	"devDependencies": {
 		
@@ -15,7 +15,6 @@
 	"main": "./lib/{{defaultPlatform}}/index.js",
 	"directories": {
 		"src": "./src",
-		"interm": "./intermediate",
 		"lib": "./lib"
 	}
 }

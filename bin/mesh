@@ -48,7 +48,7 @@ function loadCli(router) {
 
 
 		var input = replaceCwd(ops.input || '.'),
-		output    = replaceCwd(ops.output || input + '/meshed') + '/' + (ops.platform || '')
+		output    = replaceCwd(ops.output || input + '/') + '/' + (ops.platform || '')
 		
 		next(null, {
 			input: input,
@@ -94,6 +94,7 @@ function loadCli(router) {
 		description: 'Builds project for target platform',
 		optional: dirFlags
 	}, function(ops) {
+
 
 		router.
 		request('make').
