@@ -52,22 +52,10 @@ function stringifyEntries(entries) {
 	var buffer = [];
 
 	for(var i = entries.length; i--;) {
-		buffer.push("\"" + alias(entries[i]) + "\"");
+		buffer.push("\"" + entries[i].alias + "\"");
 	}
 
 	return "[" + buffer.join(",") + "]";
-}
-
-function modulePath(script) {
-	return 'modules/' + (script.moduleName || crc32(script.pkgPath));
-}
-
-
-function alias(script) {
-
-	//no module name given? it IS the target project we're compiling. Unusual, but set to a shorter hash version fo the package
-	//path in case
-	return script.pathFromPkg.replace('.', modulePath(script));
 }
 
 
@@ -83,7 +71,7 @@ function alias(script) {
  		},
  		on.success(function(content) {
 
- 			var path = alias(script), tplFile = __dirname + '/tpl/module.tpl.js';
+ 			var path = entries[i].alias, tplFile = __dirname + '/tpl/module.tpl.js';
 
 
  			var buffer = parseFile({ path: path, content: content}, tplFile);
