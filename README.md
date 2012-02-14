@@ -30,27 +30,13 @@ Here's an example:
 
 	mesh bootstrap web+node+chrome+firefox
 
-The bootstrap script will produce some boilerplate code. Here's what it consists of:
-
-
-- `project/path/`
-	- `makefile` - makes each app - just call `make node`, `make iphone`, etc.
-	- `package.json` - Info about your project
-	- `src/` - boilerplate code is dumped here
-		- `common/`
-			- `your common JS files here` - stuff that gets used in all platforms
-		- `node/`
-			- `index.js` - entry point
-			- `mesh.json` - tells mesh how to merge this platform
-		- `web/`
-		- `firefox/`
-		- `safari/`
-		
+The bootstrap script will produce some boilerplate code. 
 After you're done initializing your project, you can go ahead and make it:
 
 ```
 	mesh make [platform]
 ```
+
 
 ## Meshing Libraries Together
 

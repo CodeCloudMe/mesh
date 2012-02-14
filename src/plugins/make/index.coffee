@@ -43,7 +43,7 @@ exports.plugin = (router, params) ->
 
 			# load the target mesh file
 			step.async () ->
-				cfg.loadFile "#{input}/mesh.json", res.success @
+				cfg.loadFile "#{input}/mesh.json", => @ cfg
 
 			# on load start building
 			,(config) ->

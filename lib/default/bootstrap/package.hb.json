@@ -15,7 +15,6 @@
 	"main": "./lib/{{defaultPlatform}}/index.js",
 	"directories": {
 		"src": "./src",
-		"interm": "./intermediate",
 		"lib": "./lib"
 	}
 }
