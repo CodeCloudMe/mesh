@@ -335,6 +335,7 @@ var includeProject = exports.includeProject = function(dirOrScript, callback) {
 
 
 		function() {
+
 			fs.lstat(dirOrScript, this);
 		},
 

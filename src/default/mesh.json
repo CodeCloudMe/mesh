@@ -5,6 +5,9 @@
 		},
 		"entry": {
 			"script": "./make/entry/builder.js"
+		},
+		"uglify": {
+			"script": "./make/uglify/builder.js"
 		}
 	}
 }

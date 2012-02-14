@@ -19,7 +19,8 @@
     "stepc":"0.0.x",
     "handlebars":"1.0.x",
     "seq":"0.3.x",
-    "resolve":"0.1.x"
+    "resolve":"0.1.x",
+    "uglify-js":"1.2.x"
   },
   "devDependencies": {},
   "main": "./lib/index.js",
