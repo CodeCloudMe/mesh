@@ -1,0 +1,21 @@
+{
+	
+	"name": "{{name}}",
+	"description": "{{description}}",
+	"author": "{{author}}",
+	"version":"0.0.1",
+	"dependencies": {
+		"mesh":"*"
+	},
+	"devDependencies": {
+		
+	},
+	"scripts": {
+		"install": "make {{defaultPlatform}}"
+	},
+	"main": "./lib/{{defaultPlatform}}/index.js",
+	"directories": {
+		"mesh-src": "./src",
+		"lib": "./lib"
+	}
+}

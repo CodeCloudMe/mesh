@@ -23,7 +23,7 @@ readPackageConfig = (pkg, callback) ->
 
 		dirs = config.directories
 
-		loaded.src     = path.normalize "#{dir}/#{(dirs.src || '')}"
+		loaded.src     = path.normalize "#{dir}/#{(dirs["mesh-src"] || '')}"
 		loaded.lib     = path.normalize "#{dir}/#{(dirs.lib || 'lib')}"
 		## loaded.interm  = path.normalize "#{dir}/#{(dirs.interm || 'intermediate')}"
 
@@ -111,8 +111,21 @@ linkToParent = (outputDir, to, callback) ->
 		, callback
 
 
+meshable = (pkg, callback) ->
+
+	step.async () ->
+			fs.readFile pkg, "utf8", @
+		, (err, content) ->
+			return callback false if err
+			try 
+				callback JSON.parse(content).directories["mesh-src"]
+			catch e
+				callback false
+			
+
+
 module.exports = merge = (ops, callback) ->
-	
+
 	res        = outcome.error callback
 
 	# the input directory where the PROJECT lives. mesh.json should be here - just like package.json
@@ -205,9 +218,6 @@ module.exports = merge = (ops, callback) ->
 		pkgs = pkgs.sort (a, b) -> if path.basename(a.dir) == platform  then 1 else -1
 
 
-		for pkg in pkgs
-			incModules = incModules.concat Object.keys pkg.original.dependencies || []
-
 		targetPkg = pkgs.pop()
 
 
@@ -245,12 +255,16 @@ module.exports = merge = (ops, callback) ->
 		originalPkgs.push mainPkg.original
 
 
+
 		pkg = _.extend.apply(null, originalPkgs) || {}
 		
 		delete appPkg.main
 
 		# copy the root package to the new package - don't copy some stuff (main)
 		_.defaults pkg, appPkg
+
+
+		incModules = incModules.concat Object.keys pkg.dependencies || {}
 
 		@ pkg
 	
@@ -264,6 +278,7 @@ module.exports = merge = (ops, callback) ->
 	# check to make sure the modules exist
 
 	,res.success( () ->
+
 
 		async.map incModules
 			,(module, next) =>
@@ -281,12 +296,13 @@ module.exports = merge = (ops, callback) ->
 		pkgPaths.push "#{dir}/package.json" for dir in moduleDirs
 
 
-		async.filter pkgPaths, path.exists, @
+		async.filter pkgPaths, meshable, @
 	)
 
 	# recursively load the module configs
 
 	,(pkgPaths) ->
+
 
 		async.forEach pkgPaths
 			,(pkgPath, next) =>
