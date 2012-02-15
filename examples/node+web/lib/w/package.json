@@ -1,0 +1,11 @@
+{
+  "directories": {},
+  "name": "",
+  "description": "",
+  "author": "",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "install": "make node"
+  }
+}

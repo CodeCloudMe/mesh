@@ -1,6 +1,12 @@
 {
   "dependencies": {
-    "express": "*"
+    "express": "*",
+    "underscore": "*",
+    "connect": "1.8.x",
+    "sprintf": "0.1.x",
+    "mesh-winston": "0.0.x",
+    "mime": "1.2.x",
+    "vine": "<0.2.0"
   },
   "directories": {},
   "name": "plugin.http.history"

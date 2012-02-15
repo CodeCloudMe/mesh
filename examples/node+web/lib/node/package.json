@@ -1,0 +1,15 @@
+{
+  "directories": {},
+  "dependencies": {
+    "fig": "0.0.x",
+    "plugin.http.history": "*",
+    "haba": "0.0.x"
+  },
+  "name": "",
+  "description": "",
+  "author": "",
+  "devDependencies": {},
+  "scripts": {
+    "install": "make node"
+  }
+}

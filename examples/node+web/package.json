@@ -1,0 +1,21 @@
+{
+	
+	"name": "",
+	"description": "",
+	"author": "",
+	"dependencies": {
+		"fig":"0.0.x",
+		"haba":"0.0.x"
+	},
+	"devDependencies": {
+		
+	},
+	"scripts": {
+		"install": "make node"
+	},
+	"main": "./lib/web/js/index.js",
+    "directories": {
+        "mesh-src": "./src",
+        "lib": "./lib"
+    }
+}

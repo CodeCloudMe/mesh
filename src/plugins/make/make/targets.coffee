@@ -50,7 +50,7 @@ module.exports = class BuildTargets
 
 		seq(@_targets).
 		seqEach (target) ->
-			console.log "* target %d", ++index
+			console.log "make target %d", ++index
 
 			return this() if not target.options.build
 

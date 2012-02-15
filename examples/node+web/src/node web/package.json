@@ -1,0 +1,6 @@
+{
+    "dependencies": {
+    	"fig":"*",
+    	"plugin.http.history":"*"
+    }
+}

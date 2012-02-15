@@ -263,10 +263,11 @@ module.exports = merge = (ops, callback) ->
 		delete appPkg.main
 
 		# copy the root package to the new package - don't copy some stuff (main)
-		_.defaults pkg, appPkg
+		pkg = _.defaults pkg, appPkg
+		pkg.dependencies = _.extend pkg.dependencies || {}, appPkg.dependencies
 
 
-		incModules = incModules.concat Object.keys pkg.dependencies || {}
+		incModules = incModules.concat Object.keys(pkg.dependencies || {})
 
 		@ pkg
 	
