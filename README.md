@@ -1,18 +1,23 @@
-## Write one app, deploy to MANY platforms.
+## Cross-Platform JavaScript Build System
 
-### Note, I've hardly started on this - it's very much a work in progress.
+## Motivation
 
-
-## Features
-
-- Work with a single code base.
-- Seemlessly integrate between other platforms (front-end / backend).
+- Ability to use the same libraries, same API's across multiple platforms without refactoring code.
+- Some standardization for writing javascript-based apps (commonjs).
+- Keeps platform-specific code separate from core implementation (common library).
+- Flexible enough to customize build processes. 
+- Ability to be very specific about a platform, e.g., `mesh make web:ie:6`, `mesh make web:firefox:7`
+- Seamlessly communicate between two different javascript apps, e.g., web + node.
+- To other really cool stuff, e.g., serving single-page apps and static websites from the same code.
 
 ## Supports
 
 - Web 
+- Node.js
+
+## Soon
+
 - Browser Extensions: **Firefox**, **Safari**, **Chrome**, **IE**, **Opera**, **Bookmarklets**
-- Server Side: **Node**
 - Soon: Titanium, Phonegap
 
 
