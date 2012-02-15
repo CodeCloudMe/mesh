@@ -4,7 +4,7 @@ path        = require('path');
 exports.plugin = function(router, params) {
 
 
-	var publicDir = (params || {}).publicDir;
+	var publicDir = this.params("publicDir");
 
 
 

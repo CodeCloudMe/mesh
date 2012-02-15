@@ -48,6 +48,7 @@ exports.plugin = (router, params) ->
 			step.async () -> 
 					mkdirp outputSrc, 0777,  @
 
+				###
 				,() ->
 					
 					pkg = {
@@ -59,6 +60,7 @@ exports.plugin = (router, params) ->
 					npm.load pkg, () =>
 						process.chdir output
 						npm.commands.link ["mesh"], @
+				###
 				
 				## then read the files from the bootstrap dir
 				,() -> 

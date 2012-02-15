@@ -10,12 +10,7 @@ pluginLoader.
 options(router).
 paths(__dirname + "/node_modules").
 params({
-	"fig": {
-		dirs: [__dirname + "/../web"]
-	},
-	"plugin.http.history": {
-		publicDir: __dirname + "/../web"
-	}
+	publicDir: __dirname + "/../web"
 }).
 require(__dirname + "/plugins").
 require('fig').

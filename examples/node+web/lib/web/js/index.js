@@ -190,12 +190,7 @@ pluginLoader.
 options(router).
 paths(__dirname + "/node_modules").
 params({
-	"fig": {
-		dirs: [__dirname + "/../web"]
-	},
-	"plugin.http.history": {
-		publicDir: __dirname + "/../web"
-	}
+	publicDir: __dirname + "/../web"
 }).
 require(__dirname + "/plugins").
 require('fig').
@@ -238,14 +233,8 @@ fs = require('./fs'),
 path = require('path');
 
 
-
 var fileExists = function(file) {
-	try {
-		fs.statSync(file);
-		return true;
-	} catch (e) {
-		return false;
-	}
+	return fs.exists(file);
 }
 
 //deprecated.
@@ -318,7 +307,7 @@ module.exports = function() {
 
 	var loadDirectory = {
 		test: function(dir) {
-			return fileExists(dir) && fs.statSync(dir).isDirectory();
+			return fileExists(dir) && fs.isDirectory(dir);
 		},
 		prepare: function(dir, callback) {
 			var files = fs.readdirSync(dir),
@@ -370,7 +359,7 @@ module.exports = function() {
 
 		fs.readdirSync(cwd).forEach(function(basename) {
 			var fullPath = cwd + '/' + basename;
-			if(fs.statSync(fullPath).isDirectory()) {
+			if(fs.isDirectory(fullPath)) {
 				findModules(search, fullPath, modules);
 			} else 
 			if(basename.match(search)) {
@@ -424,7 +413,7 @@ module.exports = function() {
 
 
 	//now that all the core loaders are in, we can add the additional loaders dropped in ./loaders (cleaner)
-	haba.require( __dirname + '/plugins');
+	// haba.require( __dirname + '/plugins');
 
 
 	return haba;
@@ -434,7 +423,9 @@ module.exports.loader = module.exports;
 module.exports.paths  = core.paths;
 });
 _sardines.register("/modules/fig/index.js", function(require, module, exports, __dirname, __filename) {
-	var views      = require('./views'),
+	//#include ./plugins
+
+var views      = require('./views'),
 model          = require('./views/model'),
 template       = require('./views/template'),
 concrete       = require('./views/concrete'),
@@ -458,8 +449,8 @@ var views = {
 
 exports.plugin = function(router, params) {
 	
-	templatePlugin.plugin(router, params);
-	viewsPlugin.plugin(router, params);
+	this.require(__dirname + "/plugins/template");
+	this.require(__dirname + "/plugins/views");
 
 
 	
@@ -662,62 +653,6 @@ exports.plugin = function(router)
 
 				router.push('history/ready');                            
 			}, 1);
-		}
-	})
-}
-});
-_sardines.register("/modules/41147061/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
-	module.exports = function(fig) {
-		
-	var views = fig.views;
-
-
-	views.IndexView = views.Template.extend({
-		
-		tpl: '/index.html'
-	});
-
-
-	views.HelloView = views.View.extend({
-		
-		'override render': function() {
-			this._super();
-
-			this.$$(this.el).html('html!');
-		}
-	});
-
-	return views;
-}
-});
-_sardines.register("/modules/41147061/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
-	
-
-exports.plugin = function(router) {
-	
-	var views;
-	
-	router.on({
-		
-		'push -pull fig': function(fig) {
-			views = require('./views')(fig);
-		},
-
-
-		/**
-		 */
-
-		'pull -method=GET view -> home OR /': function(req, res) {
-			req.addView(new views.IndexView());
-			if(!this.next()) req.display();
-		},
-
-		/**
-		 */
-
-		'pull -method=GET view -> hello': function(req, res) {
-			req.addView(new views.HelloView());
-			if(!this.next()) req.display();
 		}
 	})
 }
@@ -1580,6 +1515,68 @@ _sardines.register("/modules/beanpoll/lib/concrete/response.js", function(requir
 }).call(this);
 
 });
+_sardines.register("/modules/41147061/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
+	module.exports = function(fig) {
+		
+	var views = fig.views;
+
+
+	views.IndexView = views.Template.extend({
+		
+		tpl: '/index.html',
+
+		'override render': function() {
+			this._super();
+		}
+	});
+	
+
+	views.HelloView = views.View.extend({
+		
+		'el': '#page',
+
+		'override render': function() {
+			this._super();
+			this.$$(this.el).html('html!');
+		}
+	});
+
+	return views;
+}
+});
+_sardines.register("/modules/41147061/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
+	
+
+exports.plugin = function(router) {
+	
+	var views;
+	
+	router.on({
+		
+		'push -pull fig': function(fig) {
+			views = require('./views')(fig);
+		},
+
+
+		/**
+		 */
+
+		'pull -method=GET view -> home OR /': function(req, res) {
+			req.addView(new views.IndexView());
+			if(!this.next()) req.display();
+		},
+
+		/**
+		 */
+
+		'pull -method=GET home -> view -> hello': function(req, res) {
+			
+			req.addView(new views.HelloView());
+			if(!this.next()) req.display();
+		}
+	})
+}
+});
 _sardines.register("/modules/haba/core.js", function(require, module, exports, __dirname, __filename) {
 	var path = require('path'),
 EventEmitter = require('events').EventEmitter,
@@ -1851,7 +1848,7 @@ module.exports = function() {
 		}
 
 
-		throw new Error('Unable to load plugin ' + required);
+		throw new Error('Unable to load plugin: ' + required);
 	}
 
 
@@ -2108,8 +2105,7 @@ exports.isDirectory = function(path) {
 	return !path.match(/\.\w+$/);
 }
 
-exports.readdirSync = function(path) {
-
+function getPath(path) {
 	var parts = path.split('/'),
 	cp = allFiles;
 
@@ -2117,10 +2113,21 @@ exports.readdirSync = function(path) {
 		cp = cp[part];
 	});
 
+	return cp;
+}
+
+exports.readdirSync = function(path) {
+
+	var cp = getPath(path);
+
 	if(!cp) return [];
 
 
 	return Object.keys(cp);
+}
+
+exports.exists = function(file) {
+	return !!getPath(file);
 }
 
 
@@ -3162,7 +3169,7 @@ exports.plugin = function(router) {
 			if(req.viewChain) {
 				chain = req.viewChain.next(req, res, viewPath);
 			} else {
-				chain = serverSide ? getRootViewChain() : crootViewChain;
+				req.viewChain = chain = serverSide ? getRootViewChain() : crootViewChain;
 				chain.apply(req, res);
 			}
 
@@ -7994,7 +8001,7 @@ var ViewChain = module.exports = Structr({
 
 		//sets a view and adds a view to the current view
 		req.addView = function(view)
-		{                         
+		{                      
 			logger.debug('add view');   
 
 			view.name = self.name;
@@ -9581,7 +9588,7 @@ module.exports = function(view, res) {
 	
 	logger.debug('rendering view');
 	
-	view.setup({ /*el: window.document,*/ $: $ }).init({
+	view.setup({ el: window.document, $: $ }).init({
 		complete: function() {
 
 			logger.debug('finishing view');

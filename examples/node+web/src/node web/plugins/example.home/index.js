@@ -22,7 +22,8 @@ exports.plugin = function(router) {
 		/**
 		 */
 
-		'pull -method=GET view -> hello': function(req, res) {
+		'pull -method=GET home -> view -> hello': function(req, res) {
+			
 			req.addView(new views.HelloView());
 			if(!this.next()) req.display();
 		}
