@@ -8,7 +8,7 @@
 - Flexible enough to customize build processes. 
 - Ability to be very specific about a platform, e.g., `mesh make web:ie:6`, `mesh make web:firefox:7`
 - Seamlessly communicate between two different javascript apps, e.g., web + node.
-- To other really cool stuff, e.g., serving single-page apps and static websites from the same code.
+- To do other really cool stuff, e.g., serving single-page apps and static websites from the same code.
 
 ## Supports
 
@@ -19,6 +19,13 @@
 
 - Browser Extensions: **Firefox**, **Safari**, **Chrome**, **IE**, **Opera**, **Bookmarklets**
 - Soon: Titanium, Phonegap
+
+## Projects Using Mesh.js
+
+- [daisy](/crcn/daisy) - Cross-platform mq for beanpoll.js
+- [fig](/crcn/fig) - Cross-platform view library (service single-page apps + static websites).
+- [mesh-winston](/crcn/mesh-winston) - Cross-platform implementation of winston.
+- [haba](/crcn/haba) - Module loader.
 
 
 ## Prerequisites

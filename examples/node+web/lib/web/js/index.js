@@ -655,68 +655,6 @@ exports.plugin = function(router)
 	})
 }
 });
-_sardines.register("/modules/41147061/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
-	module.exports = function(fig) {
-		
-	var views = fig.views;
-
-
-	views.IndexView = views.Template.extend({
-		
-		tpl: '/index.html',
-
-		'override render': function() {
-			this._super();
-		}
-	});
-	
-
-	views.HelloView = views.View.extend({
-		
-		'el': '#page',
-
-		'override render': function() {
-			this._super();
-			this.$$(this.el).html('html!');
-		}
-	});
-
-	return views;
-}
-});
-_sardines.register("/modules/41147061/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
-	
-
-exports.plugin = function(router) {
-	
-	var views;
-	
-	router.on({
-		
-		'push -pull fig': function(fig) {
-			views = require('./views')(fig);
-		},
-
-
-		/**
-		 */
-
-		'pull -method=GET view -> home OR /': function(req, res) {
-			req.addView(new views.IndexView());
-			if(!this.next()) req.display();
-		},
-
-		/**
-		 */
-
-		'pull -method=GET home -> view -> hello': function(req, res) {
-			
-			req.addView(new views.HelloView());
-			if(!this.next()) req.display();
-		}
-	})
-}
-});
 _sardines.register("/modules/beanpoll/lib/router.js", function(require, module, exports, __dirname, __filename) {
 	(function() {
   var MessageBuilder, Router, collectPlugin, crema, disposable, plugins, pullPlugin, pushPlugin, _;
@@ -2559,6 +2497,68 @@ exports.existsSync = function(path) {
   }
 };
 
+});
+_sardines.register("/modules/41147061/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
+	module.exports = function(fig) {
+		
+	var views = fig.views;
+
+
+	views.IndexView = views.Template.extend({
+		
+		tpl: '/index.html',
+
+		'override render': function() {
+			this._super();
+		}
+	});
+	
+
+	views.HelloView = views.View.extend({
+		
+		'el': '#page',
+
+		'override render': function() {
+			this._super();
+			this.$$(this.el).html('html!');
+		}
+	});
+
+	return views;
+}
+});
+_sardines.register("/modules/41147061/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
+	
+
+exports.plugin = function(router) {
+	
+	var views;
+	
+	router.on({
+		
+		'push -pull fig': function(fig) {
+			views = require('./views')(fig);
+		},
+
+
+		/**
+		 */
+
+		'pull -method=GET view -> home OR /': function(req, res) {
+			req.addView(new views.IndexView());
+			if(!this.next()) req.display();
+		},
+
+		/**
+		 */
+
+		'pull -method=GET home -> view -> hello': function(req, res) {
+			
+			req.addView(new views.HelloView());
+			if(!this.next()) req.display();
+		}
+	})
+}
 });
 _sardines.register("/modules/plugin.http.history/history.js", function(require, module, exports, __dirname, __filename) {
 	
@@ -7661,79 +7661,6 @@ _sardines.register("/modules/beanpoll/lib/collect/director.js", function(require
 }).call(this);
 
 });
-_sardines.register("/modules/beanpoll/lib/collections/linkedList.js", function(require, module, exports, __dirname, __filename) {
-	(function() {
-  var LinkedList;
-
-  module.exports = LinkedList = (function() {
-
-    function LinkedList() {}
-
-    /*
-    */
-
-    LinkedList.prototype.getNextSibling = function() {
-      return this._nextSibling;
-    };
-
-    /*
-    */
-
-    LinkedList.prototype.addNextSibling = function(sibling, replNext) {
-      if (!!this._nextSibling) this._nexSibling._prevSibling = sibling;
-      sibling._prevSibling = this;
-      if (!replNext) sibling._nextSibling = this._nextSibling;
-      return this._nextSibling = sibling;
-    };
-
-    /*
-    */
-
-    LinkedList.prototype.getPrevSibling = function() {
-      return this._prevSibling;
-    };
-
-    /*
-    */
-
-    LinkedList.prototype.addPrevSibling = function(sibling, replPrev) {
-      if (!!this._prevSibling) this._prevSibling._nextSibling = sibling;
-      sibling._nextSibling = this;
-      if (!replPrev) sibling._prevSibling = this._prevSibling;
-      return this._prevSibling = sibling;
-    };
-
-    /*
-    */
-
-    LinkedList.prototype.getFirstSibling = function() {
-      var first;
-      first = this;
-      while (!!first._prevSibling) {
-        first = first._prevSibling;
-      }
-      return first;
-    };
-
-    /*
-    */
-
-    LinkedList.prototype.getLastSibling = function() {
-      var last;
-      last = this;
-      while (!!last._nextSibling) {
-        last = last._nextSibling;
-      }
-      return last;
-    };
-
-    return LinkedList;
-
-  })();
-
-}).call(this);
-
-});
 _sardines.register("/modules/dolce/lib/collection.js", function(require, module, exports, __dirname, __filename) {
 	var crema  = require('crema'),
 tree 	   = require('./tree'),
@@ -8252,6 +8179,79 @@ var collection = module.exports = function() {
 	return self;
 }
 
+
+});
+_sardines.register("/modules/beanpoll/lib/collections/linkedList.js", function(require, module, exports, __dirname, __filename) {
+	(function() {
+  var LinkedList;
+
+  module.exports = LinkedList = (function() {
+
+    function LinkedList() {}
+
+    /*
+    */
+
+    LinkedList.prototype.getNextSibling = function() {
+      return this._nextSibling;
+    };
+
+    /*
+    */
+
+    LinkedList.prototype.addNextSibling = function(sibling, replNext) {
+      if (!!this._nextSibling) this._nexSibling._prevSibling = sibling;
+      sibling._prevSibling = this;
+      if (!replNext) sibling._nextSibling = this._nextSibling;
+      return this._nextSibling = sibling;
+    };
+
+    /*
+    */
+
+    LinkedList.prototype.getPrevSibling = function() {
+      return this._prevSibling;
+    };
+
+    /*
+    */
+
+    LinkedList.prototype.addPrevSibling = function(sibling, replPrev) {
+      if (!!this._prevSibling) this._prevSibling._nextSibling = sibling;
+      sibling._nextSibling = this;
+      if (!replPrev) sibling._prevSibling = this._prevSibling;
+      return this._prevSibling = sibling;
+    };
+
+    /*
+    */
+
+    LinkedList.prototype.getFirstSibling = function() {
+      var first;
+      first = this;
+      while (!!first._prevSibling) {
+        first = first._prevSibling;
+      }
+      return first;
+    };
+
+    /*
+    */
+
+    LinkedList.prototype.getLastSibling = function() {
+      var last;
+      last = this;
+      while (!!last._nextSibling) {
+        last = last._nextSibling;
+      }
+      return last;
+    };
+
+    return LinkedList;
+
+  })();
+
+}).call(this);
 
 });
 _sardines.register("/modules/stream", function(require, module, exports, __dirname, __filename) {
