@@ -162,7 +162,7 @@ module.exports = merge = (ops, callback) ->
 	# based on the config, set the SOURCE, and the OUTPUT
 
 	,res.success( (config) ->
-		console.log "- merge #{config.original.name}"
+		console.log "merge #{config.original.name}"
 		appPkg    = config.original
 		sourceDir = config.src
 		outputDir = outputDir || path.normalize "#{config.lib}/#{platform}"
