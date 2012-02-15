@@ -47,7 +47,7 @@ The bootstrap script will produce some boilerplate code.
 After you're done initializing your project, you can go ahead and make it:
 
 ```
-	mesh make [platform]
+mesh make [platform]
 ```
 
 
