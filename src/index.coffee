@@ -1,13 +1,10 @@
-haba     = require "haba"
-beanpoll = require "beanpoll"
+beanie = require "beanie"
 
 exports.load = (callback) ->
 	
-	router       = beanpoll.router()
-	pluginLoader = haba.loader()
+	loader = beanie.loader()
 
-	pluginLoader.
-	options(router).
+	loader.
 	params({
 		"bootstrap": {
 			"dir": __dirname + "/../default/bootstrap"
@@ -21,7 +18,7 @@ exports.load = (callback) ->
 	}).
 	require(__dirname + "/plugins").
 	load(() ->
-		router.push("init")
+		loader.router.push("init")
 		callback null, router if callback
 	);
 
