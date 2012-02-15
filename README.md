@@ -1,5 +1,6 @@
 ## Cross-Platform JavaScript Build System
 
+
 ## Motivation
 
 - Ability to use the same libraries, same API's across multiple platforms without refactoring code.
@@ -49,44 +50,31 @@ After you're done initializing your project, you can go ahead and make it:
 	mesh make [platform]
 ```
 
+## Writing Libraries
 
-## Meshing Libraries Together
+There isn't much to writing cross-platform libraries. All you need to do is format your project like so:
 
-`mesh.json` is the file which tells Mesh how to build your application. 
+- `src/` - source to your library
+	- `common/` - common libraries for all platforms
+	- `node/` - node specific code
+	- `node web/` - node & web specific code
+	- `whatever-you-want/` - specify any platform you want
+	- `web/` - web specific code
+		- `ie/` - ie specific code
+			- `6/` - ie6 specific code
 
-
-Some psuedocode for a chrome extension:
+Make sure to also specify `src` in the `package.json` file. Like so:
 
 ```javascript
 {
-	"merge"   : "./src",
-	"modules" : ["plugin.dnode"],
-	"build"  : {
-		"web:debug": ["combine"],
-		"web:release": ["web:debug", "minify"]
-	},
-	"targets": [
-		{
-			"input"     : "./src/background/index.js",
-			"output"    : "./lib/background/index.js",
-			"modules"   : ["plugin.background"],
-			"build"     : "web:*"
-		},
-		{
-			"input"     : "./src/foreground/index.js",
-			"output"    : "./lib/foreground/index.js",
-			"modules"   : ["plugin.foreground"],
-			"build"     : "web:*"
-		},
-		{
-			"input"   : "./manifest.json",
-			"output"  : "./bin/ext.zip",
-			"build"   : "compile-chrome"
-		} 
-	]
+	"directories": {
+		"mesh-src": "./src",
+		"lib": "./lib"
+	}
 }
 ```
 
+Mesh will traverse the source, and search for any platforms to copy over to the target platform directory: `lib/[platform]`.
 
 
 
