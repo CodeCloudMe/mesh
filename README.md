@@ -50,35 +50,5 @@ After you're done initializing your project, you can go ahead and make it:
 	mesh make [platform]
 ```
 
-## Writing Libraries
-
-There isn't much to writing cross-platform libraries. All you need to do is format your project like so:
-
-- `src/` - source to your library
-	- `common/` - common libraries for all platforms
-	- `node/` - node specific code
-	- `node web/` - node & web specific code
-	- `whatever-you-want/` - specify any platform you want
-	- `web/` - web specific code
-		- `ie/` - ie specific code
-			- `6/` - ie6 specific code
-
-Make sure to also specify `src` in the `package.json` file. Like so:
-
-```javascript
-{
-	"directories": {
-		"mesh-src": "./src",
-		"lib": "./lib"
-	}
-}
-```
-
-Mesh will traverse the source, and search for any platforms to copy over to the target platform directory: `lib/[platform]`.
-
-
-
-
-
 
 
