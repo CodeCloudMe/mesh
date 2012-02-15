@@ -17,8 +17,14 @@ exports.build = function(target, next) {
 	 * 2. entry point specified, so scan ONLY scripts which are used ~ (look for require() stmts)
 	 */
 
+
+	var include = [ops.entry].concat(ops.include);
+
+	for(var i = include.length; i--;) {
+		include[i] = target.cwd + "/" + include[i];
+	}
 	
-	analyzeDeps({ entries: [target.cwd + "/" + ops.input] }, function(err, deps) {
+	analyzeDeps({ entries: include }, function(err, deps) {
 
 		//next item should take this script
 		ops.input = ops.output;
@@ -34,5 +40,5 @@ exports.build = function(target, next) {
 
 
 exports.buildMessage = function(target) {
-	return "combining " + target.options.input;
+	return "combining " + target.options.entry;
 }

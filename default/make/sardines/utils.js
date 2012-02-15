@@ -162,14 +162,15 @@ exports.getPathInfo = function(required, cwd) {
 	try {
 
 		
-		var coreModulePath = __dirname + "/builtin/" + required + ".js";
+		var coreModulePath = __dirname + "/builtin/" + required + ".js",
+		isModule = required.substr(0,1) != '.';
 
 		var ret = {
 			stmt: required,
-			module: required.substr(0,1) != '.'
+			module: isModule
 		};
 
-		if(exists(coreModulePath)) {
+		if(isModule && exists(coreModulePath)) {
 
 			ret.core = true;
 			ret.moduleName = required;
@@ -195,7 +196,6 @@ exports.getPathInfo = function(required, cwd) {
 		//alias to the given script - used as UID
 		ret.alias = ret.pathFromPkg.replace('.', modulePath(ret));
 
- 		 
  		return ret;
 
 	} catch(e) {

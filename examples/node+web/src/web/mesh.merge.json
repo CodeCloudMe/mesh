@@ -5,7 +5,8 @@
     },
     "targets": [
         {
-            "input": "./js/index.js",
+            "entry": "./js/index.js",
+            "include": "./js",
             "output": "./js/index.js",
             "build": "web:*"
         }

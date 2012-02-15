@@ -170,73 +170,41 @@ var __app = (function(){
 })();
 
 _sardines.register("/modules/41147061/index.js", function(require, module, exports, __dirname, __filename) {
+	var main = require('./main');
+
+$(document).ready(function() {
+	main.router.push('init');
+});
+
+});
+_sardines.register("/modules/41147061/main.js", function(require, module, exports, __dirname, __filename) {
 	
 var beanpoll = require('beanpoll'),
-router       = beanpoll.router(),
-fig          = require('fig');
-
-fig.views.IndexView = fig.views.Template.extend({
-	
-	tpl: '/index.html'
-
-});
-
-fig.views.TestView = fig.views.View.extend({
-
-	el: '#page',
-	
-	'override render': function() {
-		this._super();
-
-		this.$$(this.el).html('You are home!');
-	}
-});
+haba         = require('haba'),
+router       = beanpoll.router();
 
 
+pluginLoader = haba.loader();
 
-router.on({
-	
-	/** 
-	 */
-
-	'pull -method=GET view -> home OR /': function(req, res) {
-		console.log("HOME")
-		req.addView(new fig.views.IndexView());
-
-		if(!this.next()) {
-			req.display();
-		}
+pluginLoader.
+options(router).
+paths(__dirname + "/node_modules").
+params({
+	"fig": {
+		dirs: [__dirname + "/../web"]
 	},
-
-	/**
-	 */
-
-	'pull -method=GET home -> view -> contact': function(req, res) {
-		console.log("CONTACT")
-		req.addView(new fig.views.TestView());
-	},
-
-	/**
-	 */
-
-	'push fig': function(fig) {
-		
+	"plugin.http.history": {
+		publicDir: __dirname + "/../web"
 	}
-});
+}).
+require(__dirname + "/plugins").
+require('fig').
+require('plugin.http.history').
+load();
+
+exports.router = router;
 
 
-
-
-
-function onReady() {
-	router.push('init');
-}
-
-if(typeof $ != 'undefined') {
-	$(document).ready(onReady);
-} else {
-	onReady();
-}
 
 });
 _sardines.register("/modules/beanpoll/lib/index.js", function(require, module, exports, __dirname, __filename) {
@@ -264,6 +232,207 @@ _sardines.register("/modules/beanpoll/lib/index.js", function(require, module, e
 _sardines.register("/modules/beanpoll", function(require, module, exports, __dirname, __filename) {
 	module.exports = require('modules/beanpoll/lib/index.js');
 });
+_sardines.register("/modules/haba/index.js", function(require, module, exports, __dirname, __filename) {
+	 var core = require('./core'),
+fs = require('./fs'),
+path = require('path');
+
+
+
+var fileExists = function(file) {
+	try {
+		fs.statSync(file);
+		return true;
+	} catch (e) {
+		return false;
+	}
+}
+
+//deprecated.
+module.exports = function() {
+
+	var haba = core();
+
+
+	var loadJsFile = {
+		test: function(jsPath) {
+			return haba.resolve(jsPath);
+		},
+		prepare: function(jsPath, name, callback) {
+
+			if(typeof name == 'function') {
+				callback = name;
+				name = undefined;
+			}
+
+			var ret = {
+				load: function(callback) {
+					fullPath = haba.resolve(jsPath); //yeah, more overhead >.>
+
+
+					if(!fullPath) throw new Error(jsPath + ' does not exist');
+
+					if(!name) name = path.basename(jsPath).replace('.js','');
+
+					function onLoad(module) {
+						callback(false, { module: module, name: name, path: fullPath });
+					}
+
+
+					var module = require(fullPath);
+
+					if(module.load) {
+						module.load(onLoad);
+					} else {
+						onLoad(module);
+					}
+				}
+			};
+
+			if(callback) callback(false, [ret]);
+
+			return ret;
+		}/*,
+		load: function(jsPath, callback, name, index, count) {
+			fullPath = haba.resolve(jsPath); //yeah, more overhead >.>
+
+			if(!name) name = path.basename(jsPath).replace('.js','');
+
+			function onLoad(module) {
+				callback(false, { module: module, name: name, path: fullPath, index: index == undefined ? 1 : index, length: count || 1 });
+			}
+
+			var module = require(fullPath);
+
+			if(module.load) {
+				module.load(onLoad);
+			} else {
+				onLoad(module);
+			}
+		}*/
+	}
+
+	/**
+	 * scans a directory
+	 */
+
+	var loadDirectory = {
+		test: function(dir) {
+			return fileExists(dir) && fs.statSync(dir).isDirectory();
+		},
+		prepare: function(dir, callback) {
+			var files = fs.readdirSync(dir),
+			loadable = [];
+
+			files.forEach(function(basename, i) {
+
+				if(basename.substr(0,1) == '.') return;
+
+				loadable.push(loadJsFile.prepare(dir + '/' + basename));
+			});
+
+			callback(false, loadable);
+		}
+	}
+
+	/**
+	 */
+
+	var loadConfig = {
+		test: function(pkgPath) {
+			return typeof pkgPath == 'object' || (typeof pkgPath == 'string' && pkgPath.match(/json$/));
+		},
+		prepare: function(pkgPath, callback) {
+			var plugins = typeof pkgPath == 'object' ? pkgPath : JSON.parse(fs.readFileSync(pkgPath,'utf8')).plugins, 
+			loadable = [],
+			params = this.params();
+
+
+			for(var name in plugins) {
+				var par = plugins[name];
+
+				//param values for the given plugin
+				if(typeof par == 'object') params[name] = par;
+
+				loadable.push(loadJsFile.prepare(name, name));
+			}
+
+			callback(false, loadable);
+		}
+	}
+
+	/**
+	 * recursively load directories
+	 */
+
+	var findModules = function(search, cwd, modules) {
+		if(!modules) modules = [];
+
+		fs.readdirSync(cwd).forEach(function(basename) {
+			var fullPath = cwd + '/' + basename;
+			if(fs.statSync(fullPath).isDirectory()) {
+				findModules(search, fullPath, modules);
+			} else 
+			if(basename.match(search)) {
+				modules.push(fs.realpathSync(fullPath));
+			}
+		});
+
+		return modules;
+	}
+
+	var loadTree = {
+		test: function(dir) {
+			return dir.indexOf('**') > -1
+		},
+		load: function(dir, callback) {
+			var dirParts = dir.split('**'),
+			cwd          = dirParts.shift(), 
+			search       = new RegExp('^'+dirParts.pop().split('/').pop().replace(/\./g,'\\.').replace(/\*/g,'.*?') + '$');
+
+			var files = findModules(search, cwd),
+			loadable = [];
+
+
+			files.forEach(function(file, i) {
+				loadable.push(loadJsFile.load(file));
+			});
+
+			callback(false, loadable);
+		}
+	}
+
+	/**
+	 */
+
+	/*var loadObj = {
+		test: function(obj) {
+			return typeof obj == 'object';
+		},
+		prepare: function(obj) {
+			return {
+				load
+			}
+		}
+		load: function(obj, callback) {
+			callback(obj, obj.name);
+		}
+	}*/
+
+	//setup the core loaders
+	haba.loaders = [loadConfig, loadJsFile, loadDirectory, loadTree].reverse();
+
+
+	//now that all the core loaders are in, we can add the additional loaders dropped in ./loaders (cleaner)
+	haba.require( __dirname + '/plugins');
+
+
+	return haba;
+};
+
+module.exports.loader = module.exports;
+module.exports.paths  = core.paths;
+});
 _sardines.register("/modules/fig/index.js", function(require, module, exports, __dirname, __filename) {
 	var views      = require('./views'),
 model          = require('./views/model'),
@@ -283,7 +452,7 @@ var views = {
 	Collection: model.Collection,
 	Template: template.Template,
 	ItemTemplate: template.ItemTemplate,
-	CollectionTemplate: template.CollectionComplete
+	CollectionTemplate: template.CollectionTemplate
 }
 
 
@@ -292,18 +461,266 @@ exports.plugin = function(router, params) {
 	templatePlugin.plugin(router, params);
 	viewsPlugin.plugin(router, params);
 
+
 	
 	var plviews = {};
 
 	for(name in views) {
-		plviews = views[name].extend({ router: router });
+		plviews[name] = views[name].extend({ router: router });
 	}
 
-	return {
+
+	var fig = {
 		views: plviews
+	};
+
+
+	router.on({
+		
+		'pull fig': function(req, res) {
+			res.end(fig);
+		}
+	});
+
+	router.push('fig', fig);
+
+
+	return {
+		views: fig
 	}
 }
 
+});
+_sardines.register("/modules/plugin.http.history/index.js", function(require, module, exports, __dirname, __filename) {
+	require('./history');
+
+var utils = require('./utils'),
+_    = require('underscore'),
+Url = require('url'),
+logger = require('mesh-winston').loggers.get('history.core'),
+beanpoll = require('beanpoll');
+
+
+beanpoll.Response.prototype.redirect = function(location) {
+	this.headers({ redirect: location });
+	this.end();
+}
+
+exports.plugin = function(router)
+{
+	var currentChannel,
+	pushedReady = false;
+
+
+
+
+	function normalizeChannel(channel)
+	{
+		return router.parse.stringifyPaths(router.parse.parseChannel(channel).paths)
+	}
+
+
+	var prevChannel;
+
+
+	function pullState(channel, data)
+	{
+		if(channel.substr(0,1) != '/') channel = '/' + channel;
+
+		var parts = Url.parse(channel, true);
+
+		if(parts.pathname == prevChannel)
+		{
+			console.log('alreading viewing %s', prevChannel);
+			return
+		}
+
+
+		prevChannel = parts.pathname;
+
+		var hostname = window.location.hostname,
+		hostnameParts = hostname.split('.');
+		subdomain = hostnameParts.length > 2 ? hostnameParts.shift() : undefined;
+
+
+		logger.info('navigate to ' + parts.pathname);
+
+		router.request(parts.pathname).query(_.extend(parts.query, data, true)).headers({ subdomain: subdomain, stream: true }).success(function(stream)
+		{
+
+			logger.info('dumping stream data');
+
+			stream.dump({
+				error: function(err) {
+					console.log(err.stack);
+				},
+				headers: function(res)
+				{
+					if(res.redirect)
+					{
+						router.push('redirect', res.redirect);
+					}
+				},
+				end: function(){}
+			})
+		}).pull();
+	}
+
+
+	window.onpopstate = function(e)
+	{
+
+		var state = e.state;     
+
+		if(!state) return;
+
+		currentChannel = state.channel;       
+
+		router.push('track/pageView', { page: state.channel });
+                                 
+		pullState(state.channel || state.hash, state.data);
+	}  
+
+	/**
+	 */
+
+	router.on({
+
+		/**
+		 */
+
+		'push redirect': function(ops)
+		{                                           
+
+			var channel, data;
+
+			if(typeof ops == 'string')
+			{
+				channel = ops;
+				data = {};
+				ops = {};
+			}
+			else
+			{
+				channel = ops.channel;
+				data = ops.data;
+			}
+
+			if(!channel) return;
+
+			var urlParts = Url.parse(channel, true);   
+
+
+
+			var uri = urlParts.pathname,
+			newChannel = normalizeChannel(uri);
+
+			data = _.extend(urlParts.query, data);
+
+
+			if(router.request(uri).type('pull').tag('http', true).hasListeners())
+			{	
+				if(newChannel == currentChannel) return;
+
+                                                      
+				logger.info('redirect to ' + channel);
+
+
+				window.history.pushState({ data: data, channel: channel } , null, ('/' + channel).replace(/\/+/g,'/'));     
+
+				router.push('track/pageView', { page: channel });
+			}
+
+			// else
+			{
+
+				if(ops.pull === undefined || ops.pull == true)
+				//not a viewable item? pull it. might do something else that's fancy...
+				pullState(channel, data);	
+			}
+
+
+		},
+
+		/**
+		 */
+
+		'push -one init': function() {
+			logger.info('app ready');
+
+
+			var hasListeners = router.request(window.location.pathname).tag('static', false).type('pull').hasListeners();
+
+
+
+			setTimeout(function()
+			{      
+				//console.log(!meta['static'] && window.location.pathname != '/')                                 
+				// if(!tags['static'] /*&& window.location.pathname != '/'*/) 
+				// if(hasListeners) 
+				router.push('redirect', window.location.pathname + window.location.search);
+
+				router.push('history/ready');                            
+			}, 1);
+		}
+	})
+}
+});
+_sardines.register("/modules/41147061/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
+	module.exports = function(fig) {
+		
+	var views = fig.views;
+
+
+	views.IndexView = views.Template.extend({
+		
+		tpl: '/index.html'
+	});
+
+
+	views.HelloView = views.View.extend({
+		
+		'override render': function() {
+			this._super();
+
+			this.$$(this.el).html('html!');
+		}
+	});
+
+	return views;
+}
+});
+_sardines.register("/modules/41147061/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
+	
+
+exports.plugin = function(router) {
+	
+	var views;
+	
+	router.on({
+		
+		'push -pull fig': function(fig) {
+			views = require('./views')(fig);
+		},
+
+
+		/**
+		 */
+
+		'pull -method=GET view -> home OR /': function(req, res) {
+			req.addView(new views.IndexView());
+			if(!this.next()) req.display();
+		},
+
+		/**
+		 */
+
+		'pull -method=GET view -> hello': function(req, res) {
+			req.addView(new views.HelloView());
+			if(!this.next()) req.display();
+		}
+	})
+}
 });
 _sardines.register("/modules/beanpoll/lib/router.js", function(require, module, exports, __dirname, __filename) {
 	(function() {
@@ -1163,6 +1580,981 @@ _sardines.register("/modules/beanpoll/lib/concrete/response.js", function(requir
 }).call(this);
 
 });
+_sardines.register("/modules/haba/core.js", function(require, module, exports, __dirname, __filename) {
+	var path = require('path'),
+EventEmitter = require('events').EventEmitter,
+pluginNameTester = require('./nameTester'),
+pluginCollection = require('./collection'),
+Structr = require('structr');
+
+
+var copy = function(from, to) {
+	if(!to) to = {};
+
+	for(var i in from) to[i] = from[i];
+
+	return to;
+}
+
+
+var nativeResolve = function(file) {
+	try {
+		return require.resolve(file);
+	} catch (e) {
+		return false;
+	}
+}
+
+
+var includePaths = function(paths, target) {
+	paths.forEach(function(fullPath) {
+		var normPath = path.normalize(fullPath);
+
+		//no dupes
+		if(target.indexOf(normPath) > -1) return;
+
+		target.push(normPath);
+	});
+
+	return this;
+} 
+
+var globalExists = typeof global != 'undefined'
+
+
+if(globalExists) global.habaPaths = global.habaPaths || [];
+
+
+var normalizeRequired = function(req) {
+
+	if(typeof req == 'string' || typeof req == 'function' || req instanceof RegExp) req = [req];
+
+	var normalized = [];
+
+	if(req instanceof Array) {
+		for(var i = req.length; i--;) {
+			normalized.push({
+				search: req[i],
+				name: typeof req[i] == 'string' ? req[i] : null
+			});
+		}
+	} else {
+		for(var name in req) {
+			var v = req[name],
+			params = {};
+
+			if(typeof v == 'object') {
+				params = v;
+			} else {
+				params.search = v;
+			}
+
+			params.name = typeof v == 'string' ? v : null;
+			
+
+			normalized.push(params);
+		}	
+	}
+	
+	return normalized;
+}
+
+module.exports = function() {
+
+	
+	//options passed to every plugin
+	var options = {}, 
+
+	//paths to scan for modules
+	//second param is for debugging - soft-linked haba path breaks node module searching
+	paths       = [__dirname], 
+
+	//params specific to each plugin
+	params      = {},
+	
+	//required paths
+	required    = [],
+
+	self = {},
+
+	//all plugins
+	allPlugins = pluginCollection(self),
+
+	//remote plugins
+	remotePlugins = allPlugins.addChild(),
+
+	//local plugins
+	localPlugins = allPlugins.addChild(),
+
+	//module paths - check if they've already been loaded
+	included    = {},
+
+	readyListeners = [],
+	loading = false;
+
+
+	var findNodeModulePath = function(path, module) {
+		var pathParts = path.split('/'), fullPath;
+
+		while(pathParts.length) {
+
+			if(fullPath = nativeResolve(pathParts.join('/') + '/node_modules/' + module)) return fullPath;
+
+			pathParts.pop();
+		}
+
+		return null;
+	}
+
+
+	var resolveFromPaths = function(jsPath, paths) {
+		for(var i = paths.length; i--;) {
+			var incPath = paths[i];
+			if((fullPath = nativeResolve(incPath + '/' + jsPath)) || (fullPath = findNodeModulePath(incPath, jsPath))) return fullPath;
+		}
+
+		return null;
+	}
+
+
+	var resolve = function(jsPath) {
+		var fullPath;
+
+		if(fullPath = nativeResolve(jsPath)) return fullPath;
+
+		return resolveFromPaths(jsPath, paths) || (globalExists ? resolveFromPaths(jsPath, global.habaPaths) : null);
+	}
+
+	var inited = false,
+	toLoad = [],
+	modulesLoading = 0,
+	numLoaders = 0;
+
+	function tryInitializing() {
+
+		modulesLoading--;
+
+		if(!numLoaders && !modulesLoading)	 {
+			inited = true;
+			allPlugins.ready();
+		}
+	}
+
+	function onPluginLoaded(err, ops) {
+		if(err) throw err;
+
+		var module = ops.module || {},
+
+		//name of the module, e.g., name of the file to module
+		name   = module.name    || ops.name,
+
+		//path to the module, e.g., some/path.js or http://site.com/path.js
+		path   = ops.path       || name,
+
+		//is is a remote object? Dnode, now.js, etc.
+		remote = ops.remote,
+
+		//params for the plugin when required in
+		prm    = params[name]   || {};
+
+		//set the name to the parms
+		prm.name = params.name  || name;
+
+
+
+		//check if the plugin is already loaded in. If it is, then give a warning. do NOT include it!
+		if(included[path] && !remote) {
+			tryInitializing();
+			return console.warn('%s is already loaded', ops.path);
+		}
+
+		//flag that the path has been included
+		included[path] = 1;
+
+		//create a NEW plugin with the module given. 
+		var instance = ops.plugin || (self.newPlugin(module, options, prm, self) || {}),
+
+		//need to reparate the remote, from the local plugins incase OTHER plugins EXPLICITLY
+		//want local, OR remote plugins. that's why remote / local collections exist.
+		collection = remote ? remotePlugins : localPlugins;
+
+		//ability to reference it when calling .plugins()
+		instance.name = name;
+
+		//add the plugin
+		collection.add({
+			name: name,
+			path: path,
+			instance: instance,
+			require: normalizeRequired(module.require)
+		});
+			
+
+		//check if any ready listeners are listening for THIS plugin to be loaded in.
+		//notify them if that's the case
+		readyListeners.forEach(function(listener) {
+			
+			if(listener.test(name)) {
+
+				listener.callback(instance);
+
+			}
+		});
+
+
+		//self.methods is DEPRECATED!!
+		self.methods[name] = self.exports[name] = instance;
+
+
+		tryInitializing();
+	}
+
+
+	function loadRequired(required) {
+
+
+
+		for(var i = self.loaders.length; i--;) {
+			var loader = self.loaders[i], loaded = false;
+
+
+			//find the right loader for the required item?
+			if(loader.test(required)) {
+
+				//prepare the item - it MIGHT need to be loaded in. After that
+				//we're given loadable items - plugins
+				loader.prepare.call(self, required, function(err, moduleLoaders) {
+
+					if(err) throw err;
+
+					var n = moduleLoaders.length;
+
+					numLoaders--;
+
+
+					//need to add 1 to modules loading incase n = 0. 
+					modulesLoading += n + 1;
+
+					for(var j = moduleLoaders.length; j--;) {
+
+						moduleLoaders[j].load(onPluginLoaded);
+						
+					}
+
+					//try initializing INCASE there aren't any module loaders
+					tryInitializing();
+				});
+
+				return this;
+			}
+
+		}
+
+
+		throw new Error('Unable to load plugin ' + required);
+	}
+
+
+	function loadAll() {
+
+		loading = true;
+
+		//ADD the number of loaders since loadAll can be called multiple times
+		//which happens when a plugin is loaded in
+		numLoaders += toLoad.length;
+
+		var load = toLoad.concat();
+		//drain the items to load
+		toLoad = [];
+
+		for(var i = 0; i < load.length; i++) {
+			loadRequired(load[i]);
+		}
+
+		toLoad = [];
+	}
+
+
+
+	Structr.copy({
+
+		/**
+		 * resolves a module path
+		 */
+
+		'resolve': resolve,
+		
+		/**
+		 * global options passed to all plugins
+		 */
+		
+		'options': function(value) {
+			if(!arguments.length) return options;
+			options = value;
+			return this;
+		},
+
+		/**
+		 * parameters specific to plugins
+		 */
+		
+		'params': function(name, value) {
+
+			if(!arguments.length) return params;
+			if(arguments.length == 1 && typeof arguments[0] == 'string') return params[name];
+
+			if(typeof name == 'object') {
+				for(var prop in name) {
+					self.params(prop, name[prop]);
+				} 
+			} else {
+				params[name] = value;
+			}
+
+			return this;
+		}, 
+
+		/**
+		 * adds / returns paths to scan in
+		 */
+
+		'paths': function() {
+			if(arguments.length) {
+				includePaths(Array.apply(null, arguments), paths);
+				return this;
+			}
+
+			return paths;
+		},
+
+		/**
+		 * loads in modules via require
+		 */
+
+		'loaders': [],
+
+		/**
+		 * all the invokable methods against loaded modules
+		 * DEPRECATED
+		 */
+
+		'methods': {},
+
+
+		/**
+		 * repl for methods
+		 */
+
+		'exports': {},
+
+
+		/**
+		 * factory for loading in modules
+		 */
+
+		'newPlugin': function(module, options, params, haba) {
+
+			return module.plugin.call(haba, options, params, haba);
+
+		},
+
+		/**
+		 */
+
+		'factory': function(fn) {
+
+			self.newPlugin = fn;
+			return self;	
+
+		},
+
+		/**
+		 * loads a plugin via loaders
+		 */
+
+		'require': function(required) {
+
+			var newPlugins = Array.prototype.slice.call(arguments, 0);
+
+			//more than one required item? recall require...
+			if(newPlugins.length > 1) {
+
+				newPlugins.forEach(function(plugin) {
+
+					self.require(plugin);
+
+				});
+
+				return self;
+
+			}
+
+			toLoad.push(required);
+
+			//incase require is called within a plugin...
+			if(loading) loadAll();
+
+			return self;
+		},
+
+
+		/**
+		 * listener for when a plugin is ready
+		 */
+
+		'onLoad': function(search, ret, callback) {
+
+			if(typeof ret == 'function') {
+				callback = ret;
+				ret      = false;
+			}
+
+			readyListeners.push({
+				test: pluginNameTester(search),
+				callback: callback
+			});
+
+
+			if(ret) {
+				var plugin = self.plugin(search);
+
+				if(plugin) callback(plugin);
+			}
+			
+			return this;
+		},
+
+		/**
+		 * locally included plugins
+		 */
+
+		'local': localPlugins,
+
+		/**
+		 * remotely included plugins
+		 */
+
+		'remote': remotePlugins,
+
+		/**
+		 */
+
+		'plugin': allPlugins.plugin,
+
+		/**
+		 */
+
+		'plugins': allPlugins.plugins,
+
+		/**
+		 */
+
+		'emit': allPlugins.emit,
+
+		/**
+		 */
+
+		'next': allPlugins.next, 
+
+		/**
+		 * DEPRECATED
+		 */
+
+		'init': function(callback) {
+
+			return self.load(callback);
+			
+		},
+
+		/**
+		 */
+
+		'load': function(callback) {
+			
+			//load the required plugins
+			loadAll();
+
+			//emit initialization
+			this.local.emit('init');
+
+			//add the queued item
+			if(callback) self.next(callback);
+			return this;
+
+		}
+	}, self);
+
+	
+
+	return self;
+};
+
+/**
+ * global
+ */
+
+module.exports.paths = function() {
+	if(arguments.length) {
+		includePaths(Array.apply(null, arguments), global.habaPaths);
+	} else {
+		return paths;
+	}
+}
+});
+_sardines.register("/modules/haba/fs.js", function(require, module, exports, __dirname, __filename) {
+	var allFiles = _sardines.allFiles;
+
+exports.isDirectory = function(path) {
+	return !path.match(/\.\w+$/);
+}
+
+exports.readdirSync = function(path) {
+
+	var parts = path.split('/'),
+	cp = allFiles;
+
+	parts.forEach(function(part) {
+		cp = cp[part];
+	});
+
+	if(!cp) return [];
+
+
+	return Object.keys(cp);
+}
+
+
+exports.realpathSync = function(path) {
+	return path;
+}
+
+});
+_sardines.register("/modules/path", function(require, module, exports, __dirname, __filename) {
+	// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+var isWindows = false;
+
+
+// resolves . and .. elements in a path array with directory names there
+// must be no slashes, empty elements, or device names (c:\) in the array
+// (so also no leading and trailing slashes - it does not distinguish
+// relative and absolute paths)
+function normalizeArray(parts, allowAboveRoot) {
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = parts.length-1; i >= 0; i--) {
+    var last = parts[i];
+    if (last == '.') {
+      parts.splice(i, 1);
+    } else if (last === '..') {
+      parts.splice(i, 1);
+      up++;
+    } else if (up) {
+      parts.splice(i, 1);
+      up--;
+    }
+  }
+
+  // if the path is allowed to go above the root, restore leading ..s
+  if (allowAboveRoot) {
+    for (; up--; up) {
+      parts.unshift('..');
+    }
+  }
+
+  return parts;
+}
+
+
+if (isWindows) {
+  // Regex to split a windows path into three parts: [*, device, slash,
+  // tail] windows-only
+  var splitDeviceRe =
+      /^([a-zA-Z]:|[\\\/]{2}[^\\\/]+[\\\/][^\\\/]+)?([\\\/])?([\s\S]*?)$/;
+
+  // Regex to split the tail part of the above into [*, dir, basename, ext]
+  var splitTailRe = /^([\s\S]+[\\\/](?!$)|[\\\/])?((?:[\s\S]+?)?(\.[^.]*)?)$/;
+
+   // Function to split a filename into [root, dir, basename, ext]
+   // windows version
+  var splitPath = function(filename) {
+    // Separate device+slash from tail
+    var result = splitDeviceRe.exec(filename),
+        device = (result[1] || '') + (result[2] || ''),
+        tail = result[3] || '';
+    // Split the tail into dir, basename and extension
+    var result2 = splitTailRe.exec(tail),
+        dir = result2[1] || '',
+        basename = result2[2] || '',
+        ext = result2[3] || '';
+    return [device, dir, basename, ext];
+  }
+
+  // path.resolve([from ...], to)
+  // windows version
+  exports.resolve = function() {
+    var resolvedDevice = '',
+        resolvedTail = '',
+        resolvedAbsolute = false;
+
+    for (var i = arguments.length-1; i >= -1; i--) {
+      var path = (i >= 0) ? arguments[i] : process.cwd();
+
+      // Skip empty and invalid entries
+      if (typeof path !== 'string' || !path) {
+        continue;
+      }
+
+      var result = splitDeviceRe.exec(path),
+          device = result[1] || '',
+          isUnc = device && device.charAt(1) !== ':',
+          isAbsolute = !!result[2] || isUnc, // UNC paths are always absolute
+          tail = result[3];
+
+      if (device &&
+          resolvedDevice &&
+          device.toLowerCase() !== resolvedDevice.toLowerCase()) {
+        // This path points to another device so it is not applicable
+        continue;
+      }
+
+      if (!resolvedDevice) {
+        resolvedDevice = device;
+      }
+      if (!resolvedAbsolute) {
+        resolvedTail = tail + '\\' + resolvedTail;
+        resolvedAbsolute = isAbsolute;
+      }
+
+      if (resolvedDevice && resolvedAbsolute) {
+        break;
+      }
+    }
+
+    if (!resolvedAbsolute && resolvedDevice) {
+      // If we still don't have an absolute path,
+      // prepend the current path for the device found.
+
+      // TODO
+      // Windows stores the current directories for 'other' drives
+      // as hidden environment variables like =C:=c:\windows (literally)
+      // var deviceCwd = os.getCwdForDrive(resolvedDevice);
+      var deviceCwd = '';
+
+      // If there is no cwd set for the drive, it is at root
+      resolvedTail = deviceCwd + '\\' + resolvedTail;
+      resolvedAbsolute = true;
+    }
+
+    // Replace slashes (in UNC share name) by backslashes
+    resolvedDevice = resolvedDevice.replace(/\//g, '\\');
+
+    // At this point the path should be resolved to a full absolute path,
+    // but handle relative paths to be safe (might happen when process.cwd()
+    // fails)
+
+    // Normalize the tail path
+
+    function f(p) {
+      return !!p;
+    }
+
+    resolvedTail = normalizeArray(resolvedTail.split(/[\\\/]+/).filter(f),
+                                  !resolvedAbsolute).join('\\');
+
+    return (resolvedDevice + (resolvedAbsolute ? '\\' : '') + resolvedTail) ||
+           '.';
+  };
+
+  // windows version
+  exports.normalize = function(path) {
+    var result = splitDeviceRe.exec(path),
+        device = result[1] || '',
+        isUnc = device && device.charAt(1) !== ':',
+        isAbsolute = !!result[2] || isUnc, // UNC paths are always absolute
+        tail = result[3],
+        trailingSlash = /[\\\/]$/.test(tail);
+
+    // Normalize the tail path
+    tail = normalizeArray(tail.split(/[\\\/]+/).filter(function(p) {
+      return !!p;
+    }), !isAbsolute).join('\\');
+
+    if (!tail && !isAbsolute) {
+      tail = '.';
+    }
+    if (tail && trailingSlash) {
+      tail += '\\';
+    }
+
+    return device + (isAbsolute ? '\\' : '') + tail;
+  };
+
+  // windows version
+  exports.join = function() {
+    function f(p) {
+      return p && typeof p === 'string';
+    }
+
+    var paths = Array.prototype.slice.call(arguments, 0).filter(f);
+    var joined = paths.join('\\');
+
+    // Make sure that the joined path doesn't start with two slashes
+    // - it will be mistaken for an unc path by normalize() -
+    // unless the paths[0] also starts with two slashes
+    if (/^[\\\/]{2}/.test(joined) && !/^[\\\/]{2}/.test(paths[0])) {
+      joined = joined.slice(1);
+    }
+
+    return exports.normalize(joined);
+  };
+
+  // path.relative(from, to)
+  // it will solve the relative path from 'from' to 'to', for instance:
+  // from = 'C:\\orandea\\test\\aaa'
+  // to = 'C:\\orandea\\impl\\bbb'
+  // The output of the function should be: '..\\..\\impl\\bbb'
+  // windows version
+  exports.relative = function(from, to) {
+    from = exports.resolve(from);
+    to = exports.resolve(to);
+
+    // windows is not case sensitive
+    var lowerFrom = from.toLowerCase();
+    var lowerTo = to.toLowerCase();
+
+    function trim(arr) {
+      var start = 0;
+      for (; start < arr.length; start++) {
+        if (arr[start] !== '') break;
+      }
+
+      var end = arr.length - 1;
+      for (; end >= 0; end--) {
+        if (arr[end] !== '') break;
+      }
+
+      if (start > end) return [];
+      return arr.slice(start, end - start + 1);
+    }
+
+    var fromParts = trim(from.split('\\'));
+    var toParts = trim(to.split('\\'));
+
+    var lowerFromParts = trim(lowerFrom.split('\\'));
+    var lowerToParts = trim(lowerTo.split('\\'));
+
+    var length = Math.min(lowerFromParts.length, lowerToParts.length);
+    var samePartsLength = length;
+    for (var i = 0; i < length; i++) {
+      if (lowerFromParts[i] !== lowerToParts[i]) {
+        samePartsLength = i;
+        break;
+      }
+    }
+
+    if (samePartsLength == 0) {
+      return to;
+    }
+
+    var outputParts = [];
+    for (var i = samePartsLength; i < lowerFromParts.length; i++) {
+      outputParts.push('..');
+    }
+
+    outputParts = outputParts.concat(toParts.slice(samePartsLength));
+
+    return outputParts.join('\\');
+  };
+
+
+} else /* posix */ {
+
+  // Split a filename into [root, dir, basename, ext], unix version
+  // 'root' is just a slash, or nothing.
+  var splitPathRe = /^(\/?)([\s\S]+\/(?!$)|\/)?((?:[\s\S]+?)?(\.[^.]*)?)$/;
+  var splitPath = function(filename) {
+    var result = splitPathRe.exec(filename);
+    return [result[1] || '', result[2] || '', result[3] || '', result[4] || ''];
+  };
+
+  // path.resolve([from ...], to)
+  // posix version
+  exports.resolve = function() {
+    var resolvedPath = '',
+        resolvedAbsolute = false;
+
+    for (var i = arguments.length-1; i >= -1 && !resolvedAbsolute; i--) {
+      var path = (i >= 0) ? arguments[i] : process.cwd();
+
+      // Skip empty and invalid entries
+      if (typeof path !== 'string' || !path) {
+        continue;
+      }
+
+      resolvedPath = path + '/' + resolvedPath;
+      resolvedAbsolute = path.charAt(0) === '/';
+    }
+
+    // At this point the path should be resolved to a full absolute path, but
+    // handle relative paths to be safe (might happen when process.cwd() fails)
+
+    // Normalize the path
+    resolvedPath = normalizeArray(resolvedPath.split('/').filter(function(p) {
+      return !!p;
+    }), !resolvedAbsolute).join('/');
+
+    return ((resolvedAbsolute ? '/' : '') + resolvedPath) || '.';
+  };
+
+  // path.normalize(path)
+  // posix version
+  exports.normalize = function(path) {
+    var isAbsolute = path.charAt(0) === '/',
+        trailingSlash = path.slice(-1) === '/';
+
+    // Normalize the path
+    path = normalizeArray(path.split('/').filter(function(p) {
+      return !!p;
+    }), !isAbsolute).join('/');
+
+    if (!path && !isAbsolute) {
+      path = '.';
+    }
+    if (path && trailingSlash) {
+      path += '/';
+    }
+
+    return (isAbsolute ? '/' : '') + path;
+  };
+
+
+  // posix version
+  exports.join = function() {
+    var paths = Array.prototype.slice.call(arguments, 0);
+    return exports.normalize(paths.filter(function(p, index) {
+      return p && typeof p === 'string';
+    }).join('/'));
+  };
+
+
+  // path.relative(from, to)
+  // posix version
+  exports.relative = function(from, to) {
+    from = exports.resolve(from).substr(1);
+    to = exports.resolve(to).substr(1);
+
+    function trim(arr) {
+      var start = 0;
+      for (; start < arr.length; start++) {
+        if (arr[start] !== '') break;
+      }
+
+      var end = arr.length - 1;
+      for (; end >= 0; end--) {
+        if (arr[end] !== '') break;
+      }
+
+      if (start > end) return [];
+      return arr.slice(start, end - start + 1);
+    }
+
+    var fromParts = trim(from.split('/'));
+    var toParts = trim(to.split('/'));
+
+    var length = Math.min(fromParts.length, toParts.length);
+    var samePartsLength = length;
+    for (var i = 0; i < length; i++) {
+      if (fromParts[i] !== toParts[i]) {
+        samePartsLength = i;
+        break;
+      }
+    }
+
+    var outputParts = [];
+    for (var i = samePartsLength; i < fromParts.length; i++) {
+      outputParts.push('..');
+    }
+
+    outputParts = outputParts.concat(toParts.slice(samePartsLength));
+
+    return outputParts.join('/');
+  };
+
+}
+
+
+exports.dirname = function(path) {
+  var result = splitPath(path),
+      root = result[0],
+      dir = result[1];
+
+  if (!root && !dir) {
+    // No dirname whatsoever
+    return '.';
+  }
+
+  if (dir) {
+    // It has a dirname, strip trailing slash
+    dir = dir.substring(0, dir.length - 1);
+  }
+
+  return root + dir;
+};
+
+
+exports.basename = function(path, ext) {
+  var f = splitPath(path)[2];
+  // TODO: make this comparison case-insensitive on windows?
+  if (ext && f.substr(-1 * ext.length) === ext) {
+    f = f.substr(0, f.length - ext.length);
+  }
+  return f;
+};
+
+
+exports.extname = function(path) {
+  return splitPath(path)[3];
+};
+
+
+exports.exists = function(path, callback) {
+  process.binding('fs').stat(path, function(err, stats) {
+    if (callback) callback(err ? false : true);
+  });
+};
+
+
+exports.existsSync = function(path) {
+  try {
+    process.binding('fs').stat(path);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+});
 _sardines.register("/modules/fig/views/index.js", function(require, module, exports, __dirname, __filename) {
 	
 });
@@ -1790,6 +3182,1822 @@ exports.plugin = function(router) {
     });
 }
 });
+_sardines.register("/modules/plugin.http.history/history.js", function(require, module, exports, __dirname, __filename) {
+	
+/**
+ * @preserve By Filipe Fortes ( www.fortes.com )
+ * MIT License
+ */
+/**
+ * @fileoverview
+ * Implements HTML5 window history functions for browsers that do not support it
+ */
+
+var DEBUG = true;
+
+if (DEBUG) {
+  if (!window.console) {
+    // Make sure we can log things during debug
+    window.console = {};
+  }
+
+  if (!console.log) {
+    console.log = function () { };
+  }
+
+  if (!console.error) {
+    console.error = console.log;
+  }
+
+  if (!console.info) {
+    console.info = console.log;
+  }
+}
+
+window.history_js = window.history_js || { hashInterval: 100, delimiter: '-' };
+
+// Even if the client has an implementation of the API, we have to check the hash
+// just in case the visitor followed a link generated by a browser that does not
+// support the API
+if (document.location.hash) {
+  (function () {
+    // Sanitize
+    var hash = document.location.hash[0] === '#' ? document.location.hash.substr(1) : document.location.hash;
+
+    // Our hashes always start with the delimiter and have at least another character there
+    if (hash[0] === window.history_js.delimiter && hash.length >= 2) {
+      // Redirect, stripping the intial delimiter
+      hash = hash.substr(1);
+      document.location = hash;
+    }
+  }());
+}
+
+(function (history_js, window, location) {
+  // Check if the browser already has a native implementation
+  if ('pushState' in window.history) {
+    if (DEBUG) {
+      console.info('pushState: history.pushState already implemented, skipping');
+    }
+
+    // Native implementation present, we are done here
+    return;
+  }
+
+  var IE8inIE7 = document.documentMode && document.documentMode <= 7,
+      useLocalStorage = 'sessionStorage' in window && window.JSON && !IE8inIE7;
+
+  // Storage API
+  if (useLocalStorage) {
+    if (DEBUG) {
+      console.info('Using persistent storage');
+      history_js.persist = true;
+    }
+
+    history_js.setStorage = function setStorage(name, value) {
+      window.sessionStorage[name] = JSON.stringify(value);
+    };
+
+    history_js.getStorage = function getStorage(name) {
+      return JSON.parse(window.sessionStorage[name]);
+    }
+  }
+  else {
+    if (DEBUG) {
+      console.info('Using non-persistent storage');
+      history_js.persist = false;
+    }
+
+    // TODO: Implement real persistence
+    history_js.fake_storage = {};
+    history_js.setStorage = function setStorage(name, value) {
+      history_js.fake_storage[name] = value;
+    };
+
+    history_js.getStorage = function getStorage(name) {
+      return history_js.fake_storage[name];
+    }
+  }
+
+  /**
+   * @private
+   * @param {?Object} data
+   * @param {?string} title
+   * @param {!string} url
+   * @param {boolean} replace
+   */
+  function changeState (data, title, url, replace) {
+    // Always add delimiter and escape hash
+    url = history_js.delimiter + escape(url);
+
+    // Store data using url
+    history_js.setStorage(url, { state: data, title: title });
+
+    // HTML5 implementation only calls popstate as a result of a user action,
+    // store the hash so we don't trigger a false event
+    history_js.hash = url;
+
+    // Use the URL as a hash
+    if (replace) {
+      location.replace('#' + url);
+    }
+    else {
+      // TODO: IE 6 & 7 need to use iFrame for back button support
+
+      // Place the hash normally
+      location.hash = '#' + url;
+    }
+  }
+
+  /**
+   * @param {?Object} data
+   * @param {?string} title
+   * @param {!string} url
+   */
+  window.history.pushState = function (data, title, url) {
+    changeState(data, title, url, false);
+  };
+
+  /**
+   * @param {?Object} data
+   * @param {?string} title
+   * @param {!string} url
+   */
+  window.history.replaceState = function (data, title, url) {
+    changeState(data, title, url, true);
+  };
+
+  /**
+   * @private
+   * @return {string} Hash value, minus any leading '#'
+   */
+  history_js.normalized_hash = function () {
+    return location.hash[0] === '#' ?  location.hash.substring(1) : location.hash;
+  }
+
+  /**
+   * Receive the hashChanged event (native or manual) and fire the onpopstate
+   * event
+   * @private
+   */
+  history_js.hashchange = function() {
+    var new_hash = history_js.normalized_hash(),
+        data;
+
+    // False alarm, ignore
+    if (new_hash === history_js.hash) {
+      return;
+    }
+
+    history_js.hash = new_hash;
+    data = history_js.hash ? history_js.getStorage(history_js.hash) : {};
+
+    if (DEBUG) {
+      console.info('New hash: ', history_js.hash);
+    }
+
+    // Now, fire onpopstate with the state object
+    if ('onpopstate' in window && typeof window.onpopstate === 'function') {
+      window.onpopstate.apply(window, [{ 'state': data ? data.state : null }]);
+    }
+    else {
+      if (DEBUG) {
+        console.info('State changed, but no handler!');
+      }
+    }
+  };
+
+  // IE8 in IE7 mode defines onhashchange, but never fires it
+  if ('onhashchange' in window && !IE8inIE7) {
+    if (DEBUG) {
+      console.info('Browser has native onHashChange');
+    }
+
+    window.onhashchange = history_js.hashchange;
+  }
+  else {
+    // TODO:
+    // IE6 & 7 don't create history items if the hash doesn't match an element's ID,
+    // so we need to create an iframe which we'll use 
+
+    if (DEBUG) {
+      console.info('Using manualy hash change detection');
+    }
+
+    // Need to check hash state manually
+    history_js.hashInterval = setInterval(function () {
+      var hash = history_js.normalized_hash();
+      if (hash !== history_js.hash) {
+        history_js.hashchange();
+      }
+    }, history_js.hashInterval);
+  }
+
+  // Fire event manually right now, if we loaded with a hash
+  if (history_js.normalized_hash()) {
+    history_js.hashchange();
+  }
+}(window.history_js, window, document.location));
+});
+_sardines.register("/modules/plugin.http.history/utils.js", function(require, module, exports, __dirname, __filename) {
+	exports.urlPath = function(url)
+{
+	return url.indexOf('://') > -1 ? url.split('/').slice(3).join('/') : url;
+}
+});
+_sardines.register("/modules/underscore/underscore.js", function(require, module, exports, __dirname, __filename) {
+	//     Underscore.js 1.3.1
+//     (c) 2009-2012 Jeremy Ashkenas, DocumentCloud Inc.
+//     Underscore is freely distributable under the MIT license.
+//     Portions of Underscore are inspired or borrowed from Prototype,
+//     Oliver Steele's Functional, and John Resig's Micro-Templating.
+//     For all details and documentation:
+//     http://documentcloud.github.com/underscore
+
+(function() {
+
+  // Baseline setup
+  // --------------
+
+  // Establish the root object, `window` in the browser, or `global` on the server.
+  var root = this;
+
+  // Save the previous value of the `_` variable.
+  var previousUnderscore = root._;
+
+  // Establish the object that gets returned to break out of a loop iteration.
+  var breaker = {};
+
+  // Save bytes in the minified (but not gzipped) version:
+  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
+
+  // Create quick reference variables for speed access to core prototypes.
+  var slice            = ArrayProto.slice,
+      unshift          = ArrayProto.unshift,
+      toString         = ObjProto.toString,
+      hasOwnProperty   = ObjProto.hasOwnProperty;
+
+  // All **ECMAScript 5** native function implementations that we hope to use
+  // are declared here.
+  var
+    nativeForEach      = ArrayProto.forEach,
+    nativeMap          = ArrayProto.map,
+    nativeReduce       = ArrayProto.reduce,
+    nativeReduceRight  = ArrayProto.reduceRight,
+    nativeFilter       = ArrayProto.filter,
+    nativeEvery        = ArrayProto.every,
+    nativeSome         = ArrayProto.some,
+    nativeIndexOf      = ArrayProto.indexOf,
+    nativeLastIndexOf  = ArrayProto.lastIndexOf,
+    nativeIsArray      = Array.isArray,
+    nativeKeys         = Object.keys,
+    nativeBind         = FuncProto.bind;
+
+  // Create a safe reference to the Underscore object for use below.
+  var _ = function(obj) { return new wrapper(obj); };
+
+  // Export the Underscore object for **Node.js**, with
+  // backwards-compatibility for the old `require()` API. If we're in
+  // the browser, add `_` as a global object via a string identifier,
+  // for Closure Compiler "advanced" mode.
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = _;
+    }
+    exports._ = _;
+  } else {
+    root['_'] = _;
+  }
+
+  // Current version.
+  _.VERSION = '1.3.1';
+
+  // Collection Functions
+  // --------------------
+
+  // The cornerstone, an `each` implementation, aka `forEach`.
+  // Handles objects with the built-in `forEach`, arrays, and raw objects.
+  // Delegates to **ECMAScript 5**'s native `forEach` if available.
+  var each = _.each = _.forEach = function(obj, iterator, context) {
+    if (obj == null) return;
+    if (nativeForEach && obj.forEach === nativeForEach) {
+      obj.forEach(iterator, context);
+    } else if (obj.length === +obj.length) {
+      for (var i = 0, l = obj.length; i < l; i++) {
+        if (i in obj && iterator.call(context, obj[i], i, obj) === breaker) return;
+      }
+    } else {
+      for (var key in obj) {
+        if (_.has(obj, key)) {
+          if (iterator.call(context, obj[key], key, obj) === breaker) return;
+        }
+      }
+    }
+  };
+
+  // Return the results of applying the iterator to each element.
+  // Delegates to **ECMAScript 5**'s native `map` if available.
+  _.map = _.collect = function(obj, iterator, context) {
+    var results = [];
+    if (obj == null) return results;
+    if (nativeMap && obj.map === nativeMap) return obj.map(iterator, context);
+    each(obj, function(value, index, list) {
+      results[results.length] = iterator.call(context, value, index, list);
+    });
+    if (obj.length === +obj.length) results.length = obj.length;
+    return results;
+  };
+
+  // **Reduce** builds up a single result from a list of values, aka `inject`,
+  // or `foldl`. Delegates to **ECMAScript 5**'s native `reduce` if available.
+  _.reduce = _.foldl = _.inject = function(obj, iterator, memo, context) {
+    var initial = arguments.length > 2;
+    if (obj == null) obj = [];
+    if (nativeReduce && obj.reduce === nativeReduce) {
+      if (context) iterator = _.bind(iterator, context);
+      return initial ? obj.reduce(iterator, memo) : obj.reduce(iterator);
+    }
+    each(obj, function(value, index, list) {
+      if (!initial) {
+        memo = value;
+        initial = true;
+      } else {
+        memo = iterator.call(context, memo, value, index, list);
+      }
+    });
+    if (!initial) throw new TypeError('Reduce of empty array with no initial value');
+    return memo;
+  };
+
+  // The right-associative version of reduce, also known as `foldr`.
+  // Delegates to **ECMAScript 5**'s native `reduceRight` if available.
+  _.reduceRight = _.foldr = function(obj, iterator, memo, context) {
+    var initial = arguments.length > 2;
+    if (obj == null) obj = [];
+    if (nativeReduceRight && obj.reduceRight === nativeReduceRight) {
+      if (context) iterator = _.bind(iterator, context);
+      return initial ? obj.reduceRight(iterator, memo) : obj.reduceRight(iterator);
+    }
+    var reversed = _.toArray(obj).reverse();
+    if (context && !initial) iterator = _.bind(iterator, context);
+    return initial ? _.reduce(reversed, iterator, memo, context) : _.reduce(reversed, iterator);
+  };
+
+  // Return the first value which passes a truth test. Aliased as `detect`.
+  _.find = _.detect = function(obj, iterator, context) {
+    var result;
+    any(obj, function(value, index, list) {
+      if (iterator.call(context, value, index, list)) {
+        result = value;
+        return true;
+      }
+    });
+    return result;
+  };
+
+  // Return all the elements that pass a truth test.
+  // Delegates to **ECMAScript 5**'s native `filter` if available.
+  // Aliased as `select`.
+  _.filter = _.select = function(obj, iterator, context) {
+    var results = [];
+    if (obj == null) return results;
+    if (nativeFilter && obj.filter === nativeFilter) return obj.filter(iterator, context);
+    each(obj, function(value, index, list) {
+      if (iterator.call(context, value, index, list)) results[results.length] = value;
+    });
+    return results;
+  };
+
+  // Return all the elements for which a truth test fails.
+  _.reject = function(obj, iterator, context) {
+    var results = [];
+    if (obj == null) return results;
+    each(obj, function(value, index, list) {
+      if (!iterator.call(context, value, index, list)) results[results.length] = value;
+    });
+    return results;
+  };
+
+  // Determine whether all of the elements match a truth test.
+  // Delegates to **ECMAScript 5**'s native `every` if available.
+  // Aliased as `all`.
+  _.every = _.all = function(obj, iterator, context) {
+    var result = true;
+    if (obj == null) return result;
+    if (nativeEvery && obj.every === nativeEvery) return obj.every(iterator, context);
+    each(obj, function(value, index, list) {
+      if (!(result = result && iterator.call(context, value, index, list))) return breaker;
+    });
+    return result;
+  };
+
+  // Determine if at least one element in the object matches a truth test.
+  // Delegates to **ECMAScript 5**'s native `some` if available.
+  // Aliased as `any`.
+  var any = _.some = _.any = function(obj, iterator, context) {
+    iterator || (iterator = _.identity);
+    var result = false;
+    if (obj == null) return result;
+    if (nativeSome && obj.some === nativeSome) return obj.some(iterator, context);
+    each(obj, function(value, index, list) {
+      if (result || (result = iterator.call(context, value, index, list))) return breaker;
+    });
+    return !!result;
+  };
+
+  // Determine if a given value is included in the array or object using `===`.
+  // Aliased as `contains`.
+  _.include = _.contains = function(obj, target) {
+    var found = false;
+    if (obj == null) return found;
+    if (nativeIndexOf && obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
+    found = any(obj, function(value) {
+      return value === target;
+    });
+    return found;
+  };
+
+  // Invoke a method (with arguments) on every item in a collection.
+  _.invoke = function(obj, method) {
+    var args = slice.call(arguments, 2);
+    return _.map(obj, function(value) {
+      return (_.isFunction(method) ? method || value : value[method]).apply(value, args);
+    });
+  };
+
+  // Convenience version of a common use case of `map`: fetching a property.
+  _.pluck = function(obj, key) {
+    return _.map(obj, function(value){ return value[key]; });
+  };
+
+  // Return the maximum element or (element-based computation).
+  _.max = function(obj, iterator, context) {
+    if (!iterator && _.isArray(obj)) return Math.max.apply(Math, obj);
+    if (!iterator && _.isEmpty(obj)) return -Infinity;
+    var result = {computed : -Infinity};
+    each(obj, function(value, index, list) {
+      var computed = iterator ? iterator.call(context, value, index, list) : value;
+      computed >= result.computed && (result = {value : value, computed : computed});
+    });
+    return result.value;
+  };
+
+  // Return the minimum element (or element-based computation).
+  _.min = function(obj, iterator, context) {
+    if (!iterator && _.isArray(obj)) return Math.min.apply(Math, obj);
+    if (!iterator && _.isEmpty(obj)) return Infinity;
+    var result = {computed : Infinity};
+    each(obj, function(value, index, list) {
+      var computed = iterator ? iterator.call(context, value, index, list) : value;
+      computed < result.computed && (result = {value : value, computed : computed});
+    });
+    return result.value;
+  };
+
+  // Shuffle an array.
+  _.shuffle = function(obj) {
+    var shuffled = [], rand;
+    each(obj, function(value, index, list) {
+      if (index == 0) {
+        shuffled[0] = value;
+      } else {
+        rand = Math.floor(Math.random() * (index + 1));
+        shuffled[index] = shuffled[rand];
+        shuffled[rand] = value;
+      }
+    });
+    return shuffled;
+  };
+
+  // Sort the object's values by a criterion produced by an iterator.
+  _.sortBy = function(obj, iterator, context) {
+    return _.pluck(_.map(obj, function(value, index, list) {
+      return {
+        value : value,
+        criteria : iterator.call(context, value, index, list)
+      };
+    }).sort(function(left, right) {
+      var a = left.criteria, b = right.criteria;
+      return a < b ? -1 : a > b ? 1 : 0;
+    }), 'value');
+  };
+
+  // Groups the object's values by a criterion. Pass either a string attribute
+  // to group by, or a function that returns the criterion.
+  _.groupBy = function(obj, val) {
+    var result = {};
+    var iterator = _.isFunction(val) ? val : function(obj) { return obj[val]; };
+    each(obj, function(value, index) {
+      var key = iterator(value, index);
+      (result[key] || (result[key] = [])).push(value);
+    });
+    return result;
+  };
+
+  // Use a comparator function to figure out at what index an object should
+  // be inserted so as to maintain order. Uses binary search.
+  _.sortedIndex = function(array, obj, iterator) {
+    iterator || (iterator = _.identity);
+    var low = 0, high = array.length;
+    while (low < high) {
+      var mid = (low + high) >> 1;
+      iterator(array[mid]) < iterator(obj) ? low = mid + 1 : high = mid;
+    }
+    return low;
+  };
+
+  // Safely convert anything iterable into a real, live array.
+  _.toArray = function(iterable) {
+    if (!iterable)                return [];
+    if (iterable.toArray)         return iterable.toArray();
+    if (_.isArray(iterable))      return slice.call(iterable);
+    if (_.isArguments(iterable))  return slice.call(iterable);
+    return _.values(iterable);
+  };
+
+  // Return the number of elements in an object.
+  _.size = function(obj) {
+    return _.toArray(obj).length;
+  };
+
+  // Array Functions
+  // ---------------
+
+  // Get the first element of an array. Passing **n** will return the first N
+  // values in the array. Aliased as `head`. The **guard** check allows it to work
+  // with `_.map`.
+  _.first = _.head = function(array, n, guard) {
+    return (n != null) && !guard ? slice.call(array, 0, n) : array[0];
+  };
+
+  // Returns everything but the last entry of the array. Especcialy useful on
+  // the arguments object. Passing **n** will return all the values in
+  // the array, excluding the last N. The **guard** check allows it to work with
+  // `_.map`.
+  _.initial = function(array, n, guard) {
+    return slice.call(array, 0, array.length - ((n == null) || guard ? 1 : n));
+  };
+
+  // Get the last element of an array. Passing **n** will return the last N
+  // values in the array. The **guard** check allows it to work with `_.map`.
+  _.last = function(array, n, guard) {
+    if ((n != null) && !guard) {
+      return slice.call(array, Math.max(array.length - n, 0));
+    } else {
+      return array[array.length - 1];
+    }
+  };
+
+  // Returns everything but the first entry of the array. Aliased as `tail`.
+  // Especially useful on the arguments object. Passing an **index** will return
+  // the rest of the values in the array from that index onward. The **guard**
+  // check allows it to work with `_.map`.
+  _.rest = _.tail = function(array, index, guard) {
+    return slice.call(array, (index == null) || guard ? 1 : index);
+  };
+
+  // Trim out all falsy values from an array.
+  _.compact = function(array) {
+    return _.filter(array, function(value){ return !!value; });
+  };
+
+  // Return a completely flattened version of an array.
+  _.flatten = function(array, shallow) {
+    return _.reduce(array, function(memo, value) {
+      if (_.isArray(value)) return memo.concat(shallow ? value : _.flatten(value));
+      memo[memo.length] = value;
+      return memo;
+    }, []);
+  };
+
+  // Return a version of the array that does not contain the specified value(s).
+  _.without = function(array) {
+    return _.difference(array, slice.call(arguments, 1));
+  };
+
+  // Produce a duplicate-free version of the array. If the array has already
+  // been sorted, you have the option of using a faster algorithm.
+  // Aliased as `unique`.
+  _.uniq = _.unique = function(array, isSorted, iterator) {
+    var initial = iterator ? _.map(array, iterator) : array;
+    var result = [];
+    _.reduce(initial, function(memo, el, i) {
+      if (0 == i || (isSorted === true ? _.last(memo) != el : !_.include(memo, el))) {
+        memo[memo.length] = el;
+        result[result.length] = array[i];
+      }
+      return memo;
+    }, []);
+    return result;
+  };
+
+  // Produce an array that contains the union: each distinct element from all of
+  // the passed-in arrays.
+  _.union = function() {
+    return _.uniq(_.flatten(arguments, true));
+  };
+
+  // Produce an array that contains every item shared between all the
+  // passed-in arrays. (Aliased as "intersect" for back-compat.)
+  _.intersection = _.intersect = function(array) {
+    var rest = slice.call(arguments, 1);
+    return _.filter(_.uniq(array), function(item) {
+      return _.every(rest, function(other) {
+        return _.indexOf(other, item) >= 0;
+      });
+    });
+  };
+
+  // Take the difference between one array and a number of other arrays.
+  // Only the elements present in just the first array will remain.
+  _.difference = function(array) {
+    var rest = _.flatten(slice.call(arguments, 1));
+    return _.filter(array, function(value){ return !_.include(rest, value); });
+  };
+
+  // Zip together multiple lists into a single array -- elements that share
+  // an index go together.
+  _.zip = function() {
+    var args = slice.call(arguments);
+    var length = _.max(_.pluck(args, 'length'));
+    var results = new Array(length);
+    for (var i = 0; i < length; i++) results[i] = _.pluck(args, "" + i);
+    return results;
+  };
+
+  // If the browser doesn't supply us with indexOf (I'm looking at you, **MSIE**),
+  // we need this function. Return the position of the first occurrence of an
+  // item in an array, or -1 if the item is not included in the array.
+  // Delegates to **ECMAScript 5**'s native `indexOf` if available.
+  // If the array is large and already in sort order, pass `true`
+  // for **isSorted** to use binary search.
+  _.indexOf = function(array, item, isSorted) {
+    if (array == null) return -1;
+    var i, l;
+    if (isSorted) {
+      i = _.sortedIndex(array, item);
+      return array[i] === item ? i : -1;
+    }
+    if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item);
+    for (i = 0, l = array.length; i < l; i++) if (i in array && array[i] === item) return i;
+    return -1;
+  };
+
+  // Delegates to **ECMAScript 5**'s native `lastIndexOf` if available.
+  _.lastIndexOf = function(array, item) {
+    if (array == null) return -1;
+    if (nativeLastIndexOf && array.lastIndexOf === nativeLastIndexOf) return array.lastIndexOf(item);
+    var i = array.length;
+    while (i--) if (i in array && array[i] === item) return i;
+    return -1;
+  };
+
+  // Generate an integer Array containing an arithmetic progression. A port of
+  // the native Python `range()` function. See
+  // [the Python documentation](http://docs.python.org/library/functions.html#range).
+  _.range = function(start, stop, step) {
+    if (arguments.length <= 1) {
+      stop = start || 0;
+      start = 0;
+    }
+    step = arguments[2] || 1;
+
+    var len = Math.max(Math.ceil((stop - start) / step), 0);
+    var idx = 0;
+    var range = new Array(len);
+
+    while(idx < len) {
+      range[idx++] = start;
+      start += step;
+    }
+
+    return range;
+  };
+
+  // Function (ahem) Functions
+  // ------------------
+
+  // Reusable constructor function for prototype setting.
+  var ctor = function(){};
+
+  // Create a function bound to a given object (assigning `this`, and arguments,
+  // optionally). Binding with arguments is also known as `curry`.
+  // Delegates to **ECMAScript 5**'s native `Function.bind` if available.
+  // We check for `func.bind` first, to fail fast when `func` is undefined.
+  _.bind = function bind(func, context) {
+    var bound, args;
+    if (func.bind === nativeBind && nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
+    if (!_.isFunction(func)) throw new TypeError;
+    args = slice.call(arguments, 2);
+    return bound = function() {
+      if (!(this instanceof bound)) return func.apply(context, args.concat(slice.call(arguments)));
+      ctor.prototype = func.prototype;
+      var self = new ctor;
+      var result = func.apply(self, args.concat(slice.call(arguments)));
+      if (Object(result) === result) return result;
+      return self;
+    };
+  };
+
+  // Bind all of an object's methods to that object. Useful for ensuring that
+  // all callbacks defined on an object belong to it.
+  _.bindAll = function(obj) {
+    var funcs = slice.call(arguments, 1);
+    if (funcs.length == 0) funcs = _.functions(obj);
+    each(funcs, function(f) { obj[f] = _.bind(obj[f], obj); });
+    return obj;
+  };
+
+  // Memoize an expensive function by storing its results.
+  _.memoize = function(func, hasher) {
+    var memo = {};
+    hasher || (hasher = _.identity);
+    return function() {
+      var key = hasher.apply(this, arguments);
+      return _.has(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
+    };
+  };
+
+  // Delays a function for the given number of milliseconds, and then calls
+  // it with the arguments supplied.
+  _.delay = function(func, wait) {
+    var args = slice.call(arguments, 2);
+    return setTimeout(function(){ return func.apply(func, args); }, wait);
+  };
+
+  // Defers a function, scheduling it to run after the current call stack has
+  // cleared.
+  _.defer = function(func) {
+    return _.delay.apply(_, [func, 1].concat(slice.call(arguments, 1)));
+  };
+
+  // Returns a function, that, when invoked, will only be triggered at most once
+  // during a given window of time.
+  _.throttle = function(func, wait) {
+    var context, args, timeout, throttling, more;
+    var whenDone = _.debounce(function(){ more = throttling = false; }, wait);
+    return function() {
+      context = this; args = arguments;
+      var later = function() {
+        timeout = null;
+        if (more) func.apply(context, args);
+        whenDone();
+      };
+      if (!timeout) timeout = setTimeout(later, wait);
+      if (throttling) {
+        more = true;
+      } else {
+        func.apply(context, args);
+      }
+      whenDone();
+      throttling = true;
+    };
+  };
+
+  // Returns a function, that, as long as it continues to be invoked, will not
+  // be triggered. The function will be called after it stops being called for
+  // N milliseconds.
+  _.debounce = function(func, wait) {
+    var timeout;
+    return function() {
+      var context = this, args = arguments;
+      var later = function() {
+        timeout = null;
+        func.apply(context, args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  };
+
+  // Returns a function that will be executed at most one time, no matter how
+  // often you call it. Useful for lazy initialization.
+  _.once = function(func) {
+    var ran = false, memo;
+    return function() {
+      if (ran) return memo;
+      ran = true;
+      return memo = func.apply(this, arguments);
+    };
+  };
+
+  // Returns the first function passed as an argument to the second,
+  // allowing you to adjust arguments, run code before and after, and
+  // conditionally execute the original function.
+  _.wrap = function(func, wrapper) {
+    return function() {
+      var args = [func].concat(slice.call(arguments, 0));
+      return wrapper.apply(this, args);
+    };
+  };
+
+  // Returns a function that is the composition of a list of functions, each
+  // consuming the return value of the function that follows.
+  _.compose = function() {
+    var funcs = arguments;
+    return function() {
+      var args = arguments;
+      for (var i = funcs.length - 1; i >= 0; i--) {
+        args = [funcs[i].apply(this, args)];
+      }
+      return args[0];
+    };
+  };
+
+  // Returns a function that will only be executed after being called N times.
+  _.after = function(times, func) {
+    if (times <= 0) return func();
+    return function() {
+      if (--times < 1) { return func.apply(this, arguments); }
+    };
+  };
+
+  // Object Functions
+  // ----------------
+
+  // Retrieve the names of an object's properties.
+  // Delegates to **ECMAScript 5**'s native `Object.keys`
+  _.keys = nativeKeys || function(obj) {
+    if (obj !== Object(obj)) throw new TypeError('Invalid object');
+    var keys = [];
+    for (var key in obj) if (_.has(obj, key)) keys[keys.length] = key;
+    return keys;
+  };
+
+  // Retrieve the values of an object's properties.
+  _.values = function(obj) {
+    return _.map(obj, _.identity);
+  };
+
+  // Return a sorted list of the function names available on the object.
+  // Aliased as `methods`
+  _.functions = _.methods = function(obj) {
+    var names = [];
+    for (var key in obj) {
+      if (_.isFunction(obj[key])) names.push(key);
+    }
+    return names.sort();
+  };
+
+  // Extend a given object with all the properties in passed-in object(s).
+  _.extend = function(obj) {
+    each(slice.call(arguments, 1), function(source) {
+      for (var prop in source) {
+        obj[prop] = source[prop];
+      }
+    });
+    return obj;
+  };
+
+  // Fill in a given object with default properties.
+  _.defaults = function(obj) {
+    each(slice.call(arguments, 1), function(source) {
+      for (var prop in source) {
+        if (obj[prop] == null) obj[prop] = source[prop];
+      }
+    });
+    return obj;
+  };
+
+  // Create a (shallow-cloned) duplicate of an object.
+  _.clone = function(obj) {
+    if (!_.isObject(obj)) return obj;
+    return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
+  };
+
+  // Invokes interceptor with the obj, and then returns obj.
+  // The primary purpose of this method is to "tap into" a method chain, in
+  // order to perform operations on intermediate results within the chain.
+  _.tap = function(obj, interceptor) {
+    interceptor(obj);
+    return obj;
+  };
+
+  // Internal recursive comparison function.
+  function eq(a, b, stack) {
+    // Identical objects are equal. `0 === -0`, but they aren't identical.
+    // See the Harmony `egal` proposal: http://wiki.ecmascript.org/doku.php?id=harmony:egal.
+    if (a === b) return a !== 0 || 1 / a == 1 / b;
+    // A strict comparison is necessary because `null == undefined`.
+    if (a == null || b == null) return a === b;
+    // Unwrap any wrapped objects.
+    if (a._chain) a = a._wrapped;
+    if (b._chain) b = b._wrapped;
+    // Invoke a custom `isEqual` method if one is provided.
+    if (a.isEqual && _.isFunction(a.isEqual)) return a.isEqual(b);
+    if (b.isEqual && _.isFunction(b.isEqual)) return b.isEqual(a);
+    // Compare `[[Class]]` names.
+    var className = toString.call(a);
+    if (className != toString.call(b)) return false;
+    switch (className) {
+      // Strings, numbers, dates, and booleans are compared by value.
+      case '[object String]':
+        // Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
+        // equivalent to `new String("5")`.
+        return a == String(b);
+      case '[object Number]':
+        // `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
+        // other numeric values.
+        return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
+      case '[object Date]':
+      case '[object Boolean]':
+        // Coerce dates and booleans to numeric primitive values. Dates are compared by their
+        // millisecond representations. Note that invalid dates with millisecond representations
+        // of `NaN` are not equivalent.
+        return +a == +b;
+      // RegExps are compared by their source patterns and flags.
+      case '[object RegExp]':
+        return a.source == b.source &&
+               a.global == b.global &&
+               a.multiline == b.multiline &&
+               a.ignoreCase == b.ignoreCase;
+    }
+    if (typeof a != 'object' || typeof b != 'object') return false;
+    // Assume equality for cyclic structures. The algorithm for detecting cyclic
+    // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
+    var length = stack.length;
+    while (length--) {
+      // Linear search. Performance is inversely proportional to the number of
+      // unique nested structures.
+      if (stack[length] == a) return true;
+    }
+    // Add the first object to the stack of traversed objects.
+    stack.push(a);
+    var size = 0, result = true;
+    // Recursively compare objects and arrays.
+    if (className == '[object Array]') {
+      // Compare array lengths to determine if a deep comparison is necessary.
+      size = a.length;
+      result = size == b.length;
+      if (result) {
+        // Deep compare the contents, ignoring non-numeric properties.
+        while (size--) {
+          // Ensure commutative equality for sparse arrays.
+          if (!(result = size in a == size in b && eq(a[size], b[size], stack))) break;
+        }
+      }
+    } else {
+      // Objects with different constructors are not equivalent.
+      if ('constructor' in a != 'constructor' in b || a.constructor != b.constructor) return false;
+      // Deep compare objects.
+      for (var key in a) {
+        if (_.has(a, key)) {
+          // Count the expected number of properties.
+          size++;
+          // Deep compare each member.
+          if (!(result = _.has(b, key) && eq(a[key], b[key], stack))) break;
+        }
+      }
+      // Ensure that both objects contain the same number of properties.
+      if (result) {
+        for (key in b) {
+          if (_.has(b, key) && !(size--)) break;
+        }
+        result = !size;
+      }
+    }
+    // Remove the first object from the stack of traversed objects.
+    stack.pop();
+    return result;
+  }
+
+  // Perform a deep comparison to check if two objects are equal.
+  _.isEqual = function(a, b) {
+    return eq(a, b, []);
+  };
+
+  // Is a given array, string, or object empty?
+  // An "empty" object has no enumerable own-properties.
+  _.isEmpty = function(obj) {
+    if (_.isArray(obj) || _.isString(obj)) return obj.length === 0;
+    for (var key in obj) if (_.has(obj, key)) return false;
+    return true;
+  };
+
+  // Is a given value a DOM element?
+  _.isElement = function(obj) {
+    return !!(obj && obj.nodeType == 1);
+  };
+
+  // Is a given value an array?
+  // Delegates to ECMA5's native Array.isArray
+  _.isArray = nativeIsArray || function(obj) {
+    return toString.call(obj) == '[object Array]';
+  };
+
+  // Is a given variable an object?
+  _.isObject = function(obj) {
+    return obj === Object(obj);
+  };
+
+  // Is a given variable an arguments object?
+  _.isArguments = function(obj) {
+    return toString.call(obj) == '[object Arguments]';
+  };
+  if (!_.isArguments(arguments)) {
+    _.isArguments = function(obj) {
+      return !!(obj && _.has(obj, 'callee'));
+    };
+  }
+
+  // Is a given value a function?
+  _.isFunction = function(obj) {
+    return toString.call(obj) == '[object Function]';
+  };
+
+  // Is a given value a string?
+  _.isString = function(obj) {
+    return toString.call(obj) == '[object String]';
+  };
+
+  // Is a given value a number?
+  _.isNumber = function(obj) {
+    return toString.call(obj) == '[object Number]';
+  };
+
+  // Is the given value `NaN`?
+  _.isNaN = function(obj) {
+    // `NaN` is the only value for which `===` is not reflexive.
+    return obj !== obj;
+  };
+
+  // Is a given value a boolean?
+  _.isBoolean = function(obj) {
+    return obj === true || obj === false || toString.call(obj) == '[object Boolean]';
+  };
+
+  // Is a given value a date?
+  _.isDate = function(obj) {
+    return toString.call(obj) == '[object Date]';
+  };
+
+  // Is the given value a regular expression?
+  _.isRegExp = function(obj) {
+    return toString.call(obj) == '[object RegExp]';
+  };
+
+  // Is a given value equal to null?
+  _.isNull = function(obj) {
+    return obj === null;
+  };
+
+  // Is a given variable undefined?
+  _.isUndefined = function(obj) {
+    return obj === void 0;
+  };
+
+  // Has own property?
+  _.has = function(obj, key) {
+    return hasOwnProperty.call(obj, key);
+  };
+
+  // Utility Functions
+  // -----------------
+
+  // Run Underscore.js in *noConflict* mode, returning the `_` variable to its
+  // previous owner. Returns a reference to the Underscore object.
+  _.noConflict = function() {
+    root._ = previousUnderscore;
+    return this;
+  };
+
+  // Keep the identity function around for default iterators.
+  _.identity = function(value) {
+    return value;
+  };
+
+  // Run a function **n** times.
+  _.times = function (n, iterator, context) {
+    for (var i = 0; i < n; i++) iterator.call(context, i);
+  };
+
+  // Escape a string for HTML interpolation.
+  _.escape = function(string) {
+    return (''+string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/\//g,'&#x2F;');
+  };
+
+  // Add your own custom functions to the Underscore object, ensuring that
+  // they're correctly added to the OOP wrapper as well.
+  _.mixin = function(obj) {
+    each(_.functions(obj), function(name){
+      addToWrapper(name, _[name] = obj[name]);
+    });
+  };
+
+  // Generate a unique integer id (unique within the entire client session).
+  // Useful for temporary DOM ids.
+  var idCounter = 0;
+  _.uniqueId = function(prefix) {
+    var id = idCounter++;
+    return prefix ? prefix + id : id;
+  };
+
+  // By default, Underscore uses ERB-style template delimiters, change the
+  // following template settings to use alternative delimiters.
+  _.templateSettings = {
+    evaluate    : /<%([\s\S]+?)%>/g,
+    interpolate : /<%=([\s\S]+?)%>/g,
+    escape      : /<%-([\s\S]+?)%>/g
+  };
+
+  // When customizing `templateSettings`, if you don't want to define an
+  // interpolation, evaluation or escaping regex, we need one that is
+  // guaranteed not to match.
+  var noMatch = /.^/;
+
+  // Within an interpolation, evaluation, or escaping, remove HTML escaping
+  // that had been previously added.
+  var unescape = function(code) {
+    return code.replace(/\\\\/g, '\\').replace(/\\'/g, "'");
+  };
+
+  // JavaScript micro-templating, similar to John Resig's implementation.
+  // Underscore templating handles arbitrary delimiters, preserves whitespace,
+  // and correctly escapes quotes within interpolated code.
+  _.template = function(str, data) {
+    var c  = _.templateSettings;
+    var tmpl = 'var __p=[],print=function(){__p.push.apply(__p,arguments);};' +
+      'with(obj||{}){__p.push(\'' +
+      str.replace(/\\/g, '\\\\')
+         .replace(/'/g, "\\'")
+         .replace(c.escape || noMatch, function(match, code) {
+           return "',_.escape(" + unescape(code) + "),'";
+         })
+         .replace(c.interpolate || noMatch, function(match, code) {
+           return "'," + unescape(code) + ",'";
+         })
+         .replace(c.evaluate || noMatch, function(match, code) {
+           return "');" + unescape(code).replace(/[\r\n\t]/g, ' ') + ";__p.push('";
+         })
+         .replace(/\r/g, '\\r')
+         .replace(/\n/g, '\\n')
+         .replace(/\t/g, '\\t')
+         + "');}return __p.join('');";
+    var func = new Function('obj', '_', tmpl);
+    if (data) return func(data, _);
+    return function(data) {
+      return func.call(this, data, _);
+    };
+  };
+
+  // Add a "chain" function, which will delegate to the wrapper.
+  _.chain = function(obj) {
+    return _(obj).chain();
+  };
+
+  // The OOP Wrapper
+  // ---------------
+
+  // If Underscore is called as a function, it returns a wrapped object that
+  // can be used OO-style. This wrapper holds altered versions of all the
+  // underscore functions. Wrapped objects may be chained.
+  var wrapper = function(obj) { this._wrapped = obj; };
+
+  // Expose `wrapper.prototype` as `_.prototype`
+  _.prototype = wrapper.prototype;
+
+  // Helper function to continue chaining intermediate results.
+  var result = function(obj, chain) {
+    return chain ? _(obj).chain() : obj;
+  };
+
+  // A method to easily add functions to the OOP wrapper.
+  var addToWrapper = function(name, func) {
+    wrapper.prototype[name] = function() {
+      var args = slice.call(arguments);
+      unshift.call(args, this._wrapped);
+      return result(func.apply(_, args), this._chain);
+    };
+  };
+
+  // Add all of the Underscore functions to the wrapper object.
+  _.mixin(_);
+
+  // Add all mutator Array functions to the wrapper.
+  each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function(name) {
+    var method = ArrayProto[name];
+    wrapper.prototype[name] = function() {
+      var wrapped = this._wrapped;
+      method.apply(wrapped, arguments);
+      var length = wrapped.length;
+      if ((name == 'shift' || name == 'splice') && length === 0) delete wrapped[0];
+      return result(wrapped, this._chain);
+    };
+  });
+
+  // Add all accessor Array functions to the wrapper.
+  each(['concat', 'join', 'slice'], function(name) {
+    var method = ArrayProto[name];
+    wrapper.prototype[name] = function() {
+      return result(method.apply(this._wrapped, arguments), this._chain);
+    };
+  });
+
+  // Start chaining a wrapped Underscore object.
+  wrapper.prototype.chain = function() {
+    this._chain = true;
+    return this;
+  };
+
+  // Extracts the result from a wrapped and chained object.
+  wrapper.prototype.value = function() {
+    return this._wrapped;
+  };
+
+}).call(this);
+
+});
+
+_sardines.register("/modules/underscore", function(require, module, exports, __dirname, __filename) {
+	module.exports = require('modules/underscore/underscore.js');
+});
+_sardines.register("/modules/url", function(require, module, exports, __dirname, __filename) {
+	// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var punycode = require('punycode');
+
+exports.parse = urlParse;
+exports.resolve = urlResolve;
+exports.resolveObject = urlResolveObject;
+exports.format = urlFormat;
+
+// Reference: RFC 3986, RFC 1808, RFC 2396
+
+// define these here so at least they only have to be
+// compiled once on the first module load.
+var protocolPattern = /^([a-z0-9+]+:)/i,
+    portPattern = /:[0-9]+$/,
+    // RFC 2396: characters reserved for delimiting URLs.
+    delims = ['<', '>', '"', '`', ' ', '\r', '\n', '\t'],
+    // RFC 2396: characters not allowed for various reasons.
+    unwise = ['{', '}', '|', '\\', '^', '~', '[', ']', '`'].concat(delims),
+    // Allowed by RFCs, but cause of XSS attacks.  Always escape these.
+    autoEscape = ['\''],
+    // Characters that are never ever allowed in a hostname.
+    // Note that any invalid chars are also handled, but these
+    // are the ones that are *expected* to be seen, so we fast-path
+    // them.
+    nonHostChars = ['%', '/', '?', ';', '#']
+      .concat(unwise).concat(autoEscape),
+    nonAuthChars = ['/', '@', '?', '#'].concat(delims),
+    hostnameMaxLen = 255,
+    hostnamePartPattern = /^[a-zA-Z0-9][a-z0-9A-Z_-]{0,62}$/,
+    hostnamePartStart = /^([a-zA-Z0-9][a-z0-9A-Z_-]{0,62})(.*)$/,
+    // protocols that can allow "unsafe" and "unwise" chars.
+    unsafeProtocol = {
+      'javascript': true,
+      'javascript:': true
+    },
+    // protocols that never have a hostname.
+    hostlessProtocol = {
+      'javascript': true,
+      'javascript:': true
+    },
+    // protocols that always have a path component.
+    pathedProtocol = {
+      'http': true,
+      'https': true,
+      'ftp': true,
+      'gopher': true,
+      'file': true,
+      'http:': true,
+      'ftp:': true,
+      'gopher:': true,
+      'file:': true
+    },
+    // protocols that always contain a // bit.
+    slashedProtocol = {
+      'http': true,
+      'https': true,
+      'ftp': true,
+      'gopher': true,
+      'file': true,
+      'http:': true,
+      'https:': true,
+      'ftp:': true,
+      'gopher:': true,
+      'file:': true
+    },
+    querystring = require('querystring');
+
+function urlParse(url, parseQueryString, slashesDenoteHost) {
+  if (url && typeof(url) === 'object' && url.href) return url;
+
+  if (typeof url !== 'string') {
+    throw new TypeError("Parameter 'url' must be a string, not " + typeof url);
+  }
+
+  var out = {},
+      rest = url;
+
+  // cut off any delimiters.
+  // This is to support parse stuff like "<http://foo.com>"
+  for (var i = 0, l = rest.length; i < l; i++) {
+    if (delims.indexOf(rest.charAt(i)) === -1) break;
+  }
+  if (i !== 0) rest = rest.substr(i);
+
+
+  var proto = protocolPattern.exec(rest);
+  if (proto) {
+    proto = proto[0];
+    var lowerProto = proto.toLowerCase();
+    out.protocol = lowerProto;
+    rest = rest.substr(proto.length);
+  }
+
+  // figure out if it's got a host
+  // user@server is *always* interpreted as a hostname, and url
+  // resolution will treat //foo/bar as host=foo,path=bar because that's
+  // how the browser resolves relative URLs.
+  if (slashesDenoteHost || proto || rest.match(/^\/\/[^@\/]+@[^@\/]+/)) {
+    var slashes = rest.substr(0, 2) === '//';
+    if (slashes && !(proto && hostlessProtocol[proto])) {
+      rest = rest.substr(2);
+      out.slashes = true;
+    }
+  }
+
+  if (!hostlessProtocol[proto] &&
+      (slashes || (proto && !slashedProtocol[proto]))) {
+    // there's a hostname.
+    // the first instance of /, ?, ;, or # ends the host.
+    // don't enforce full RFC correctness, just be unstupid about it.
+
+    // If there is an @ in the hostname, then non-host chars *are* allowed
+    // to the left of the first @ sign, unless some non-auth character
+    // comes *before* the @-sign.
+    // URLs are obnoxious.
+    var atSign = rest.indexOf('@');
+    if (atSign !== -1) {
+      // there *may be* an auth
+      var hasAuth = true;
+      for (var i = 0, l = nonAuthChars.length; i < l; i++) {
+        var index = rest.indexOf(nonAuthChars[i]);
+        if (index !== -1 && index < atSign) {
+          // not a valid auth.  Something like http://foo.com/bar@baz/
+          hasAuth = false;
+          break;
+        }
+      }
+      if (hasAuth) {
+        // pluck off the auth portion.
+        out.auth = rest.substr(0, atSign);
+        rest = rest.substr(atSign + 1);
+      }
+    }
+
+    var firstNonHost = -1;
+    for (var i = 0, l = nonHostChars.length; i < l; i++) {
+      var index = rest.indexOf(nonHostChars[i]);
+      if (index !== -1 &&
+          (firstNonHost < 0 || index < firstNonHost)) firstNonHost = index;
+    }
+
+    if (firstNonHost !== -1) {
+      out.host = rest.substr(0, firstNonHost);
+      rest = rest.substr(firstNonHost);
+    } else {
+      out.host = rest;
+      rest = '';
+    }
+
+    // pull out port.
+    var p = parseHost(out.host);
+    if (out.auth) out.host = out.auth + '@' + out.host;
+    var keys = Object.keys(p);
+    for (var i = 0, l = keys.length; i < l; i++) {
+      var key = keys[i];
+      out[key] = p[key];
+    }
+
+    // we've indicated that there is a hostname,
+    // so even if it's empty, it has to be present.
+    out.hostname = out.hostname || '';
+
+    // validate a little.
+    if (out.hostname.length > hostnameMaxLen) {
+      out.hostname = '';
+    } else {
+      var hostparts = out.hostname.split(/\./);
+      for (var i = 0, l = hostparts.length; i < l; i++) {
+        var part = hostparts[i];
+        if (!part) continue;
+        if (!part.match(hostnamePartPattern)) {
+          var newpart = '';
+          for (var j = 0, k = part.length; j < k; j++) {
+            if (part.charCodeAt(j) > 127) {
+              // we replace non-ASCII char with a temporary placeholder
+              // we need this to make sure size of hostname is not
+              // broken by replacing non-ASCII by nothing
+              newpart += 'x';
+            } else {
+              newpart += part[j];
+            }
+          }
+          // we test again with ASCII char only
+          if (!newpart.match(hostnamePartPattern)) {
+            var validParts = hostparts.slice(0, i);
+            var notHost = hostparts.slice(i + 1);
+            var bit = part.match(hostnamePartStart);
+            if (bit) {
+              validParts.push(bit[1]);
+              notHost.unshift(bit[2]);
+            }
+            if (notHost.length) {
+              rest = '/' + notHost.join('.') + rest;
+            }
+            out.hostname = validParts.join('.');
+            break;
+          }
+        }
+      }
+    }
+
+    // hostnames are always lower case.
+    out.hostname = out.hostname.toLowerCase();
+
+    // IDNA Support: Returns a puny coded representation of "domain".
+    // It only converts the part of the domain name that
+    // has non ASCII characters. I.e. it dosent matter if
+    // you call it with a domain that already is in ASCII.
+    var domainArray = out.hostname.split('.');
+    var newOut = [];
+    for (var i = 0; i < domainArray.length; ++i) {
+      var s = domainArray[i];
+      newOut.push(s.match(/[^A-Za-z0-9_-]/) ?
+          'xn--' + punycode.encode(s) : s);
+    }
+    out.hostname = newOut.join('.');
+
+    out.host = ((out.auth) ? out.auth + '@' : '') +
+        (out.hostname || '') +
+        ((out.port) ? ':' + out.port : '');
+    out.href += out.host;
+  }
+
+  // now rest is set to the post-host stuff.
+  // chop off any delim chars.
+  if (!unsafeProtocol[lowerProto]) {
+
+    // First, make 100% sure that any "autoEscape" chars get
+    // escaped, even if encodeURIComponent doesn't think they
+    // need to be.
+    for (var i = 0, l = autoEscape.length; i < l; i++) {
+      var ae = autoEscape[i];
+      var esc = encodeURIComponent(ae);
+      if (esc === ae) {
+        esc = escape(ae);
+      }
+      rest = rest.split(ae).join(esc);
+    }
+
+    // Now make sure that delims never appear in a url.
+    var chop = rest.length;
+    for (var i = 0, l = delims.length; i < l; i++) {
+      var c = rest.indexOf(delims[i]);
+      if (c !== -1) {
+        chop = Math.min(c, chop);
+      }
+    }
+    rest = rest.substr(0, chop);
+  }
+
+
+  // chop off from the tail first.
+  var hash = rest.indexOf('#');
+  if (hash !== -1) {
+    // got a fragment string.
+    out.hash = rest.substr(hash);
+    rest = rest.slice(0, hash);
+  }
+  var qm = rest.indexOf('?');
+  if (qm !== -1) {
+    out.search = rest.substr(qm);
+    out.query = rest.substr(qm + 1);
+    if (parseQueryString) {
+      out.query = querystring.parse(out.query);
+    }
+    rest = rest.slice(0, qm);
+  } else if (parseQueryString) {
+    // no query string, but parseQueryString still requested
+    out.search = '';
+    out.query = {};
+  }
+  if (rest) out.pathname = rest;
+  if (slashedProtocol[proto] &&
+      out.hostname && !out.pathname) {
+    out.pathname = '/';
+  }
+
+  // finally, reconstruct the href based on what has been validated.
+  out.href = urlFormat(out);
+
+  return out;
+}
+
+// format a parsed object into a url string
+function urlFormat(obj) {
+  // ensure it's an object, and not a string url.
+  // If it's an obj, this is a no-op.
+  // this way, you can call url_format() on strings
+  // to clean up potentially wonky urls.
+  if (typeof(obj) === 'string') obj = urlParse(obj);
+
+  var auth = obj.auth;
+  if (auth) {
+    auth = auth.split('@').join('%40');
+    for (var i = 0, l = nonAuthChars.length; i < l; i++) {
+      var nAC = nonAuthChars[i];
+      auth = auth.split(nAC).join(encodeURIComponent(nAC));
+    }
+  }
+
+  var protocol = obj.protocol || '',
+      host = (obj.host !== undefined) ? obj.host :
+          obj.hostname !== undefined ? (
+              (auth ? auth + '@' : '') +
+              obj.hostname +
+              (obj.port ? ':' + obj.port : '')
+          ) :
+          false,
+      pathname = obj.pathname || '',
+      query = obj.query &&
+              ((typeof obj.query === 'object' &&
+                Object.keys(obj.query).length) ?
+                 querystring.stringify(obj.query) :
+                 '') || '',
+      search = obj.search || (query && ('?' + query)) || '',
+      hash = obj.hash || '';
+
+  if (protocol && protocol.substr(-1) !== ':') protocol += ':';
+
+  // only the slashedProtocols get the //.  Not mailto:, xmpp:, etc.
+  // unless they had them to begin with.
+  if (obj.slashes ||
+      (!protocol || slashedProtocol[protocol]) && host !== false) {
+    host = '//' + (host || '');
+    if (pathname && pathname.charAt(0) !== '/') pathname = '/' + pathname;
+  } else if (!host) {
+    host = '';
+  }
+
+  if (hash && hash.charAt(0) !== '#') hash = '#' + hash;
+  if (search && search.charAt(0) !== '?') search = '?' + search;
+
+  return protocol + host + pathname + search + hash;
+}
+
+function urlResolve(source, relative) {
+  return urlFormat(urlResolveObject(source, relative));
+}
+
+function urlResolveObject(source, relative) {
+  if (!source) return relative;
+
+  source = urlParse(urlFormat(source), false, true);
+  relative = urlParse(urlFormat(relative), false, true);
+
+  // hash is always overridden, no matter what.
+  source.hash = relative.hash;
+
+  if (relative.href === '') return source;
+
+  // hrefs like //foo/bar always cut to the protocol.
+  if (relative.slashes && !relative.protocol) {
+    relative.protocol = source.protocol;
+    return relative;
+  }
+
+  if (relative.protocol && relative.protocol !== source.protocol) {
+    // if it's a known url protocol, then changing
+    // the protocol does weird things
+    // first, if it's not file:, then we MUST have a host,
+    // and if there was a path
+    // to begin with, then we MUST have a path.
+    // if it is file:, then the host is dropped,
+    // because that's known to be hostless.
+    // anything else is assumed to be absolute.
+
+    if (!slashedProtocol[relative.protocol]) return relative;
+
+    source.protocol = relative.protocol;
+    if (!relative.host && !hostlessProtocol[relative.protocol]) {
+      var relPath = (relative.pathname || '').split('/');
+      while (relPath.length && !(relative.host = relPath.shift()));
+      if (!relative.host) relative.host = '';
+      if (relPath[0] !== '') relPath.unshift('');
+      if (relPath.length < 2) relPath.unshift('');
+      relative.pathname = relPath.join('/');
+    }
+    source.pathname = relative.pathname;
+    source.search = relative.search;
+    source.query = relative.query;
+    source.host = relative.host || '';
+    delete source.auth;
+    delete source.hostname;
+    source.port = relative.port;
+    return source;
+  }
+
+  var isSourceAbs = (source.pathname && source.pathname.charAt(0) === '/'),
+      isRelAbs = (
+          relative.host !== undefined ||
+          relative.pathname && relative.pathname.charAt(0) === '/'
+      ),
+      mustEndAbs = (isRelAbs || isSourceAbs ||
+                    (source.host && relative.pathname)),
+      removeAllDots = mustEndAbs,
+      srcPath = source.pathname && source.pathname.split('/') || [],
+      relPath = relative.pathname && relative.pathname.split('/') || [],
+      psychotic = source.protocol &&
+          !slashedProtocol[source.protocol] &&
+          source.host !== undefined;
+
+  // if the url is a non-slashed url, then relative
+  // links like ../.. should be able
+  // to crawl up to the hostname, as well.  This is strange.
+  // source.protocol has already been set by now.
+  // Later on, put the first path part into the host field.
+  if (psychotic) {
+
+    delete source.hostname;
+    delete source.auth;
+    delete source.port;
+    if (source.host) {
+      if (srcPath[0] === '') srcPath[0] = source.host;
+      else srcPath.unshift(source.host);
+    }
+    delete source.host;
+
+    if (relative.protocol) {
+      delete relative.hostname;
+      delete relative.auth;
+      delete relative.port;
+      if (relative.host) {
+        if (relPath[0] === '') relPath[0] = relative.host;
+        else relPath.unshift(relative.host);
+      }
+      delete relative.host;
+    }
+    mustEndAbs = mustEndAbs && (relPath[0] === '' || srcPath[0] === '');
+  }
+
+  if (isRelAbs) {
+    // it's absolute.
+    source.host = (relative.host || relative.host === '') ?
+                      relative.host : source.host;
+    source.search = relative.search;
+    source.query = relative.query;
+    srcPath = relPath;
+    // fall through to the dot-handling below.
+  } else if (relPath.length) {
+    // it's relative
+    // throw away the existing file, and take the new path instead.
+    if (!srcPath) srcPath = [];
+    srcPath.pop();
+    srcPath = srcPath.concat(relPath);
+    source.search = relative.search;
+    source.query = relative.query;
+  } else if ('search' in relative) {
+    // just pull out the search.
+    // like href='?foo'.
+    // Put this after the other two cases because it simplifies the booleans
+    if (psychotic) {
+      source.host = srcPath.shift();
+    }
+    source.search = relative.search;
+    source.query = relative.query;
+    return source;
+  }
+  if (!srcPath.length) {
+    // no path at all.  easy.
+    // we've already handled the other stuff above.
+    delete source.pathname;
+    return source;
+  }
+
+  // if a url ENDs in . or .., then it must get a trailing slash.
+  // however, if it ends in anything else non-slashy,
+  // then it must NOT get a trailing slash.
+  var last = srcPath.slice(-1)[0];
+  var hasTrailingSlash = (
+      (source.host || relative.host) && (last === '.' || last === '..') ||
+      last === '');
+
+  // strip single dots, resolve double dots to parent dir
+  // if the path tries to go above the root, `up` ends up > 0
+  var up = 0;
+  for (var i = srcPath.length; i >= 0; i--) {
+    last = srcPath[i];
+    if (last == '.') {
+      srcPath.splice(i, 1);
+    } else if (last === '..') {
+      srcPath.splice(i, 1);
+      up++;
+    } else if (up) {
+      srcPath.splice(i, 1);
+      up--;
+    }
+  }
+
+  // if the path is allowed to go above the root, restore leading ..s
+  if (!mustEndAbs && !removeAllDots) {
+    for (; up--; up) {
+      srcPath.unshift('..');
+    }
+  }
+
+  if (mustEndAbs && srcPath[0] !== '' &&
+      (!srcPath[0] || srcPath[0].charAt(0) !== '/')) {
+    srcPath.unshift('');
+  }
+
+  if (hasTrailingSlash && (srcPath.join('/').substr(-1) !== '/')) {
+    srcPath.push('');
+  }
+
+  var isAbsolute = srcPath[0] === '' ||
+      (srcPath[0] && srcPath[0].charAt(0) === '/');
+
+  // put the host back
+  if (psychotic) {
+    source.host = isAbsolute ? '' : srcPath.shift();
+  }
+
+  mustEndAbs = mustEndAbs || (source.host && srcPath.length);
+
+  if (mustEndAbs && !isAbsolute) {
+    srcPath.unshift('');
+  }
+
+  source.pathname = srcPath.join('/');
+
+
+  return source;
+}
+
+function parseHost(host) {
+  var out = {};
+  var port = portPattern.exec(host);
+  if (port) {
+    port = port[0];
+    out.port = port.substr(1);
+    host = host.substr(0, host.length - port.length);
+  }
+  if (host) out.hostname = host;
+  return out;
+}
+
+});
+_sardines.register("/modules/mesh-winston/index.js", function(require, module, exports, __dirname, __filename) {
+	var loggers = {};
+
+console.log("G")
+var newLogger = function(module) {
+
+	function logger(name) {
+
+		return function(msg) {
+			console.log(name + ": " + module + ": " + msg);
+		}	
+	}
+
+	return {
+		info: logger('info'),
+		warn: logger('warn'),
+		error: logger('error'),
+		debug: logger('debug'),
+		verbose: logger('verbose')
+	};
+}
+
+
+exports.loggers = {
+	get: function(name) {
+		return loggers[name] || (loggers[name] = newLogger(name))
+	}
+}
+});
 _sardines.register("/modules/crema/lib/index.js", function(require, module, exports, __dirname, __filename) {
 	
 
@@ -2305,994 +5513,6 @@ disposable.dispose();
 
 _sardines.register("/modules/disposable", function(require, module, exports, __dirname, __filename) {
 	module.exports = require('modules/disposable/lib/index.js');
-});
-_sardines.register("/modules/underscore/underscore.js", function(require, module, exports, __dirname, __filename) {
-	//     Underscore.js 1.2.3
-//     (c) 2009-2011 Jeremy Ashkenas, DocumentCloud Inc.
-//     Underscore is freely distributable under the MIT license.
-//     Portions of Underscore are inspired or borrowed from Prototype,
-//     Oliver Steele's Functional, and John Resig's Micro-Templating.
-//     For all details and documentation:
-//     http://documentcloud.github.com/underscore
-
-(function() {
-
-  // Baseline setup
-  // --------------
-
-  // Establish the root object, `window` in the browser, or `global` on the server.
-  var root = this;
-
-  // Save the previous value of the `_` variable.
-  var previousUnderscore = root._;
-
-  // Establish the object that gets returned to break out of a loop iteration.
-  var breaker = {};
-
-  // Save bytes in the minified (but not gzipped) version:
-  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
-
-  // Create quick reference variables for speed access to core prototypes.
-  var slice            = ArrayProto.slice,
-      concat           = ArrayProto.concat,
-      unshift          = ArrayProto.unshift,
-      toString         = ObjProto.toString,
-      hasOwnProperty   = ObjProto.hasOwnProperty;
-
-  // All **ECMAScript 5** native function implementations that we hope to use
-  // are declared here.
-  var
-    nativeForEach      = ArrayProto.forEach,
-    nativeMap          = ArrayProto.map,
-    nativeReduce       = ArrayProto.reduce,
-    nativeReduceRight  = ArrayProto.reduceRight,
-    nativeFilter       = ArrayProto.filter,
-    nativeEvery        = ArrayProto.every,
-    nativeSome         = ArrayProto.some,
-    nativeIndexOf      = ArrayProto.indexOf,
-    nativeLastIndexOf  = ArrayProto.lastIndexOf,
-    nativeIsArray      = Array.isArray,
-    nativeKeys         = Object.keys,
-    nativeBind         = FuncProto.bind;
-
-  // Create a safe reference to the Underscore object for use below.
-  var _ = function(obj) { return new wrapper(obj); };
-
-  // Export the Underscore object for **Node.js** and **"CommonJS"**, with
-  // backwards-compatibility for the old `require()` API. If we're not in
-  // CommonJS, add `_` to the global object.
-  if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = _;
-    }
-    exports._ = _;
-  } else if (typeof define === 'function' && define.amd) {
-    // Register as a named module with AMD.
-    define('underscore', function() {
-      return _;
-    });
-  } else {
-    // Exported as a string, for Closure Compiler "advanced" mode.
-    root['_'] = _;
-  }
-
-  // Current version.
-  _.VERSION = '1.2.3';
-
-  // Collection Functions
-  // --------------------
-
-  // The cornerstone, an `each` implementation, aka `forEach`.
-  // Handles objects with the built-in `forEach`, arrays, and raw objects.
-  // Delegates to **ECMAScript 5**'s native `forEach` if available.
-  var each = _.each = _.forEach = function(obj, iterator, context) {
-    if (obj == null) return;
-    if (nativeForEach && obj.forEach === nativeForEach) {
-      obj.forEach(iterator, context);
-    } else if (obj.length === +obj.length) {
-      for (var i = 0, l = obj.length; i < l; i++) {
-        if (i in obj && iterator.call(context, obj[i], i, obj) === breaker) return;
-      }
-    } else {
-      for (var key in obj) {
-        if (hasOwnProperty.call(obj, key)) {
-          if (iterator.call(context, obj[key], key, obj) === breaker) return;
-        }
-      }
-    }
-  };
-
-  // Return the results of applying the iterator to each element.
-  // Delegates to **ECMAScript 5**'s native `map` if available.
-  _.map = function(obj, iterator, context) {
-    var results = [];
-    if (obj == null) return results;
-    if (nativeMap && obj.map === nativeMap) return obj.map(iterator, context);
-    each(obj, function(value, index, list) {
-      results[results.length] = iterator.call(context, value, index, list);
-    });
-    return results;
-  };
-
-  // **Reduce** builds up a single result from a list of values, aka `inject`,
-  // or `foldl`. Delegates to **ECMAScript 5**'s native `reduce` if available.
-  _.reduce = _.foldl = _.inject = function(obj, iterator, memo, context) {
-    var initial = arguments.length > 2;
-    if (obj == null) obj = [];
-    if (nativeReduce && obj.reduce === nativeReduce) {
-      if (context) iterator = _.bind(iterator, context);
-      return initial ? obj.reduce(iterator, memo) : obj.reduce(iterator);
-    }
-    each(obj, function(value, index, list) {
-      if (!initial) {
-        memo = value;
-        initial = true;
-      } else {
-        memo = iterator.call(context, memo, value, index, list);
-      }
-    });
-    if (!initial) throw new TypeError('Reduce of empty array with no initial value');
-    return memo;
-  };
-
-  // The right-associative version of reduce, also known as `foldr`.
-  // Delegates to **ECMAScript 5**'s native `reduceRight` if available.
-  _.reduceRight = _.foldr = function(obj, iterator, memo, context) {
-    var initial = arguments.length > 2;
-    if (obj == null) obj = [];
-    if (nativeReduceRight && obj.reduceRight === nativeReduceRight) {
-      if (context) iterator = _.bind(iterator, context);
-      return initial ? obj.reduceRight(iterator, memo) : obj.reduceRight(iterator);
-    }
-    var reversed = _.toArray(obj).reverse();
-    if (context && !initial) iterator = _.bind(iterator, context);
-    return initial ? _.reduce(reversed, iterator, memo, context) : _.reduce(reversed, iterator);
-  };
-
-  // Return the first value which passes a truth test. Aliased as `detect`.
-  _.find = _.detect = function(obj, iterator, context) {
-    var result;
-    any(obj, function(value, index, list) {
-      if (iterator.call(context, value, index, list)) {
-        result = value;
-        return true;
-      }
-    });
-    return result;
-  };
-
-  // Return all the elements that pass a truth test.
-  // Delegates to **ECMAScript 5**'s native `filter` if available.
-  // Aliased as `select`.
-  _.filter = _.select = function(obj, iterator, context) {
-    var results = [];
-    if (obj == null) return results;
-    if (nativeFilter && obj.filter === nativeFilter) return obj.filter(iterator, context);
-    each(obj, function(value, index, list) {
-      if (iterator.call(context, value, index, list)) results[results.length] = value;
-    });
-    return results;
-  };
-
-  // Return all the elements for which a truth test fails.
-  _.reject = function(obj, iterator, context) {
-    var results = [];
-    if (obj == null) return results;
-    each(obj, function(value, index, list) {
-      if (!iterator.call(context, value, index, list)) results[results.length] = value;
-    });
-    return results;
-  };
-
-  // Determine whether all of the elements match a truth test.
-  // Delegates to **ECMAScript 5**'s native `every` if available.
-  // Aliased as `all`.
-  _.every = _.all = function(obj, iterator, context) {
-    var result = true;
-    if (obj == null) return result;
-    if (nativeEvery && obj.every === nativeEvery) return obj.every(iterator, context);
-    each(obj, function(value, index, list) {
-      if (!(result = result && iterator.call(context, value, index, list))) return breaker;
-    });
-    return result;
-  };
-
-  // Determine if at least one element in the object matches a truth test.
-  // Delegates to **ECMAScript 5**'s native `some` if available.
-  // Aliased as `any`.
-  var any = _.some = _.any = function(obj, iterator, context) {
-    iterator || (iterator = _.identity);
-    var result = false;
-    if (obj == null) return result;
-    if (nativeSome && obj.some === nativeSome) return obj.some(iterator, context);
-    each(obj, function(value, index, list) {
-      if (result || (result = iterator.call(context, value, index, list))) return breaker;
-    });
-    return !!result;
-  };
-
-  // Determine if a given value is included in the array or object using `===`.
-  // Aliased as `contains`.
-  _.include = _.contains = function(obj, target) {
-    var found = false;
-    if (obj == null) return found;
-    if (nativeIndexOf && obj.indexOf === nativeIndexOf) return obj.indexOf(target) != -1;
-    found = any(obj, function(value) {
-      return value === target;
-    });
-    return found;
-  };
-
-  // Invoke a method (with arguments) on every item in a collection.
-  _.invoke = function(obj, method) {
-    var args = slice.call(arguments, 2);
-    return _.map(obj, function(value) {
-      return (method.call ? method || value : value[method]).apply(value, args);
-    });
-  };
-
-  // Convenience version of a common use case of `map`: fetching a property.
-  _.pluck = function(obj, key) {
-    return _.map(obj, function(value){ return value[key]; });
-  };
-
-  // Return the maximum element or (element-based computation).
-  _.max = function(obj, iterator, context) {
-    if (!iterator && _.isArray(obj)) return Math.max.apply(Math, obj);
-    if (!iterator && _.isEmpty(obj)) return -Infinity;
-    var result = {computed : -Infinity};
-    each(obj, function(value, index, list) {
-      var computed = iterator ? iterator.call(context, value, index, list) : value;
-      computed >= result.computed && (result = {value : value, computed : computed});
-    });
-    return result.value;
-  };
-
-  // Return the minimum element (or element-based computation).
-  _.min = function(obj, iterator, context) {
-    if (!iterator && _.isArray(obj)) return Math.min.apply(Math, obj);
-    if (!iterator && _.isEmpty(obj)) return Infinity;
-    var result = {computed : Infinity};
-    each(obj, function(value, index, list) {
-      var computed = iterator ? iterator.call(context, value, index, list) : value;
-      computed < result.computed && (result = {value : value, computed : computed});
-    });
-    return result.value;
-  };
-
-  // Shuffle an array.
-  _.shuffle = function(obj) {
-    var shuffled = [], rand;
-    each(obj, function(value, index, list) {
-      if (index == 0) {
-        shuffled[0] = value;
-      } else {
-        rand = Math.floor(Math.random() * (index + 1));
-        shuffled[index] = shuffled[rand];
-        shuffled[rand] = value;
-      }
-    });
-    return shuffled;
-  };
-
-  // Sort the object's values by a criterion produced by an iterator.
-  _.sortBy = function(obj, iterator, context) {
-    return _.pluck(_.map(obj, function(value, index, list) {
-      return {
-        value : value,
-        criteria : iterator.call(context, value, index, list)
-      };
-    }).sort(function(left, right) {
-      var a = left.criteria, b = right.criteria;
-      return a < b ? -1 : a > b ? 1 : 0;
-    }), 'value');
-  };
-
-  // Groups the object's values by a criterion. Pass either a string attribute
-  // to group by, or a function that returns the criterion.
-  _.groupBy = function(obj, val) {
-    var result = {};
-    var iterator = _.isFunction(val) ? val : function(obj) { return obj[val]; };
-    each(obj, function(value, index) {
-      var key = iterator(value, index);
-      (result[key] || (result[key] = [])).push(value);
-    });
-    return result;
-  };
-
-  // Use a comparator function to figure out at what index an object should
-  // be inserted so as to maintain order. Uses binary search.
-  _.sortedIndex = function(array, obj, iterator) {
-    iterator || (iterator = _.identity);
-    var low = 0, high = array.length;
-    while (low < high) {
-      var mid = (low + high) >> 1;
-      iterator(array[mid]) < iterator(obj) ? low = mid + 1 : high = mid;
-    }
-    return low;
-  };
-
-  // Safely convert anything iterable into a real, live array.
-  _.toArray = function(iterable) {
-    if (!iterable)                return [];
-    if (iterable.toArray)         return iterable.toArray();
-    if (_.isArray(iterable))      return slice.call(iterable);
-    if (_.isArguments(iterable))  return slice.call(iterable);
-    return _.values(iterable);
-  };
-
-  // Return the number of elements in an object.
-  _.size = function(obj) {
-    return _.toArray(obj).length;
-  };
-
-  // Array Functions
-  // ---------------
-
-  // Get the first element of an array. Passing **n** will return the first N
-  // values in the array. Aliased as `head`. The **guard** check allows it to work
-  // with `_.map`.
-  _.first = _.head = function(array, n, guard) {
-    return (n != null) && !guard ? slice.call(array, 0, n) : array[0];
-  };
-
-  // Returns everything but the last entry of the array. Especcialy useful on
-  // the arguments object. Passing **n** will return all the values in
-  // the array, excluding the last N. The **guard** check allows it to work with
-  // `_.map`.
-  _.initial = function(array, n, guard) {
-    return slice.call(array, 0, array.length - ((n == null) || guard ? 1 : n));
-  };
-
-  // Get the last element of an array. Passing **n** will return the last N
-  // values in the array. The **guard** check allows it to work with `_.map`.
-  _.last = function(array, n, guard) {
-    if ((n != null) && !guard) {
-      return slice.call(array, Math.max(array.length - n, 0));
-    } else {
-      return array[array.length - 1];
-    }
-  };
-
-  // Returns everything but the first entry of the array. Aliased as `tail`.
-  // Especially useful on the arguments object. Passing an **index** will return
-  // the rest of the values in the array from that index onward. The **guard**
-  // check allows it to work with `_.map`.
-  _.rest = _.tail = function(array, index, guard) {
-    return slice.call(array, (index == null) || guard ? 1 : index);
-  };
-
-  // Trim out all falsy values from an array.
-  _.compact = function(array) {
-    return _.filter(array, function(value){ return !!value; });
-  };
-
-  // Return a completely flattened version of an array.
-  _.flatten = function(array, shallow) {
-    return _.reduce(array, function(memo, value) {
-      if (_.isArray(value)) return memo.concat(shallow ? value : _.flatten(value));
-      memo[memo.length] = value;
-      return memo;
-    }, []);
-  };
-
-  // Return a version of the array that does not contain the specified value(s).
-  _.without = function(array) {
-    return _.difference(array, slice.call(arguments, 1));
-  };
-
-  // Produce a duplicate-free version of the array. If the array has already
-  // been sorted, you have the option of using a faster algorithm.
-  // Aliased as `unique`.
-  _.uniq = _.unique = function(array, isSorted, iterator) {
-    var initial = iterator ? _.map(array, iterator) : array;
-    var result = [];
-    _.reduce(initial, function(memo, el, i) {
-      if (0 == i || (isSorted === true ? _.last(memo) != el : !_.include(memo, el))) {
-        memo[memo.length] = el;
-        result[result.length] = array[i];
-      }
-      return memo;
-    }, []);
-    return result;
-  };
-
-  // Produce an array that contains the union: each distinct element from all of
-  // the passed-in arrays.
-  _.union = function() {
-    return _.uniq(_.flatten(arguments, true));
-  };
-
-  // Produce an array that contains every item shared between all the
-  // passed-in arrays. (Aliased as "intersect" for back-compat.)
-  _.intersection = _.intersect = function(array) {
-    var rest = slice.call(arguments, 1);
-    return _.filter(_.uniq(array), function(item) {
-      return _.every(rest, function(other) {
-        return _.indexOf(other, item) >= 0;
-      });
-    });
-  };
-
-  // Take the difference between one array and a number of other arrays.
-  // Only the elements present in just the first array will remain.
-  _.difference = function(array) {
-    var rest = _.flatten(slice.call(arguments, 1));
-    return _.filter(array, function(value){ return !_.include(rest, value); });
-  };
-
-  // Zip together multiple lists into a single array -- elements that share
-  // an index go together.
-  _.zip = function() {
-    var args = slice.call(arguments);
-    var length = _.max(_.pluck(args, 'length'));
-    var results = new Array(length);
-    for (var i = 0; i < length; i++) results[i] = _.pluck(args, "" + i);
-    return results;
-  };
-
-  // If the browser doesn't supply us with indexOf (I'm looking at you, **MSIE**),
-  // we need this function. Return the position of the first occurrence of an
-  // item in an array, or -1 if the item is not included in the array.
-  // Delegates to **ECMAScript 5**'s native `indexOf` if available.
-  // If the array is large and already in sort order, pass `true`
-  // for **isSorted** to use binary search.
-  _.indexOf = function(array, item, isSorted) {
-    if (array == null) return -1;
-    var i, l;
-    if (isSorted) {
-      i = _.sortedIndex(array, item);
-      return array[i] === item ? i : -1;
-    }
-    if (nativeIndexOf && array.indexOf === nativeIndexOf) return array.indexOf(item);
-    for (i = 0, l = array.length; i < l; i++) if (i in array && array[i] === item) return i;
-    return -1;
-  };
-
-  // Delegates to **ECMAScript 5**'s native `lastIndexOf` if available.
-  _.lastIndexOf = function(array, item) {
-    if (array == null) return -1;
-    if (nativeLastIndexOf && array.lastIndexOf === nativeLastIndexOf) return array.lastIndexOf(item);
-    var i = array.length;
-    while (i--) if (i in array && array[i] === item) return i;
-    return -1;
-  };
-
-  // Generate an integer Array containing an arithmetic progression. A port of
-  // the native Python `range()` function. See
-  // [the Python documentation](http://docs.python.org/library/functions.html#range).
-  _.range = function(start, stop, step) {
-    if (arguments.length <= 1) {
-      stop = start || 0;
-      start = 0;
-    }
-    step = arguments[2] || 1;
-
-    var len = Math.max(Math.ceil((stop - start) / step), 0);
-    var idx = 0;
-    var range = new Array(len);
-
-    while(idx < len) {
-      range[idx++] = start;
-      start += step;
-    }
-
-    return range;
-  };
-
-  // Function (ahem) Functions
-  // ------------------
-
-  // Reusable constructor function for prototype setting.
-  var ctor = function(){};
-
-  // Create a function bound to a given object (assigning `this`, and arguments,
-  // optionally). Binding with arguments is also known as `curry`.
-  // Delegates to **ECMAScript 5**'s native `Function.bind` if available.
-  // We check for `func.bind` first, to fail fast when `func` is undefined.
-  _.bind = function bind(func, context) {
-    var bound, args;
-    if (func.bind === nativeBind && nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
-    if (!_.isFunction(func)) throw new TypeError;
-    args = slice.call(arguments, 2);
-    return bound = function() {
-      if (!(this instanceof bound)) return func.apply(context, args.concat(slice.call(arguments)));
-      ctor.prototype = func.prototype;
-      var self = new ctor;
-      var result = func.apply(self, args.concat(slice.call(arguments)));
-      if (Object(result) === result) return result;
-      return self;
-    };
-  };
-
-  // Bind all of an object's methods to that object. Useful for ensuring that
-  // all callbacks defined on an object belong to it.
-  _.bindAll = function(obj) {
-    var funcs = slice.call(arguments, 1);
-    if (funcs.length == 0) funcs = _.functions(obj);
-    each(funcs, function(f) { obj[f] = _.bind(obj[f], obj); });
-    return obj;
-  };
-
-  // Memoize an expensive function by storing its results.
-  _.memoize = function(func, hasher) {
-    var memo = {};
-    hasher || (hasher = _.identity);
-    return function() {
-      var key = hasher.apply(this, arguments);
-      return hasOwnProperty.call(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
-    };
-  };
-
-  // Delays a function for the given number of milliseconds, and then calls
-  // it with the arguments supplied.
-  _.delay = function(func, wait) {
-    var args = slice.call(arguments, 2);
-    return setTimeout(function(){ return func.apply(func, args); }, wait);
-  };
-
-  // Defers a function, scheduling it to run after the current call stack has
-  // cleared.
-  _.defer = function(func) {
-    return _.delay.apply(_, [func, 1].concat(slice.call(arguments, 1)));
-  };
-
-  // Returns a function, that, when invoked, will only be triggered at most once
-  // during a given window of time.
-  _.throttle = function(func, wait) {
-    var context, args, timeout, throttling, more;
-    var whenDone = _.debounce(function(){ more = throttling = false; }, wait);
-    return function() {
-      context = this; args = arguments;
-      var later = function() {
-        timeout = null;
-        if (more) func.apply(context, args);
-        whenDone();
-      };
-      if (!timeout) timeout = setTimeout(later, wait);
-      if (throttling) {
-        more = true;
-      } else {
-        func.apply(context, args);
-      }
-      whenDone();
-      throttling = true;
-    };
-  };
-
-  // Returns a function, that, as long as it continues to be invoked, will not
-  // be triggered. The function will be called after it stops being called for
-  // N milliseconds.
-  _.debounce = function(func, wait) {
-    var timeout;
-    return function() {
-      var context = this, args = arguments;
-      var later = function() {
-        timeout = null;
-        func.apply(context, args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  };
-
-  // Returns a function that will be executed at most one time, no matter how
-  // often you call it. Useful for lazy initialization.
-  _.once = function(func) {
-    var ran = false, memo;
-    return function() {
-      if (ran) return memo;
-      ran = true;
-      return memo = func.apply(this, arguments);
-    };
-  };
-
-  // Returns the first function passed as an argument to the second,
-  // allowing you to adjust arguments, run code before and after, and
-  // conditionally execute the original function.
-  _.wrap = function(func, wrapper) {
-    return function() {
-      var args = concat.apply([func], arguments);
-      return wrapper.apply(this, args);
-    };
-  };
-
-  // Returns a function that is the composition of a list of functions, each
-  // consuming the return value of the function that follows.
-  _.compose = function() {
-    var funcs = arguments;
-    return function() {
-      var args = arguments;
-      for (var i = funcs.length - 1; i >= 0; i--) {
-        args = [funcs[i].apply(this, args)];
-      }
-      return args[0];
-    };
-  };
-
-  // Returns a function that will only be executed after being called N times.
-  _.after = function(times, func) {
-    if (times <= 0) return func();
-    return function() {
-      if (--times < 1) { return func.apply(this, arguments); }
-    };
-  };
-
-  // Object Functions
-  // ----------------
-
-  // Retrieve the names of an object's properties.
-  // Delegates to **ECMAScript 5**'s native `Object.keys`
-  _.keys = nativeKeys || function(obj) {
-    if (obj !== Object(obj)) throw new TypeError('Invalid object');
-    var keys = [];
-    for (var key in obj) if (hasOwnProperty.call(obj, key)) keys[keys.length] = key;
-    return keys;
-  };
-
-  // Retrieve the values of an object's properties.
-  _.values = function(obj) {
-    return _.map(obj, _.identity);
-  };
-
-  // Return a sorted list of the function names available on the object.
-  // Aliased as `methods`
-  _.functions = _.methods = function(obj) {
-    var names = [];
-    for (var key in obj) {
-      if (_.isFunction(obj[key])) names.push(key);
-    }
-    return names.sort();
-  };
-
-  // Extend a given object with all the properties in passed-in object(s).
-  _.extend = function(obj) {
-    each(slice.call(arguments, 1), function(source) {
-      for (var prop in source) {
-        if (source[prop] !== void 0) obj[prop] = source[prop];
-      }
-    });
-    return obj;
-  };
-
-  // Fill in a given object with default properties.
-  _.defaults = function(obj) {
-    each(slice.call(arguments, 1), function(source) {
-      for (var prop in source) {
-        if (obj[prop] == null) obj[prop] = source[prop];
-      }
-    });
-    return obj;
-  };
-
-  // Create a (shallow-cloned) duplicate of an object.
-  _.clone = function(obj) {
-    if (!_.isObject(obj)) return obj;
-    return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
-  };
-
-  // Invokes interceptor with the obj, and then returns obj.
-  // The primary purpose of this method is to "tap into" a method chain, in
-  // order to perform operations on intermediate results within the chain.
-  _.tap = function(obj, interceptor) {
-    interceptor(obj);
-    return obj;
-  };
-
-  // Internal recursive comparison function.
-  function eq(a, b, stack) {
-    // Identical objects are equal. `0 === -0`, but they aren't identical.
-    // See the Harmony `egal` proposal: http://wiki.ecmascript.org/doku.php?id=harmony:egal.
-    if (a === b) return a !== 0 || 1 / a == 1 / b;
-    // A strict comparison is necessary because `null == undefined`.
-    if (a == null || b == null) return a === b;
-    // Unwrap any wrapped objects.
-    if (a._chain) a = a._wrapped;
-    if (b._chain) b = b._wrapped;
-    // Invoke a custom `isEqual` method if one is provided.
-    if (a.isEqual && _.isFunction(a.isEqual)) return a.isEqual(b);
-    if (b.isEqual && _.isFunction(b.isEqual)) return b.isEqual(a);
-    // Compare `[[Class]]` names.
-    var className = toString.call(a);
-    if (className != toString.call(b)) return false;
-    switch (className) {
-      // Strings, numbers, dates, and booleans are compared by value.
-      case '[object String]':
-        // Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
-        // equivalent to `new String("5")`.
-        return a == String(b);
-      case '[object Number]':
-        // `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
-        // other numeric values.
-        return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
-      case '[object Date]':
-      case '[object Boolean]':
-        // Coerce dates and booleans to numeric primitive values. Dates are compared by their
-        // millisecond representations. Note that invalid dates with millisecond representations
-        // of `NaN` are not equivalent.
-        return +a == +b;
-      // RegExps are compared by their source patterns and flags.
-      case '[object RegExp]':
-        return a.source == b.source &&
-               a.global == b.global &&
-               a.multiline == b.multiline &&
-               a.ignoreCase == b.ignoreCase;
-    }
-    if (typeof a != 'object' || typeof b != 'object') return false;
-    // Assume equality for cyclic structures. The algorithm for detecting cyclic
-    // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
-    var length = stack.length;
-    while (length--) {
-      // Linear search. Performance is inversely proportional to the number of
-      // unique nested structures.
-      if (stack[length] == a) return true;
-    }
-    // Add the first object to the stack of traversed objects.
-    stack.push(a);
-    var size = 0, result = true;
-    // Recursively compare objects and arrays.
-    if (className == '[object Array]') {
-      // Compare array lengths to determine if a deep comparison is necessary.
-      size = a.length;
-      result = size == b.length;
-      if (result) {
-        // Deep compare the contents, ignoring non-numeric properties.
-        while (size--) {
-          // Ensure commutative equality for sparse arrays.
-          if (!(result = size in a == size in b && eq(a[size], b[size], stack))) break;
-        }
-      }
-    } else {
-      // Objects with different constructors are not equivalent.
-      if ('constructor' in a != 'constructor' in b || a.constructor != b.constructor) return false;
-      // Deep compare objects.
-      for (var key in a) {
-        if (hasOwnProperty.call(a, key)) {
-          // Count the expected number of properties.
-          size++;
-          // Deep compare each member.
-          if (!(result = hasOwnProperty.call(b, key) && eq(a[key], b[key], stack))) break;
-        }
-      }
-      // Ensure that both objects contain the same number of properties.
-      if (result) {
-        for (key in b) {
-          if (hasOwnProperty.call(b, key) && !(size--)) break;
-        }
-        result = !size;
-      }
-    }
-    // Remove the first object from the stack of traversed objects.
-    stack.pop();
-    return result;
-  }
-
-  // Perform a deep comparison to check if two objects are equal.
-  _.isEqual = function(a, b) {
-    return eq(a, b, []);
-  };
-
-  // Is a given array, string, or object empty?
-  // An "empty" object has no enumerable own-properties.
-  _.isEmpty = function(obj) {
-    if (_.isArray(obj) || _.isString(obj)) return obj.length === 0;
-    for (var key in obj) if (hasOwnProperty.call(obj, key)) return false;
-    return true;
-  };
-
-  // Is a given value a DOM element?
-  _.isElement = function(obj) {
-    return !!(obj && obj.nodeType == 1);
-  };
-
-  // Is a given value an array?
-  // Delegates to ECMA5's native Array.isArray
-  _.isArray = nativeIsArray || function(obj) {
-    return toString.call(obj) == '[object Array]';
-  };
-
-  // Is a given variable an object?
-  _.isObject = function(obj) {
-    return obj === Object(obj);
-  };
-
-  // Is a given variable an arguments object?
-  _.isArguments = function(obj) {
-    return toString.call(obj) == '[object Arguments]';
-  };
-  if (!_.isArguments(arguments)) {
-    _.isArguments = function(obj) {
-      return !!(obj && hasOwnProperty.call(obj, 'callee'));
-    };
-  }
-
-  // Is a given value a function?
-  _.isFunction = function(obj) {
-    return toString.call(obj) == '[object Function]';
-  };
-
-  // Is a given value a string?
-  _.isString = function(obj) {
-    return toString.call(obj) == '[object String]';
-  };
-
-  // Is a given value a number?
-  _.isNumber = function(obj) {
-    return toString.call(obj) == '[object Number]';
-  };
-
-  // Is the given value `NaN`?
-  _.isNaN = function(obj) {
-    // `NaN` is the only value for which `===` is not reflexive.
-    return obj !== obj;
-  };
-
-  // Is a given value a boolean?
-  _.isBoolean = function(obj) {
-    return obj === true || obj === false || toString.call(obj) == '[object Boolean]';
-  };
-
-  // Is a given value a date?
-  _.isDate = function(obj) {
-    return toString.call(obj) == '[object Date]';
-  };
-
-  // Is the given value a regular expression?
-  _.isRegExp = function(obj) {
-    return toString.call(obj) == '[object RegExp]';
-  };
-
-  // Is a given value equal to null?
-  _.isNull = function(obj) {
-    return obj === null;
-  };
-
-  // Is a given variable undefined?
-  _.isUndefined = function(obj) {
-    return obj === void 0;
-  };
-
-  // Utility Functions
-  // -----------------
-
-  // Run Underscore.js in *noConflict* mode, returning the `_` variable to its
-  // previous owner. Returns a reference to the Underscore object.
-  _.noConflict = function() {
-    root._ = previousUnderscore;
-    return this;
-  };
-
-  // Keep the identity function around for default iterators.
-  _.identity = function(value) {
-    return value;
-  };
-
-  // Run a function **n** times.
-  _.times = function (n, iterator, context) {
-    for (var i = 0; i < n; i++) iterator.call(context, i);
-  };
-
-  // Escape a string for HTML interpolation.
-  _.escape = function(string) {
-    return (''+string).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#x27;').replace(/\//g,'&#x2F;');
-  };
-
-  // Add your own custom functions to the Underscore object, ensuring that
-  // they're correctly added to the OOP wrapper as well.
-  _.mixin = function(obj) {
-    each(_.functions(obj), function(name){
-      addToWrapper(name, _[name] = obj[name]);
-    });
-  };
-
-  // Generate a unique integer id (unique within the entire client session).
-  // Useful for temporary DOM ids.
-  var idCounter = 0;
-  _.uniqueId = function(prefix) {
-    var id = idCounter++;
-    return prefix ? prefix + id : id;
-  };
-
-  // By default, Underscore uses ERB-style template delimiters, change the
-  // following template settings to use alternative delimiters.
-  _.templateSettings = {
-    evaluate    : /<%([\s\S]+?)%>/g,
-    interpolate : /<%=([\s\S]+?)%>/g,
-    escape      : /<%-([\s\S]+?)%>/g
-  };
-
-  // JavaScript micro-templating, similar to John Resig's implementation.
-  // Underscore templating handles arbitrary delimiters, preserves whitespace,
-  // and correctly escapes quotes within interpolated code.
-  _.template = function(str, data) {
-    var c  = _.templateSettings;
-    var tmpl = 'var __p=[],print=function(){__p.push.apply(__p,arguments);};' +
-      'with(obj||{}){__p.push(\'' +
-      str.replace(/\\/g, '\\\\')
-         .replace(/'/g, "\\'")
-         .replace(c.escape, function(match, code) {
-           return "',_.escape(" + code.replace(/\\'/g, "'") + "),'";
-         })
-         .replace(c.interpolate, function(match, code) {
-           return "'," + code.replace(/\\'/g, "'") + ",'";
-         })
-         .replace(c.evaluate || null, function(match, code) {
-           return "');" + code.replace(/\\'/g, "'")
-                              .replace(/[\r\n\t]/g, ' ') + ";__p.push('";
-         })
-         .replace(/\r/g, '\\r')
-         .replace(/\n/g, '\\n')
-         .replace(/\t/g, '\\t')
-         + "');}return __p.join('');";
-    var func = new Function('obj', '_', tmpl);
-    if (data) return func(data, _);
-    return function(data) {
-      return func.call(this, data, _);
-    };
-  };
-
-  // The OOP Wrapper
-  // ---------------
-
-  // If Underscore is called as a function, it returns a wrapped object that
-  // can be used OO-style. This wrapper holds altered versions of all the
-  // underscore functions. Wrapped objects may be chained.
-  var wrapper = function(obj) { this._wrapped = obj; };
-
-  // Expose `wrapper.prototype` as `_.prototype`
-  _.prototype = wrapper.prototype;
-
-  // Helper function to continue chaining intermediate results.
-  var result = function(obj, chain) {
-    return chain ? _(obj).chain() : obj;
-  };
-
-  // A method to easily add functions to the OOP wrapper.
-  var addToWrapper = function(name, func) {
-    wrapper.prototype[name] = function() {
-      var args = slice.call(arguments);
-      unshift.call(args, this._wrapped);
-      return result(func.apply(_, args), this._chain);
-    };
-  };
-
-  // Add all of the Underscore functions to the wrapper object.
-  _.mixin(_);
-
-  // Add all mutator Array functions to the wrapper.
-  each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function(name) {
-    var method = ArrayProto[name];
-    wrapper.prototype[name] = function() {
-      method.apply(this._wrapped, arguments);
-      return result(this._wrapped, this._chain);
-    };
-  });
-
-  // Add all accessor Array functions to the wrapper.
-  each(['concat', 'join', 'slice'], function(name) {
-    var method = ArrayProto[name];
-    wrapper.prototype[name] = function() {
-      return result(method.apply(this._wrapped, arguments), this._chain);
-    };
-  });
-
-  // Start chaining a wrapped Underscore object.
-  wrapper.prototype.chain = function() {
-    this._chain = true;
-    return this;
-  };
-
-  // Extracts the result from a wrapped and chained object.
-  wrapper.prototype.value = function() {
-    return this._wrapped;
-  };
-
-}).call(this);
-
-});
-
-_sardines.register("/modules/underscore", function(require, module, exports, __dirname, __filename) {
-	module.exports = require('modules/underscore/underscore.js');
 });
 _sardines.register("/modules/beanpoll/lib/collections/linkedQueue.js", function(require, module, exports, __dirname, __filename) {
 	(function() {
@@ -3871,584 +6091,403 @@ if(typeof window != 'undefined') {
 _sardines.register("/modules/outcome", function(require, module, exports, __dirname, __filename) {
 	module.exports = require('modules/outcome/lib/index.js');
 });
-_sardines.register("/modules/mesh-winston/index.js", function(require, module, exports, __dirname, __filename) {
-	var loggers = {};
+_sardines.register("/modules/events", function(require, module, exports, __dirname, __filename) {
+	// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-console.log("G")
-var newLogger = function(module) {
+var isArray = Array.isArray;
 
-	function logger(name) {
+function EventEmitter() { }
+exports.EventEmitter = EventEmitter;
 
-		return function(msg) {
-			console.log(name + ": " + module + ": " + msg);
-		}	
+// By default EventEmitters will print a warning if more than
+// 10 listeners are added to it. This is a useful default which
+// helps finding memory leaks.
+//
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+var defaultMaxListeners = 10;
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!this._events) this._events = {};
+  this._events.maxListeners = n;
+};
+
+
+EventEmitter.prototype.emit = function() {
+  var type = arguments[0];
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events || !this._events.error ||
+        (isArray(this._events.error) && !this._events.error.length))
+    {
+      if (arguments[1] instanceof Error) {
+        throw arguments[1]; // Unhandled 'error' event
+      } else {
+        throw new Error("Uncaught, unspecified 'error' event.");
+      }
+      return false;
+    }
+  }
+
+  if (!this._events) return false;
+  var handler = this._events[type];
+  if (!handler) return false;
+
+  if (typeof handler == 'function') {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        var l = arguments.length;
+        var args = new Array(l - 1);
+        for (var i = 1; i < l; i++) args[i - 1] = arguments[i];
+        handler.apply(this, args);
+    }
+    return true;
+
+  } else if (isArray(handler)) {
+    var l = arguments.length;
+    var args = new Array(l - 1);
+    for (var i = 1; i < l; i++) args[i - 1] = arguments[i];
+
+    var listeners = handler.slice();
+    for (var i = 0, l = listeners.length; i < l; i++) {
+      listeners[i].apply(this, args);
+    }
+    return true;
+
+  } else {
+    return false;
+  }
+};
+
+// EventEmitter is defined in src/node_events.cc
+// EventEmitter.prototype.emit() is also defined there.
+EventEmitter.prototype.addListener = function(type, listener) {
+  if ('function' !== typeof listener) {
+    throw new Error('addListener only takes instances of Function');
+  }
+
+  if (!this._events) this._events = {};
+
+  // To avoid recursion in the case that type == "newListeners"! Before
+  // adding it to the listeners, first emit "newListeners".
+  this.emit('newListener', type, listener);
+
+  if (!this._events[type]) {
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  } else if (isArray(this._events[type])) {
+
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+
+    // Check for listener leak
+    if (!this._events[type].warned) {
+      var m;
+      if (this._events.maxListeners !== undefined) {
+        m = this._events.maxListeners;
+      } else {
+        m = defaultMaxListeners;
+      }
+
+      if (m && m > 0 && this._events[type].length > m) {
+        this._events[type].warned = true;
+        console.error('(node) warning: possible EventEmitter memory ' +
+                      'leak detected. %d listeners added. ' +
+                      'Use emitter.setMaxListeners() to increase limit.',
+                      this._events[type].length);
+        console.trace();
+      }
+    }
+  } else {
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if ('function' !== typeof listener) {
+    throw new Error('.once only takes instances of Function');
+  }
+
+  var self = this;
+  function g() {
+    self.removeListener(type, g);
+    listener.apply(this, arguments);
+  };
+
+  g.listener = listener;
+  self.on(type, g);
+
+  return this;
+};
+
+EventEmitter.prototype.removeListener = function(type, listener) {
+  if ('function' !== typeof listener) {
+    throw new Error('removeListener only takes instances of Function');
+  }
+
+  // does not use listeners(), so no side effect of creating _events[type]
+  if (!this._events || !this._events[type]) return this;
+
+  var list = this._events[type];
+
+  if (isArray(list)) {
+    var position = -1;
+    for (var i = 0, length = list.length; i < length; i++) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener))
+      {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0) return this;
+    list.splice(position, 1);
+    if (list.length == 0)
+      delete this._events[type];
+  } else if (list === listener ||
+             (list.listener && list.listener === listener))
+  {
+    delete this._events[type];
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  if (arguments.length === 0) {
+    this._events = {};
+    return this;
+  }
+
+  // does not use listeners(), so no side effect of creating _events[type]
+  if (type && this._events && this._events[type]) this._events[type] = null;
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  if (!this._events) this._events = {};
+  if (!this._events[type]) this._events[type] = [];
+  if (!isArray(this._events[type])) {
+    this._events[type] = [this._events[type]];
+  }
+  return this._events[type];
+};
+
+});
+_sardines.register("/modules/haba/nameTester.js", function(require, module, exports, __dirname, __filename) {
+	module.exports = function(search) {
+
+	if(!search) {
+		return function() { return true; }	
 	}
 
-	return {
-		info: logger('info'),
-		warn: logger('warn'),
-		error: logger('error'),
-		debug: logger('debug'),
-		verbose: logger('verbose')
-	};
-}
+	var tos = typeof search, reg, test;
 
-
-exports.loggers = {
-	get: function(name) {
-		return loggers[name] || (loggers[name] = newLogger(name))
+	if(tos == 'string') {
+		reg = new RegExp('^' + search + '$');
+	} else 
+	if(!(search instanceof RegExp)) {
+		reg = search;
+	} else {
+		reg = search;
 	}
+
+	if(reg instanceof RegExp) {
+		test = function(name) {
+			return !!name.match(reg);
+		}
+	} else {
+		test = reg;
+	}
+
+	return test;
 }
 });
-_sardines.register("/modules/fig/views/abstract.js", function(require, module, exports, __dirname, __filename) {
-	var Structr = require('structr'),
-ConcreteModel = require('malt/lib/core/models/concrete').Model,
-Instructor = require('../instructor'),
-logger = require('mesh-winston').loggers.get('fig'),
-renderView = require('../renderView');
+_sardines.register("/modules/haba/collection.js", function(require, module, exports, __dirname, __filename) {
+	
+var pluginNameTester = require('./nameTester'),
+tq = require('tq');
 
+module.exports = function(haba, parent) {
+	
+	var children = [],
+	plugins = {},
+	queue = tq.queue(),
+	initialized = false;
 
+	var self = {
 
-var View = module.exports = ConcreteModel.extend({
+		/**
+		 * sep between all, local, and remote plugins
+		 */
 
-	/**
-	 */
-
-	'_binders': {
+		addChild: function() {
+			var child = module.exports(haba, self);
+			children.push(child);
+			return child;
+		},
 
 
 		/**
-		 * binds events to the view
 		 */
 
-
-		'default': function(action, target, method)
-		{
-			var self = this;
-
-
-			target.bind(action, function(event)
-			{
-				//otherwise, prevent the user from redirecting, and handle the request in-app
-				event.preventDefault();
-
-				self[method].call(self, event);
-			})
+		'plugin': function(search) {
+			return self.plugins(search)[0];
 		},
 
 		/**
-		 * binds enter on the keyboard for the view
 		 */
 
-		'enter': function(action, target, method)
-		{
-			var self = this;
+		'add': function(ops) {
+			plugins[ops.name] = {
+				instance: ops.instance,
+				require: ops.require
+			};
+		},
 
-			target.bind('keydown', function(event)
-			{
-				if(event.keyCode == 13)
-				{
-					self[method].call(self, event);
+		/**
+		 */
+
+		'plugins': function(search) {
+
+			var test = pluginNameTester(search), matches = [];
+
+			for(var name in plugins) {
+				if(test(name)) {
+					matches.push(plugins[name].instance);
 				}
-			})
-		}	
-	},
+			}	
 
 
-	/**
-	 */
+			children.forEach(function(child) {
+				matches = matches.concat(child.plugins(search));
+			});
 
-	'override __construct': function(ops)
-	{
-		this._super();
-		this._children = [];
-		this._childrenByName = {};
+			return matches;
+		},
 
 
-		this.setup(ops);
+		/**
+		 */
 
-		this._instructor = new Instructor(this);
-	},
-
-	/** 
-	 * configures the view
-	 */
-
-	'setup': function(ops)
-	{
-		if(!ops) ops = {};
-		if(!this.ops) this.ops = {};
-		if(ops.el) this.el = ops.el; 
-
-
-
-		Structr.copy(ops, this.ops, true);
-		
-		this.body = ops.body;
-		if(ops.template) this.template = ops.template;  
-		
-
-		//web, or node
-		this.$$ = typeof $ != 'undefined' ? $ : ops.$;
-		this.document = typeof document != 'undefined' ? document : ops.document;
-
-		return this;
-	},
-
-
-	/**
-	 * updates the view if anything changes. This usually occurs if say... data changes at it impacts
-	 * a template view, OR the parent changes, and the children need to change as well
-	 */
-
-	'update': function(force)
-	{
-		//reset the element. What if the parent innerHTML has changed? 
-		if(!force && !this._setElement()) return; 		
-
-
-		//now, set the view
-		this.render();
-
-		//listen to the element
-		this.listen();
-
-		//need to update all the children now. TODO: check if the element *really* changed / was replaced
-		this.updateChildren();
-	},
-
-	/**
-	 */
-
-	/**
-	 * initialize
-	 */
-
-	'abstract ready': function() { 
-	},
-
-	/**
-	 */
-
-	'abstract render': function() { },
-
-	/**
-	 * updates the children
-	 */
-
-	'updateChildren': function()
-	{
-		this.eachChild(function(child)
-		{
-			child.update();
-			child.updateChildren();
-		})
-	},
-  
-	/**
-	 */
-
-	'eachChild': function(callback)
-	{
-		for(var i = this._children.length; i--;)
-		{
-			callback(this._children[i], i);
-		}
-	},
-
-	/**
-	 * adds a child to the view
-	 */
-
-
-	'addChild': function(view, name)
-	{
-		//this shouldn't happen, but just in case, we don't want to break
-		//the app
-		if(!view)
-		{
-			console.warn('Cannot add null child to ' + this.selector);
-			return;
-		}
-
-		//allow the child to do shit to the parent
-		view.parent = this;
-
-		//name exists? set it
-		if(name) view.name = name;
-
-		//the view name might already exist, so af'dd it to the collection
-		if(view.name) this._childrenByName[view.name] = view;
-
-		//push the child to the children collection
-		this._children.push(view);	
-
-
-		//is this view *completely* done initializing? Yeah, then we need
-		//to initialize the child
-		if(this.initializedChildren) this._linkChild(view).init();
-
-		return view;
-	},
-
-	/**
-	 * removes the view from the parent
-	 */
-
-	'remove': function()
-	{
-		if(this.parent)
-		{
-			this.parent.removeChild(this);
-		}	
-	},
-
-	/**
-	 * removes a child from the view
-	 */
-
-
-	'removeChild': function(viewOrIndex)
-	{
-		var view, index, toi = typeof viewOrIndex;
-
-
-		//is the value an number? it's an index
-		if(toi == 'number')
-		{
-			view = this._children[viewOrIndex];
-			index = viewOrIndex;
-
-		}
-
-		//or a string? it's the name of the child
-		else
-		if(toi == 'string')
-		{
-			view = this._childrenByName[viewOrIndex];
-			index = this._children.indexOf(view);
-		}
-
-		//otherwise we're remoiving the ref
-		else
-		{
-			index = this._children.indexOf(view);
-			view = viewOrIndex;
-
-		}
-
-		//but the view might not exist, so return null to notify it doesn't...
-		if(!view) return null;
-
-
-		delete this._childrenByName[view.name];
-
-		view.parent = null;
-
-		//destroy the child
-		view.dispose();
-		view.el.innerHTML = '';
-
-		//exists? remove
-		if(index > -1) this._children.splice(index, 1);
-
-		return view;
-	},
-
-	/**
-	 * removes all the children of the view
-	 */
-
-	'removeAllChildren': function()
-	{
-		while(this._children.length) this.removeChild(0);
-	},
-
-	/**
-	 * returns a child by its name. Important especially for caching routes
-	 */
-
-	'getChildByName': function(name)
-	{
-		return this._childrenByName[name];
-	},
-
-	/**
-	 * used for a beanpole request. renders the view, and sends it to the requestor
-	 */
-
-	'send': function(res)
-	{
-		logger.debug('send view');
-
-		renderView(this, res);
-
-	},
-
-
-	/**
-	 * initializes the few. Used primarily for serviing static pages 
-	 */
-
-	'init': function(callbacks)
-	{
-		this.subscribe(callbacks);
-		
-
-		//initialize happens only *once*, and it's used to serve up static pages, so don't run through it again
-		if(this.initialized) return;
-		this.initialized = true;
-
-		var self = this;
-
-		this.subscribe('complete', function()
-		{	
-			self.ready();	
-		});
-
-		//build up the instructions to display the view. This is essential for serving static pages
-		this._instructor.add(['_setElement'].concat(this.instructions()).concat(['_listen', '_initChildren']));
-
-	},
-
-
-	/**
-	 * the instructions to build up the view for static pages
-	 */
-	
-	'instructions': function()
-	{
-		return ['_render'];
-	},
-
-
-	/**
-	 * completely disposes the view so it's unusable
-	 */
-
-	'override dispose': function()
-	{
-		this._super();
-
-		//remove from the parent
-		this.remove();
-
-		//clean for any listeners
-		this.clean();
-
-
-		//finally, remove *all* children
-		this.disposeChildren();
-	},
-
-	/**
-	 * disposes *all* children. important because it also removes all bindings
-	 */
-
-	'disposeChildren': function()
-	{
-		this.eachChild(function(child)
-		{
-			//removing does the same as disposing.
-			child.remove();
-		})
-	},
-
-
-	/**
-	 * cleans an element before re-rendering
-	 */
-
-	'clean': function()
-	{
-		this.unbind();
-	},
-
-	/**
-	 * unbinds all events from the current element
-	 */
-
-	'unbind': function()
-	{
-		this.$('*').unbind();
-	},
-
-	/**
-	 * listens to the current element for any changes. 
-	 */
-
-	'listen': function()
-	{
-
-		//element does not exist, of the window is undefiend? it's being rendered on the backend. We *don't* want to listen
-		//to any elements on the backend
-		if(!this.el || typeof window == 'undefined') return;
-
-		var self = this;
-
-
-		this.unbind();
-
-
-		function listen(ev, method)
-		{
-			var parts = ev.split(' '),
-			type = parts.shift();
+		'root': function() {
 			
-			parts.forEach(function(el)
-			{
-				$(self.el).find(el).each(function()
-				{
-					(self._binders[type] || self._binders['default']).call(self, type, $(this), method);
+			var par = this;
+			
+			while(par.parent()) par = par.parent();
+			
+			return par;	
+
+		},
+
+		/**
+		 */
+
+		'parent': function() {
+			return parent;	
+		},
+
+		/**
+		 */
+
+		'emit': function(type) {
+			
+			var params = Array.apply(null, arguments),
+			args = params.concat();
+			params.shift();//remove type
+
+
+			queue.push(function() {
+				for(var name in plugins) {
+					var plugin = plugins[name];
+					if(plugin.instance[type]) {
+						plugin.instance[type].apply(plugin.instance, params);
+					}
+				}	
+
+
+				children.forEach(function(child) {
+					child.emit.apply(child, args);
 				});
+
+				this();
 			});
-		}
-		
-		
-		for(var ev in self.bindings)
-		{
-			listen(ev, self.bindings[ev]);
-		}
-	},
 
-	/**
-	 * localized selector. Not global
-	 */
+			return haba;
+		},
 
-	'$': function(search)
-	{	
-		return typeof search == 'string' ? this.$$(this.el).find(search) : this.$$(search);
-	},
+		/**
+		 */
 
-	/**
-	 * links the child to the parent so 
-	 */
-
-	'_linkChild': function(child)
-	{
-
-		//set the original jquery function
-		child.$$ = this.$$;
-
-		//set the document so we have something to write to
-		child.document = this.document;
+		'next': function(callback) {
+			queue.push(callback);
+			return haba;
+		},
 
 
-		return child;
-	},
+		/**
+		 */
 
+		'ready': function() {
+			if(initialized) return;
+			initialized = true;
 
-	/**
-	 * sets the element controlled by this view. Can changes on each update.
-	 */
+			queue.start();
 
-	'_setElement': function(next)
-	{
-		var currentElement = this.el,
-		newElement = this.el;
+			for(var name in plugins) {
+				var plugin = plugins[name];
+				
+				(plugin.require || []).forEach(function(req) {
+					var plugins = self.root().plugins(req.search);
 
-
-		
-		if(typeof newElement == 'string' || this.selector)
-		{
-			if(!this.selector) this.selector = this.el;
-
-			if(this.parent)
-			{
-				var el = this.el;
-				newElement = this.$$(this.parent.el).find(this.selector);
-			}
-			else
-			{
-				newElement = this.$$(this.selector);
-			}
-		}
-	
-		// this.jqel = this.parent ? this.$$(this.parent.el).find(this.selector) : this.$$(this.selector);
-		
-
-		//don't wrap in jquery
-		if(newElement.context)
-		{
-			var newElement = newElement[0];
-		}
-		
-
-		//clean up the old element before setting the new one...
-		if(newElement && currentElement != newElement)
-		{
-			if(currentElement) this.clean();
-			this.el = newElement;
-		}
-
-		if(next) next();
-
-		//tells if whether a new element was really set...
-		return currentElement != newElement;
-	},
-
-	/**
-	 */
-
-	'_render': function(next)
-	{
-		this.render();
-		next();
-	},
-
-	/**
-	 * part of the initialization. this happens ONLY on the front end of things
-	 */
-
-	'_listen': function(next)
-	{
-		this.listen();
-		next();
-	},
-
-	/**
-	 * initializes the children for their first push
-	 */
-
-	'_initChildren': function(next)
-	{ 
-		if(this.initializedChildren) return;
-		this.initializedChildren = true;
-
-		var running = this._children.length;
-
-
-		if(!running)
-		{
-			return next();
-		}
-
-
-		function nextChild()
-		{
-			if(!(--running)) next();
-		}
-
-
-		for(var i = running; i--;)
-		{
-			var child = this._linkChild(this._children[i]);
-
-			if(child.complete)
-			{
-				nextChild();
-				continue;
+					if(!plugins.length) throw new Error('Unable to find plugin ' + req.search + ' in ' + name);
+				});
 			}
 
-			this._children[i].init({
-				complete: nextChild
+			children.forEach(function(child) {
+				child.ready();
 			});
+
 		}
-	}
-});
+	};
 
-
-
+	return self;
+}
 });
 _sardines.register("/modules/structr/lib/index.js", function(require, module, exports, __dirname, __filename) {
 	var Structr = function (target, parent)
@@ -5023,6 +7062,556 @@ module.exports = Structr;
 _sardines.register("/modules/structr", function(require, module, exports, __dirname, __filename) {
 	module.exports = require('modules/structr/lib/index.js');
 });
+_sardines.register("/modules/fig/views/abstract.js", function(require, module, exports, __dirname, __filename) {
+	var Structr = require('structr'),
+ConcreteModel = require('malt/lib/core/models/concrete').Model,
+Instructor = require('../instructor'),
+logger = require('mesh-winston').loggers.get('fig'),
+renderView = require('../renderView');
+
+
+
+var View = module.exports = ConcreteModel.extend({
+
+	/**
+	 */
+
+	'_binders': {
+
+
+		/**
+		 * binds events to the view
+		 */
+
+
+		'default': function(action, target, method)
+		{
+			var self = this;
+
+
+			target.bind(action, function(event)
+			{
+				//otherwise, prevent the user from redirecting, and handle the request in-app
+				event.preventDefault();
+
+				self[method].call(self, event);
+			})
+		},
+
+		/**
+		 * binds enter on the keyboard for the view
+		 */
+
+		'enter': function(action, target, method)
+		{
+			var self = this;
+
+			target.bind('keydown', function(event)
+			{
+				if(event.keyCode == 13)
+				{
+					self[method].call(self, event);
+				}
+			})
+		}	
+	},
+
+
+	/**
+	 */
+
+	'override __construct': function(ops)
+	{
+		this._super();
+		this._children = [];
+		this._childrenByName = {};
+
+
+		this.setup(ops);
+
+		this._instructor = new Instructor(this);
+	},
+
+	/** 
+	 * configures the view
+	 */
+
+	'setup': function(ops)
+	{
+		if(!ops) ops = {};
+		if(!this.ops) this.ops = {};
+		if(ops.el) this.el = ops.el; 
+
+
+
+		Structr.copy(ops, this.ops, true);
+		
+		this.body = ops.body;
+		if(ops.template) this.template = ops.template;  
+		
+
+		//web, or node
+		this.$$ = typeof $ != 'undefined' ? $ : ops.$;
+		this.document = typeof document != 'undefined' ? document : ops.document;
+
+		return this;
+	},
+
+
+	/**
+	 * updates the view if anything changes. This usually occurs if say... data changes at it impacts
+	 * a template view, OR the parent changes, and the children need to change as well
+	 */
+
+	'update': function(force)
+	{
+		//reset the element. What if the parent innerHTML has changed? 
+		if(!force && !this._setElement()) return; 		
+
+
+		//now, set the view
+		this.render();
+
+		//listen to the element
+		this.listen();
+
+		//need to update all the children now. TODO: check if the element *really* changed / was replaced
+		this.updateChildren();
+	},
+
+	/**
+	 */
+
+	/**
+	 * initialize
+	 */
+
+	'abstract ready': function() { 
+	},
+
+	/**
+	 */
+
+	'abstract render': function() { },
+
+	/**
+	 * updates the children
+	 */
+
+	'updateChildren': function()
+	{
+		this.eachChild(function(child)
+		{
+			child.update();
+			child.updateChildren();
+		})
+	},
+  
+	/**
+	 */
+
+	'eachChild': function(callback)
+	{
+		for(var i = this._children.length; i--;)
+		{
+			callback(this._children[i], i);
+		}
+	},
+
+	/**
+	 * adds a child to the view
+	 */
+
+
+	'addChild': function(view, name)
+	{
+		//this shouldn't happen, but just in case, we don't want to break
+		//the app
+		if(!view)
+		{
+			console.warn('Cannot add null child to ' + this.selector);
+			return;
+		}
+
+		//allow the child to do shit to the parent
+		view.parent = this;
+
+		//name exists? set it
+		if(name) view.name = name;
+
+		//the view name might already exist, so af'dd it to the collection
+		if(view.name) this._childrenByName[view.name] = view;
+
+		//push the child to the children collection
+		this._children.push(view);	
+
+
+		//is this view *completely* done initializing? Yeah, then we need
+		//to initialize the child
+		if(this.initializedChildren) this._linkChild(view).init();
+
+		return view;
+	},
+
+	/**
+	 * removes the view from the parent
+	 */
+
+	'remove': function()
+	{
+		if(this.parent)
+		{
+			this.parent.removeChild(this);
+		}	
+	},
+
+	/**
+	 * removes a child from the view
+	 */
+
+
+	'removeChild': function(viewOrIndex)
+	{
+		var view, index, toi = typeof viewOrIndex;
+
+
+		//is the value an number? it's an index
+		if(toi == 'number')
+		{
+			view = this._children[viewOrIndex];
+			index = viewOrIndex;
+
+		}
+
+		//or a string? it's the name of the child
+		else
+		if(toi == 'string')
+		{
+			view = this._childrenByName[viewOrIndex];
+			index = this._children.indexOf(view);
+		}
+
+		//otherwise we're remoiving the ref
+		else
+		{
+			index = this._children.indexOf(view);
+			view = viewOrIndex;
+
+		}
+
+		//but the view might not exist, so return null to notify it doesn't...
+		if(!view) return null;
+
+
+		delete this._childrenByName[view.name];
+
+		view.parent = null;
+
+		//destroy the child
+		view.dispose();
+		view.el.innerHTML = '';
+
+		//exists? remove
+		if(index > -1) this._children.splice(index, 1);
+
+		return view;
+	},
+
+	/**
+	 * removes all the children of the view
+	 */
+
+	'removeAllChildren': function()
+	{
+		while(this._children.length) this.removeChild(0);
+	},
+
+	/**
+	 * returns a child by its name. Important especially for caching routes
+	 */
+
+	'getChildByName': function(name)
+	{
+		return this._childrenByName[name];
+	},
+
+	/**
+	 * used for a beanpole request. renders the view, and sends it to the requestor
+	 */
+
+	'send': function(res)
+	{
+		logger.debug('send view');
+
+		renderView(this, res);
+
+	},
+
+
+	/**
+	 * initializes the few. Used primarily for serviing static pages 
+	 */
+
+	'init': function(callbacks)
+	{
+		this.subscribe(callbacks);
+		
+
+		//initialize happens only *once*, and it's used to serve up static pages, so don't run through it again
+		if(this.initialized) return;
+		this.initialized = true;
+
+		var self = this;
+
+		this.subscribe('complete', function()
+		{	
+			self.ready();	
+		});
+
+		//build up the instructions to display the view. This is essential for serving static pages
+		this._instructor.add(['_setElement'].concat(this.instructions()).concat(['_listen', '_initChildren']));
+
+	},
+
+
+	/**
+	 * the instructions to build up the view for static pages
+	 */
+	
+	'instructions': function()
+	{
+		return ['_render'];
+	},
+
+
+	/**
+	 * completely disposes the view so it's unusable
+	 */
+
+	'override dispose': function()
+	{
+		this._super();
+
+		//remove from the parent
+		this.remove();
+
+		//clean for any listeners
+		this.clean();
+
+
+		//finally, remove *all* children
+		this.disposeChildren();
+	},
+
+	/**
+	 * disposes *all* children. important because it also removes all bindings
+	 */
+
+	'disposeChildren': function()
+	{
+		this.eachChild(function(child)
+		{
+			//removing does the same as disposing.
+			child.remove();
+		})
+	},
+
+
+	/**
+	 * cleans an element before re-rendering
+	 */
+
+	'clean': function()
+	{
+		this.unbind();
+	},
+
+	/**
+	 * unbinds all events from the current element
+	 */
+
+	'unbind': function()
+	{
+		this.$('*').unbind();
+	},
+
+	/**
+	 * listens to the current element for any changes. 
+	 */
+
+	'listen': function()
+	{
+
+		//element does not exist, of the window is undefiend? it's being rendered on the backend. We *don't* want to listen
+		//to any elements on the backend
+		if(!this.el || typeof window == 'undefined') return;
+
+		var self = this;
+
+
+		this.unbind();
+
+
+		function listen(ev, method)
+		{
+			var parts = ev.split(' '),
+			type = parts.shift();
+			
+			parts.forEach(function(el)
+			{
+				$(self.el).find(el).each(function()
+				{
+					(self._binders[type] || self._binders['default']).call(self, type, $(this), method);
+				});
+			});
+		}
+		
+		
+		for(var ev in self.bindings)
+		{
+			listen(ev, self.bindings[ev]);
+		}
+	},
+
+	/**
+	 * localized selector. Not global
+	 */
+
+	'$': function(search)
+	{	
+		return typeof search == 'string' ? this.$$(this.el).find(search) : this.$$(search);
+	},
+
+	/**
+	 * links the child to the parent so 
+	 */
+
+	'_linkChild': function(child)
+	{
+
+		//set the original jquery function
+		child.$$ = this.$$;
+
+		//set the document so we have something to write to
+		child.document = this.document;
+
+
+		return child;
+	},
+
+
+	/**
+	 * sets the element controlled by this view. Can changes on each update.
+	 */
+
+	'_setElement': function(next)
+	{
+		var currentElement = this.el,
+		newElement = this.el;
+
+
+		
+		if(typeof newElement == 'string' || this.selector)
+		{
+			if(!this.selector) this.selector = this.el;
+
+			if(this.parent)
+			{
+				var el = this.el;
+				newElement = this.$$(this.parent.el).find(this.selector);
+			}
+			else
+			{
+				newElement = this.$$(this.selector);
+			}
+		}
+	
+		// this.jqel = this.parent ? this.$$(this.parent.el).find(this.selector) : this.$$(this.selector);
+		
+
+		//don't wrap in jquery
+		if(newElement.context)
+		{
+			var newElement = newElement[0];
+		}
+		
+
+		//clean up the old element before setting the new one...
+		if(newElement && currentElement != newElement)
+		{
+			if(currentElement) this.clean();
+			this.el = newElement;
+		}
+
+		if(next) next();
+
+		//tells if whether a new element was really set...
+		return currentElement != newElement;
+	},
+
+	/**
+	 */
+
+	'_render': function(next)
+	{
+		this.render();
+		next();
+	},
+
+	/**
+	 * part of the initialization. this happens ONLY on the front end of things
+	 */
+
+	'_listen': function(next)
+	{
+		this.listen();
+		next();
+	},
+
+	/**
+	 * initializes the children for their first push
+	 */
+
+	'_initChildren': function(next)
+	{ 
+		if(this.initializedChildren) return;
+		this.initializedChildren = true;
+
+		var running = this._children.length;
+
+
+		if(!running)
+		{
+			return next();
+		}
+
+
+		function nextChild()
+		{
+			if(!(--running)) next();
+		}
+
+
+		for(var i = running; i--;)
+		{
+			var child = this._linkChild(this._children[i]);
+
+			if(child.complete)
+			{
+				nextChild();
+				continue;
+			}
+
+			this._children[i].init({
+				complete: nextChild
+			});
+		}
+	}
+});
+
+
+
+});
 _sardines.register("/modules/fig/template/adapters/mustache/mustache.js", function(require, module, exports, __dirname, __filename) {
 	/*
   mustache.js — Logic-less templates in JavaScript
@@ -5490,6 +8079,342 @@ var ViewChain = module.exports = Structr({
 	}
 });
 });
+_sardines.register("/modules/punycode", function(require, module, exports, __dirname, __filename) {
+	// Copyright (C) 2011 by Ben Noordhuis <info@bnoordhuis.nl>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+exports.encode = encode;
+exports.decode = decode;
+
+var TMIN = 1;
+var TMAX = 26;
+var BASE = 36;
+var SKEW = 38;
+var DAMP = 700; // initial bias scaler
+var INITIAL_N = 128;
+var INITIAL_BIAS = 72;
+var MAX_INTEGER = Math.pow(2, 53);
+
+function adapt_bias(delta, n_points, is_first) {
+  // scale back, then increase delta
+  delta /= is_first ? DAMP : 2;
+  delta += ~~(delta / n_points);
+
+  var s = (BASE - TMIN);
+  var t = ~~((s * TMAX) / 2); // threshold=455
+
+  for (var k = 0; delta > t; k += BASE) {
+    delta = ~~(delta / s);
+  }
+
+  var a = (BASE - TMIN + 1) * delta;
+  var b = (delta + SKEW);
+
+  return k + ~~(a / b);
+}
+
+function next_smallest_codepoint(codepoints, n) {
+  var m = 0x110000; // unicode upper bound + 1
+
+  for (var i = 0, len = codepoints.length; i < len; ++i) {
+    var c = codepoints[i];
+    if (c >= n && c < m) {
+      m = c;
+    }
+  }
+
+  // sanity check - should not happen
+  if (m >= 0x110000) {
+    throw new Error('Next smallest code point not found.');
+  }
+
+  return m;
+}
+
+function encode_digit(d) {
+  return d + (d < 26 ? 97 : 22);
+}
+
+function decode_digit(d) {
+  if (d >= 48 && d <= 57) {
+    return d - 22; // 0..9
+  }
+  if (d >= 65 && d <= 90) {
+    return d - 65; // A..Z
+  }
+  if (d >= 97 && d <= 122) {
+    return d - 97; // a..z
+  }
+  throw new Error('Illegal digit #' + d);
+}
+
+function threshold(k, bias) {
+  if (k <= bias + TMIN) {
+    return TMIN;
+  }
+  if (k >= bias + TMAX) {
+    return TMAX;
+  }
+  return k - bias;
+}
+
+function encode_int(bias, delta) {
+  var result = [];
+
+  for (var k = BASE, q = delta;; k += BASE) {
+    var t = threshold(k, bias);
+    if (q < t) {
+      result.push(encode_digit(q));
+      break;
+    }
+    else {
+      result.push(encode_digit(t + ((q - t) % (BASE - t))));
+      q = ~~((q - t) / (BASE - t));
+    }
+  }
+
+  return result;
+}
+
+function encode(input) {
+  if (typeof input != 'string') {
+    throw new Error('Argument must be a string.');
+  }
+
+  input = input.split('').map(function(c) {
+    return c.charCodeAt(0);
+  });
+
+  var output = [];
+  var non_basic = [];
+
+  for (var i = 0, len = input.length; i < len; ++i) {
+    var c = input[i];
+    if (c < 128) {
+      output.push(c);
+    }
+    else {
+      non_basic.push(c);
+    }
+  }
+
+  var b, h;
+  b = h = output.length;
+
+  if (b) {
+    output.push(45); // delimiter '-'
+  }
+
+  var n = INITIAL_N;
+  var bias = INITIAL_BIAS;
+  var delta = 0;
+
+  for (var len = input.length; h < len; ++n, ++delta) {
+    var m = next_smallest_codepoint(non_basic, n);
+    delta += (m - n) * (h + 1);
+    n = m;
+
+    for (var i = 0; i < len; ++i) {
+      var c = input[i];
+      if (c < n) {
+        if (++delta == MAX_INTEGER) {
+          throw new Error('Delta overflow.');
+        }
+      }
+      else if (c == n) {
+        // TODO append in-place?
+        // i.e. -> output.push.apply(output, encode_int(bias, delta));
+        output = output.concat(encode_int(bias, delta));
+        bias = adapt_bias(delta, h + 1, b == h);
+        delta = 0;
+        h++;
+      }
+    }
+  }
+
+  return String.fromCharCode.apply(String, output);
+}
+
+function decode(input) {
+  if (typeof input != 'string') {
+    throw new Error('Argument must be a string.');
+  }
+
+  // find basic code points/delta separator
+  var b = 1 + input.lastIndexOf('-');
+
+  input = input.split('').map(function(c) {
+    return c.charCodeAt(0);
+  });
+
+  // start with a copy of the basic code points
+  var output = input.slice(0, b ? (b - 1) : 0);
+
+  var n = INITIAL_N;
+  var bias = INITIAL_BIAS;
+
+  for (var i = 0, len = input.length; b < len; ++i) {
+    var org_i = i;
+
+    for (var k = BASE, w = 1;; k += BASE) {
+      var d = decode_digit(input[b++]);
+
+      // TODO overflow check
+      i += d * w;
+
+      var t = threshold(k, bias);
+      if (d < t) {
+        break;
+      }
+
+      // TODO overflow check
+      w *= BASE - t;
+    }
+
+    var x = 1 + output.length;
+    bias = adapt_bias(i - org_i, x, org_i == 0);
+    // TODO overflow check
+    n += ~~(i / x);
+    i %= x;
+
+    output.splice(i, 0, n);
+  }
+
+  return String.fromCharCode.apply(String, output);
+}
+
+});
+_sardines.register("/modules/querystring", function(require, module, exports, __dirname, __filename) {
+	// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// Query String Utilities
+
+var QueryString = exports;
+
+
+function charCode(c) {
+  return c.charCodeAt(0);
+}
+
+
+QueryString.unescape = function(s, decodeSpaces) {
+  return decodeURIComponent(s);////QueryString.unescapeBuffer(s, decodeSpaces).toString();
+};
+
+
+QueryString.escape = function(str) {
+  return encodeURIComponent(str);
+};
+
+var stringifyPrimitive = function(v) {
+  switch (typeof v) {
+    case 'string':
+      return v;
+
+    case 'boolean':
+      return v ? 'true' : 'false';
+
+    case 'number':
+      return isFinite(v) ? v : '';
+
+    default:
+      return '';
+  }
+};
+
+
+QueryString.stringify = QueryString.encode = function(obj, sep, eq, name) {
+  sep = sep || '&';
+  eq = eq || '=';
+  obj = (obj === null) ? undefined : obj;
+
+  switch (typeof obj) {
+    case 'object':
+      return Object.keys(obj).map(function(k) {
+        if (Array.isArray(obj[k])) {
+          return obj[k].map(function(v) {
+            return QueryString.escape(stringifyPrimitive(k)) +
+                   eq +
+                   QueryString.escape(stringifyPrimitive(v));
+          }).join(sep);
+        } else {
+          return QueryString.escape(stringifyPrimitive(k)) +
+                 eq +
+                 QueryString.escape(stringifyPrimitive(obj[k]));
+        }
+      }).join(sep);
+
+    default:
+      if (!name) return '';
+      return QueryString.escape(stringifyPrimitive(name)) + eq +
+             QueryString.escape(stringifyPrimitive(obj));
+  }
+};
+
+// Parse a key=val string.
+QueryString.parse = QueryString.decode = function(qs, sep, eq) {
+  sep = sep || '&';
+  eq = eq || '=';
+  var obj = {};
+
+  if (typeof qs !== 'string' || qs.length === 0) {
+    return obj;
+  }
+
+  qs.split(sep).forEach(function(kvp) {
+    var x = kvp.split(eq);
+    var k = QueryString.unescape(x[0], true);
+    var v = QueryString.unescape(x.slice(1).join(eq), true);
+
+    if (!obj.hasOwnProperty(k)) {
+      obj[k] = v;
+    } else if (!Array.isArray(obj[k])) {
+      obj[k] = [obj[k], v];
+    } else {
+      obj[k].push(v);
+    }
+  });
+
+  return obj;
+};
+
+});
 _sardines.register("/modules/beanpoll/lib/push/director.js", function(require, module, exports, __dirname, __filename) {
 	(function() {
   var Director, Messenger,
@@ -5606,224 +8531,6 @@ _sardines.register("/modules/beanpoll/lib/collect/director.js", function(require
   })(Director);
 
 }).call(this);
-
-});
-_sardines.register("/modules/events", function(require, module, exports, __dirname, __filename) {
-	// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var isArray = Array.isArray;
-
-function EventEmitter() { }
-exports.EventEmitter = EventEmitter;
-
-// By default EventEmitters will print a warning if more than
-// 10 listeners are added to it. This is a useful default which
-// helps finding memory leaks.
-//
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-var defaultMaxListeners = 10;
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!this._events) this._events = {};
-  this._events.maxListeners = n;
-};
-
-
-EventEmitter.prototype.emit = function() {
-  var type = arguments[0];
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events || !this._events.error ||
-        (isArray(this._events.error) && !this._events.error.length))
-    {
-      if (arguments[1] instanceof Error) {
-        throw arguments[1]; // Unhandled 'error' event
-      } else {
-        throw new Error("Uncaught, unspecified 'error' event.");
-      }
-      return false;
-    }
-  }
-
-  if (!this._events) return false;
-  var handler = this._events[type];
-  if (!handler) return false;
-
-  if (typeof handler == 'function') {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        var l = arguments.length;
-        var args = new Array(l - 1);
-        for (var i = 1; i < l; i++) args[i - 1] = arguments[i];
-        handler.apply(this, args);
-    }
-    return true;
-
-  } else if (isArray(handler)) {
-    var l = arguments.length;
-    var args = new Array(l - 1);
-    for (var i = 1; i < l; i++) args[i - 1] = arguments[i];
-
-    var listeners = handler.slice();
-    for (var i = 0, l = listeners.length; i < l; i++) {
-      listeners[i].apply(this, args);
-    }
-    return true;
-
-  } else {
-    return false;
-  }
-};
-
-// EventEmitter is defined in src/node_events.cc
-// EventEmitter.prototype.emit() is also defined there.
-EventEmitter.prototype.addListener = function(type, listener) {
-  if ('function' !== typeof listener) {
-    throw new Error('addListener only takes instances of Function');
-  }
-
-  if (!this._events) this._events = {};
-
-  // To avoid recursion in the case that type == "newListeners"! Before
-  // adding it to the listeners, first emit "newListeners".
-  this.emit('newListener', type, listener);
-
-  if (!this._events[type]) {
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  } else if (isArray(this._events[type])) {
-
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-
-    // Check for listener leak
-    if (!this._events[type].warned) {
-      var m;
-      if (this._events.maxListeners !== undefined) {
-        m = this._events.maxListeners;
-      } else {
-        m = defaultMaxListeners;
-      }
-
-      if (m && m > 0 && this._events[type].length > m) {
-        this._events[type].warned = true;
-        console.error('(node) warning: possible EventEmitter memory ' +
-                      'leak detected. %d listeners added. ' +
-                      'Use emitter.setMaxListeners() to increase limit.',
-                      this._events[type].length);
-        console.trace();
-      }
-    }
-  } else {
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  if ('function' !== typeof listener) {
-    throw new Error('.once only takes instances of Function');
-  }
-
-  var self = this;
-  function g() {
-    self.removeListener(type, g);
-    listener.apply(this, arguments);
-  };
-
-  g.listener = listener;
-  self.on(type, g);
-
-  return this;
-};
-
-EventEmitter.prototype.removeListener = function(type, listener) {
-  if ('function' !== typeof listener) {
-    throw new Error('removeListener only takes instances of Function');
-  }
-
-  // does not use listeners(), so no side effect of creating _events[type]
-  if (!this._events || !this._events[type]) return this;
-
-  var list = this._events[type];
-
-  if (isArray(list)) {
-    var position = -1;
-    for (var i = 0, length = list.length; i < length; i++) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener))
-      {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0) return this;
-    list.splice(position, 1);
-    if (list.length == 0)
-      delete this._events[type];
-  } else if (list === listener ||
-             (list.listener && list.listener === listener))
-  {
-    delete this._events[type];
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  if (arguments.length === 0) {
-    this._events = {};
-    return this;
-  }
-
-  // does not use listeners(), so no side effect of creating _events[type]
-  if (type && this._events && this._events[type]) this._events[type] = null;
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  if (!this._events) this._events = {};
-  if (!this._events[type]) this._events[type] = [];
-  if (!isArray(this._events[type])) {
-    this._events[type] = [this._events[type]];
-  }
-  return this._events[type];
-};
 
 });
 _sardines.register("/modules/dolce/lib/collection.js", function(require, module, exports, __dirname, __filename) {
@@ -6545,6 +9252,119 @@ Stream.prototype.pipe = function(dest, options) {
 
 
 });
+_sardines.register("/modules/tq/lib/index.js", function(require, module, exports, __dirname, __filename) {
+	var EventEmitter = require('events').EventEmitter;
+
+exports.queue = function() {
+
+	
+	var next = function() {
+		var callback = queue.pop();
+
+		if(!callback || !started) {
+			running = false;
+			return;
+		}
+
+		callback.apply(next, arguments);
+	},
+	running = false,
+	started = false,
+	queue = [],
+	em = new EventEmitter();
+
+	var self = {
+
+		/**
+		 * add a queue to the end
+		 */
+
+		push: function(callback) {
+			queue.unshift(callback);
+
+			if(!running && started) {
+				next();
+			}
+			return this;
+		},
+
+
+		/**
+		 * adds a queue to the begning
+		 */
+
+		unshift: function(callback) {
+			queue.push(callback);
+			return this;
+		},
+
+		/**
+		 */
+
+		on: function(type, callback) {
+			em.addListener(type, callback);
+		},
+
+
+		/**
+		 * starts the queue
+		 */
+
+		start: function() {
+			if(started) return this;
+			started = running = true;
+			em.emit('start');
+			next();
+			return this;
+		},
+
+		/**
+		 * returns a function that's added to the queue
+		 * when invoked
+		 */
+
+		fn: function(fn) {
+			return function() {
+				var args = arguments, listeners = [];
+
+
+				return self.push(function() {
+
+					var next = this;
+
+					fn.apply({
+						next: function() {
+							args = arguments;
+							listeners.forEach(function(listener) {
+								listener.apply(null, args);
+							});
+							next();
+						},
+						attach: function(listener) {
+							listeners.push(listener);
+						}
+					}, args);
+				});
+			}
+		},
+
+		/**
+		 * stops the queue
+		 */
+
+		stop: function() {
+			started = running = false;
+			return this;
+		}
+	};
+
+	return self;
+}
+});
+
+_sardines.register("/modules/tq", function(require, module, exports, __dirname, __filename) {
+	module.exports = require('modules/tq/lib/index.js');
+});
 _sardines.register("/modules/malt/lib/core/models/concrete.js", function(require, module, exports, __dirname, __filename) {
 	var AbstractModel = require('./abstract');
 
@@ -6829,7 +9649,6 @@ _sardines.register("/modules/beanpoll/lib/pull/messenger.js", function(require, 
     */
 
     _Class.prototype.start = function() {
-      this.response.req = this.message;
       return _Class.__super__.start.call(this);
     };
 
