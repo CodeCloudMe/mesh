@@ -126,6 +126,7 @@ meshable = (pkg, callback) ->
 
 module.exports = merge = (ops, callback) ->
 
+
 	res        = outcome.error callback
 
 	# the input directory where the PROJECT lives. mesh.json should be here - just like package.json
@@ -161,6 +162,7 @@ module.exports = merge = (ops, callback) ->
 	# based on the config, set the SOURCE, and the OUTPUT
 
 	,res.success( (config) ->
+		console.log "- merge #{config.original.name}"
 		appPkg    = config.original
 		sourceDir = config.src
 		outputDir = outputDir || path.normalize "#{config.lib}/#{platform}"
