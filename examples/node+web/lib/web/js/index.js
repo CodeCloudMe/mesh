@@ -430,9 +430,7 @@ model          = require('./views/model'),
 template       = require('./views/template'),
 concrete       = require('./views/concrete'),
 Parser         = require('./template/parser'),
-MustacheParser = require('./template/adapters/mustache'),
-templatePlugin = require('./plugins/template'),
-viewsPlugin    = require('./plugins/views');
+MustacheParser = require('./template/adapters/mustache');
 
 
 Parser.add('mu', MustacheParser);
@@ -653,6 +651,68 @@ exports.plugin = function(router)
 
 				router.push('history/ready');                            
 			}, 1);
+		}
+	})
+}
+});
+_sardines.register("/modules/41147061/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
+	module.exports = function(fig) {
+		
+	var views = fig.views;
+
+
+	views.IndexView = views.Template.extend({
+		
+		tpl: '/index.html',
+
+		'override render': function() {
+			this._super();
+		}
+	});
+	
+
+	views.HelloView = views.View.extend({
+		
+		'el': '#page',
+
+		'override render': function() {
+			this._super();
+			this.$$(this.el).html('html!');
+		}
+	});
+
+	return views;
+}
+});
+_sardines.register("/modules/41147061/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
+	
+
+exports.plugin = function(router) {
+	
+	var views;
+	
+	router.on({
+		
+		'push -pull fig': function(fig) {
+			views = require('./views')(fig);
+		},
+
+
+		/**
+		 */
+
+		'pull -method=GET view -> home OR /': function(req, res) {
+			req.addView(new views.IndexView());
+			if(!this.next()) req.display();
+		},
+
+		/**
+		 */
+
+		'pull -method=GET home -> view -> hello': function(req, res) {
+			
+			req.addView(new views.HelloView());
+			if(!this.next()) req.display();
 		}
 	})
 }
@@ -1514,68 +1574,6 @@ _sardines.register("/modules/beanpoll/lib/concrete/response.js", function(requir
 
 }).call(this);
 
-});
-_sardines.register("/modules/41147061/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
-	module.exports = function(fig) {
-		
-	var views = fig.views;
-
-
-	views.IndexView = views.Template.extend({
-		
-		tpl: '/index.html',
-
-		'override render': function() {
-			this._super();
-		}
-	});
-	
-
-	views.HelloView = views.View.extend({
-		
-		'el': '#page',
-
-		'override render': function() {
-			this._super();
-			this.$$(this.el).html('html!');
-		}
-	});
-
-	return views;
-}
-});
-_sardines.register("/modules/41147061/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
-	
-
-exports.plugin = function(router) {
-	
-	var views;
-	
-	router.on({
-		
-		'push -pull fig': function(fig) {
-			views = require('./views')(fig);
-		},
-
-
-		/**
-		 */
-
-		'pull -method=GET view -> home OR /': function(req, res) {
-			req.addView(new views.IndexView());
-			if(!this.next()) req.display();
-		},
-
-		/**
-		 */
-
-		'pull -method=GET home -> view -> hello': function(req, res) {
-			
-			req.addView(new views.HelloView());
-			if(!this.next()) req.display();
-		}
-	})
-}
 });
 _sardines.register("/modules/haba/core.js", function(require, module, exports, __dirname, __filename) {
 	var path = require('path'),
@@ -2561,633 +2559,6 @@ exports.existsSync = function(path) {
   }
 };
 
-});
-_sardines.register("/modules/fig/views/index.js", function(require, module, exports, __dirname, __filename) {
-	
-});
-_sardines.register("/modules/fig/views/model.js", function(require, module, exports, __dirname, __filename) {
-	var View = require('./concrete'),
-views = require('./index');
-
-
-var ItemView = exports.Item = View.extend({
-	
-
-	/**
-	 */
-
-	'merge _binders': {
-
-		'value': function(action, target, properties)
-		{
-			var self = this;
-
-
-			if(!self._data) return;
-
-			function bind(elementProp, dataProp)
-			{
-				target[elementProp](self._data.get(dataProp));
-
-				// target.attr(elementProp, self._data.get(dataProp));
-
-				self._data.subscribe(dataProp, function(value)
-				{
-					target.attr(elementProp, value);
-				})
-
-				target.bind('change', function()
-				{
-					if(!self._data) return;
-
-					self._data.set(dataProp, target[elementProp]());
-
-					//todo. why the hell is this here??
-
-					if(self._data.save) self._data.save()
-				})	
-			}
-
-
-			for(var elementProp in properties)
-			{
-				bind(elementProp, properties[elementProp]);
-			}
-		}
-	},
-
-	/**
-	 */
-
-	'override setup': function(ops)
-	{
-		this._super(ops);
-
-		if(this.ops.data) this.data(this.ops.data);
-
-		return this;
-	},
-
-
-	/**
-	 */
-
-	'data': function(v, skipLoad)
-	{
-		if(!arguments.length) return this._data;
-
-		this._data = v;
-
-		if(this.initialized)
-		{
-			if(v) this.listenToData(v);
-			if(!skipLoad) this.loadData();
-
-			//update EVERYFING
-			this.update();
-		}
-	},
-
-
-	/**
-	 */
-
-	'override init': function()
-	{
-		this._super.apply(this, arguments);
-
-		if(this._data) this.data(this._data);
-	},
-
-
-	/**
-	 */
-
-	'listenToData': function(data)
-	{
-		if(this._dataSubscription) this._dataSubscription.dispose();
-
-		var self = this;
-
-		this._dataSubscription = data.subscribe({
-			'update': this.getMethod('onDataChange')
-		});
-	},
-
-	/**
-	 */
-
-	'onDataChange': function()
-	{
-		this.update();
-	},
-
-	/**
-	 */
-
-	'loadData': function(next)
-	{
-		if(!this._data || this._data.loaded || !this._data.load) 
-		{
-			if(next) next();
-			return;
-		}
-
-
-		var self = this;
-
-		this._data.load(function()
-		{
-			if(next) next();
-		});
-	},
-
-	/**
-	 */
-
-	'removeData': function()
-	{                                                                                                            
-		if(this.data()) this.data().remove();
-	},
-
-	/**
-	 */
-
-	'override instructions': function()
-	{
-		return this._super().concat(['loadData']);
-	}
-
-});
-
-
-var CollectionView = exports.Collection = ItemView.extend({
-	
-	/**
-	 */
-
-	'override __construct': function(ops)
-	{
-		this._super(ops);
-
-
-		if(this.ops.view) this.view = this.ops.view;
-	},
-
-	/**
-	 */
-
-	'override setup': function(ops)
-	{
-		this._super(ops);
-
-		this.view = this.ops.view ? this.ops.view : (this.view || 'View');
-		this.tag = this.ops.tag || this.tag;
-	},
-
-	/**
-	 */
-
-	'listenToData': function(data)
-	{
-		if(this._collectionSubscription) this._collectionSubscription.dispose();
-
-		this._collectionSubscription = data.subscribe({
-			'add': this.getMethod('add'),
-			'reset': this.getMethod('render'),
-			'remove': this.getMethod('remove')
-		});
-
-		if(data.loaded) this.render();
-	},
-
-
-	'override render': function()
-	{
-		this._super();
-
-		if(!this.el || !this.data()) return;
-
-
-		this.childrenEl = this.children ? this.$(this.children)[0] : this.el;
-		if(!this.childrenEl) console.warn(this.children + ' does not exist');
-		this.childrenEl.innerHTML = '';
-
-		this.data().each(this.getMethod('add'));	
-	},
-
-	'add': function(item, index)
-	{
-		var el = this.childHolderElement(item, index);
-
-		// var el = this.el.
-		var view = this.create(item, el);
-
-		if(this.childrenEl) this.childrenEl.appendChild(el);
-	},
-
-	/**
-	 */
-
-	'childHolderElement': function(item, index)
-	{
-		return this.document.createElement(this.tag || 'div');
-	},
-
-	/**
-	 */
-
-	'remove': function(item, index)
-	{
-		var child = this.childrenEl.childNodes[index];
-		if(child) this.childrenEl.removeChild(child);
-	},
-
-	/**
-	 * creates a view from an item
-	 */
-
-	'create': function(item, element)
-	{
-		var v = this.newView(item);
-		v.setup({ el: element }, element);
-		var view = this.addChild(v);
-	},
-
-	/**
-	 * override me
-	 */
-
-	'newView': function(item, element)
-	{
-		return new views[this.view]({ data: item });
-	}
-
-});
-});
-_sardines.register("/modules/fig/views/template.js", function(require, module, exports, __dirname, __filename) {
-	var model = require('./model'),
-View = require('./concrete'),
-Parser = require('../template/parser'),
-logger = require('mesh-winston').loggers.get('fig');
-
-var TemplateViewPartial = {
-	
-	/**
-	 */
-
-	'override setup': function(ops)
-	{
-		this._super(ops);
-
-		this.tpl = this.ops.tpl || this.tpl;
-
-		return this;
-	},
-
-
-	/**
-	 * the data to use to fill in the template
-	 */
-
-	'templateData': function()
-	{
-		return { };
-	},
-
-	/**
-	 * render the template
-	 */
-
-
-	'override render': function()
-	{
-
-		var self = this, _super = this._super;
-
-
-		if(!this.templateSource) return;
-
-		var scriptsRegexp = /<script.*?>[\w\W]*?<\/script>/g;
-
-		var scripts = this.templateSource.match(scriptsRegexp) || [],
-		placeHolder = '||||script||||';
-		
-		
-		//we need to TEMPORARILY block out templates so they don't get parsed on load
-		Parser.parse(this.templateType, this.templateSource.replace(scriptsRegexp, placeHolder), this.templateData(), function(content)
-		{
-			if(!content) content = self.templateSource;
-
-			while(scripts.length)
-			{
-				content = content.replace(placeHolder, scripts.shift());
-			}
-
-			if(self.el == self.document && typeof window != 'undefined') return;
-
-			//server-side?
-			if(typeof window == 'undefined') {
-				self.el.innerHTML = String(content);
-			} else {
-				self.$$(self.el).html(String(content));
-			}		
-
-		});	
-
-		_super.call(this);
-	},
-
-	/**
-	 */
-
-	'override instructions': function()
-	{
-		return ['_loadTemplate'].concat(this._super());
-	},
-
-	/**
-	 * loads in a template, this should happen *once*
-	 */
-
-	'_loadTemplate': function(next)
-	{
-
-		if(!this.tpl || this.loadedTemplate) 
-		{
-			console.warn('Cannot load template');
-			return next();
-		}
-
-		this.loadedTemplate = true;
-
-		var self = this;
-
-		function onTemplate(source, type)
-		{
-			self.templateSource = source;
-			self.templateType = type;
-			next();
-		}
-
-		if(this.tpl.substr(0,1) == '#')
-		{
-			var el = this.document.getElementById(this.tpl.substr(1));
-
-			//text/x-tmpl-
-			if(el)
-			{
-				onTemplate(el.innerText || el.text || el.textContent, el.getAttribute('type').substr(12));
-			}
-			else
-			{
-				console.warn('Template %s does not exist', this.tpl);
-			}
-		}
-		else
-		{
-
-
-			this.router.request('template').query({ name: this.tpl }).headers({ cache: true }).success(function(content)
-			{
-				onTemplate(content, self.tpl.split('.').pop());
-			}).pull();
-		}
-	}
-}
-
-
-var ModelTemplatePartial = {
-	
-
-	/**
-	 */
-
-	'templateData': function()
-	{
-		return this.data ? this.data().doc : {};
-	}
-};
-
-exports.Template = View.extend(TemplateViewPartial);
-exports.ItemTemplate = model.Item.extend(TemplateViewPartial, ModelTemplatePartial);
-exports.CollectionTemplate = model.Collection.extend(TemplateViewPartial, ModelTemplatePartial);
-});
-_sardines.register("/modules/fig/views/concrete.js", function(require, module, exports, __dirname, __filename) {
-	var View = require('./abstract');
-
-module.exports = View.extend({
-
-
-	/**
-	 * need to override listen so we also comb through the element for any anchor links, and stuff
-	 * that needs to be replaces to make the app for of an SPA
-	 */
-
-	'override listen': function()
-	{
-		this._super();
-		
-		//come through the element
-		if(this._router) this._router.push('comb/element', { element: this.el });
-	}
-})
-});
-_sardines.register("/modules/fig/template/parser.js", function(require, module, exports, __dirname, __filename) {
-	var Structr = require('structr');
-
-
-module.exports = new (Structr({
-
-	/**
-	 */
-
-	'__construct': function()
-	{
-		this._parsers = {};
-	},
-	
-	/**
-	 */
-
-	'add': function(type, adapter)
-	{
-		this._parsers[type] = adapter;
-	},
-
-	/**
-	 */
-
-	'parse': function(type, content, data, callback)
-	{
-		var parser = this._parsers[type];
-
-		if(!parser) return callback();
-
-		parser.parse(content, data, callback);
-	}
-}));
-
-});
-_sardines.register("/modules/fig/template/adapters/mustache/index.js", function(require, module, exports, __dirname, __filename) {
-	var Mustache = require('./mustache');
-
-
-exports.parse = function(template, data, callback)
-{
-	callback(Mustache.to_html(template, data));
-}
-
-});
-_sardines.register("/modules/fig/plugins/template/index.js", function(require, module, exports, __dirname, __filename) {
-	var logger = require('mesh-winston').loggers.get('leche');
-
-exports.plugin = function(router)
-{
-    var cache = {};
-
-	router.on({
-
-		/**
-		 */
-
-		'pull -hook template OR template/:name': function(req, res, mw)
-		{                         
-            var name = mw.data('name');
-
-
-            logger.debug('loading template: ' + name);
-
-            if(cache[name]) {
-                logger.debug('template is cached, returning');
-                return res.end(cache[name]);
-            }
-
-            var onTemplate = function(content)
-            {
-                logger.debug('template '+name+' loaded');
-                cache[name] = content;
-
-                res.end(content);
-            }
-            
-            var ops = {
-                url: name + '?'+ Math.random(),
-                dataType: 'application/html',
-                success: function(content)
-                {
-                     req.template = content;
-                    
-                    if(!mw.next())
-                    {
-                        onTemplate(content);
-                    }
-                },
-                error: function(e)
-                {
-                    onTemplate(e.responseText);
-                }
-            }
-            
-            $.ajax(ops);
-
-		}
-	});
-}
-});
-_sardines.register("/modules/fig/plugins/views/index.js", function(require, module, exports, __dirname, __filename) {
-	var ViewChain = require('./viewChain'),
-logger = require('mesh-winston').loggers.get('views.core');
-  
-/** 
- * caches the views for front-end applications
- */
-
-
-exports.plugin = function(router) {
-
-
-    var rootView,
-    rootViewPath,  
-    rootViewChain,
-	rootViewClass,
-	serverSide = typeof window == "undefined";
-
-	function getRootViewChain(view) {
-		if(view && view.__viewChain) return view.__viewChain;
-
-		var viewChain = new ViewChain();
-
-		// if(!view) view = rootViewClass ? new rootViewClass() : null;
-		// if(view) view.__viewChain = viewChain;
-
-		viewChain.view = view;
-
-		return viewChain;
-	}
-
-    
-    router.on({
-
-		/**
-		 */
-
-		'push init': function() {
-			/*logger.debug('init root');
-
-			router.on('push -pull root/view', function(viewClass) {
-
-				logger.debug('get root view');
-
-				rootViewClass = viewClass;
-				rootViewChain = getRootViewChain();
-			});*/
-			
-			rootViewChain = getRootViewChain();	
-		},
-    
-		/**
-		 */
-
-        'pull view': function(req, res, mw) {
-
-
-			var crootViewChain = rootViewChain = rootViewChain || getRootViewChain();
-
-
-            
-            //get the path name of the view we're about to hit e.g: view -> dashboard
-            var viewPath = mw.router.parse.stringifyPaths(mw.current.getNextSibling().channel.paths, mw.params);
-
-            logger.debug('view path: ' + viewPath);
-
-                        
-
-			//if we're running server-side, it's a new view chain each time. However, client-side - we cache. And for every
-			//middleware item we pass through, we make sure that we're not replacing views which are already present. Much Faster.
-
-			if(req.viewChain) {
-				chain = req.viewChain.next(req, res, viewPath);
-			} else {
-				req.viewChain = chain = serverSide ? getRootViewChain() : crootViewChain;
-				chain.apply(req, res);
-			}
-
-            // chain = req.viewChain = (req.viewChain || (serverSide ? getRootViewChain() : crootViewChain)).next(req, res, viewPath);
-                                                                              
-			//view exists? This could be something like the home page. Skip it.
-			if(chain.view) {                             
-            	logger.info(viewPath + ' is already visible, skipping next');	
-                                 
-				//skip the next path
-				mw.skipNext();  
-			} else {
-				logger.debug('moving onto the next path');
-           		mw.next();
-			}
-        }
-    });
-}
 });
 _sardines.register("/modules/plugin.http.history/history.js", function(require, module, exports, __dirname, __filename) {
 	
@@ -7069,6 +6440,2059 @@ module.exports = Structr;
 _sardines.register("/modules/structr", function(require, module, exports, __dirname, __filename) {
 	module.exports = require('modules/structr/lib/index.js');
 });
+_sardines.register("/modules/punycode", function(require, module, exports, __dirname, __filename) {
+	// Copyright (C) 2011 by Ben Noordhuis <info@bnoordhuis.nl>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+exports.encode = encode;
+exports.decode = decode;
+
+var TMIN = 1;
+var TMAX = 26;
+var BASE = 36;
+var SKEW = 38;
+var DAMP = 700; // initial bias scaler
+var INITIAL_N = 128;
+var INITIAL_BIAS = 72;
+var MAX_INTEGER = Math.pow(2, 53);
+
+function adapt_bias(delta, n_points, is_first) {
+  // scale back, then increase delta
+  delta /= is_first ? DAMP : 2;
+  delta += ~~(delta / n_points);
+
+  var s = (BASE - TMIN);
+  var t = ~~((s * TMAX) / 2); // threshold=455
+
+  for (var k = 0; delta > t; k += BASE) {
+    delta = ~~(delta / s);
+  }
+
+  var a = (BASE - TMIN + 1) * delta;
+  var b = (delta + SKEW);
+
+  return k + ~~(a / b);
+}
+
+function next_smallest_codepoint(codepoints, n) {
+  var m = 0x110000; // unicode upper bound + 1
+
+  for (var i = 0, len = codepoints.length; i < len; ++i) {
+    var c = codepoints[i];
+    if (c >= n && c < m) {
+      m = c;
+    }
+  }
+
+  // sanity check - should not happen
+  if (m >= 0x110000) {
+    throw new Error('Next smallest code point not found.');
+  }
+
+  return m;
+}
+
+function encode_digit(d) {
+  return d + (d < 26 ? 97 : 22);
+}
+
+function decode_digit(d) {
+  if (d >= 48 && d <= 57) {
+    return d - 22; // 0..9
+  }
+  if (d >= 65 && d <= 90) {
+    return d - 65; // A..Z
+  }
+  if (d >= 97 && d <= 122) {
+    return d - 97; // a..z
+  }
+  throw new Error('Illegal digit #' + d);
+}
+
+function threshold(k, bias) {
+  if (k <= bias + TMIN) {
+    return TMIN;
+  }
+  if (k >= bias + TMAX) {
+    return TMAX;
+  }
+  return k - bias;
+}
+
+function encode_int(bias, delta) {
+  var result = [];
+
+  for (var k = BASE, q = delta;; k += BASE) {
+    var t = threshold(k, bias);
+    if (q < t) {
+      result.push(encode_digit(q));
+      break;
+    }
+    else {
+      result.push(encode_digit(t + ((q - t) % (BASE - t))));
+      q = ~~((q - t) / (BASE - t));
+    }
+  }
+
+  return result;
+}
+
+function encode(input) {
+  if (typeof input != 'string') {
+    throw new Error('Argument must be a string.');
+  }
+
+  input = input.split('').map(function(c) {
+    return c.charCodeAt(0);
+  });
+
+  var output = [];
+  var non_basic = [];
+
+  for (var i = 0, len = input.length; i < len; ++i) {
+    var c = input[i];
+    if (c < 128) {
+      output.push(c);
+    }
+    else {
+      non_basic.push(c);
+    }
+  }
+
+  var b, h;
+  b = h = output.length;
+
+  if (b) {
+    output.push(45); // delimiter '-'
+  }
+
+  var n = INITIAL_N;
+  var bias = INITIAL_BIAS;
+  var delta = 0;
+
+  for (var len = input.length; h < len; ++n, ++delta) {
+    var m = next_smallest_codepoint(non_basic, n);
+    delta += (m - n) * (h + 1);
+    n = m;
+
+    for (var i = 0; i < len; ++i) {
+      var c = input[i];
+      if (c < n) {
+        if (++delta == MAX_INTEGER) {
+          throw new Error('Delta overflow.');
+        }
+      }
+      else if (c == n) {
+        // TODO append in-place?
+        // i.e. -> output.push.apply(output, encode_int(bias, delta));
+        output = output.concat(encode_int(bias, delta));
+        bias = adapt_bias(delta, h + 1, b == h);
+        delta = 0;
+        h++;
+      }
+    }
+  }
+
+  return String.fromCharCode.apply(String, output);
+}
+
+function decode(input) {
+  if (typeof input != 'string') {
+    throw new Error('Argument must be a string.');
+  }
+
+  // find basic code points/delta separator
+  var b = 1 + input.lastIndexOf('-');
+
+  input = input.split('').map(function(c) {
+    return c.charCodeAt(0);
+  });
+
+  // start with a copy of the basic code points
+  var output = input.slice(0, b ? (b - 1) : 0);
+
+  var n = INITIAL_N;
+  var bias = INITIAL_BIAS;
+
+  for (var i = 0, len = input.length; b < len; ++i) {
+    var org_i = i;
+
+    for (var k = BASE, w = 1;; k += BASE) {
+      var d = decode_digit(input[b++]);
+
+      // TODO overflow check
+      i += d * w;
+
+      var t = threshold(k, bias);
+      if (d < t) {
+        break;
+      }
+
+      // TODO overflow check
+      w *= BASE - t;
+    }
+
+    var x = 1 + output.length;
+    bias = adapt_bias(i - org_i, x, org_i == 0);
+    // TODO overflow check
+    n += ~~(i / x);
+    i %= x;
+
+    output.splice(i, 0, n);
+  }
+
+  return String.fromCharCode.apply(String, output);
+}
+
+});
+_sardines.register("/modules/querystring", function(require, module, exports, __dirname, __filename) {
+	// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// Query String Utilities
+
+var QueryString = exports;
+
+
+function charCode(c) {
+  return c.charCodeAt(0);
+}
+
+
+QueryString.unescape = function(s, decodeSpaces) {
+  return decodeURIComponent(s);////QueryString.unescapeBuffer(s, decodeSpaces).toString();
+};
+
+
+QueryString.escape = function(str) {
+  return encodeURIComponent(str);
+};
+
+var stringifyPrimitive = function(v) {
+  switch (typeof v) {
+    case 'string':
+      return v;
+
+    case 'boolean':
+      return v ? 'true' : 'false';
+
+    case 'number':
+      return isFinite(v) ? v : '';
+
+    default:
+      return '';
+  }
+};
+
+
+QueryString.stringify = QueryString.encode = function(obj, sep, eq, name) {
+  sep = sep || '&';
+  eq = eq || '=';
+  obj = (obj === null) ? undefined : obj;
+
+  switch (typeof obj) {
+    case 'object':
+      return Object.keys(obj).map(function(k) {
+        if (Array.isArray(obj[k])) {
+          return obj[k].map(function(v) {
+            return QueryString.escape(stringifyPrimitive(k)) +
+                   eq +
+                   QueryString.escape(stringifyPrimitive(v));
+          }).join(sep);
+        } else {
+          return QueryString.escape(stringifyPrimitive(k)) +
+                 eq +
+                 QueryString.escape(stringifyPrimitive(obj[k]));
+        }
+      }).join(sep);
+
+    default:
+      if (!name) return '';
+      return QueryString.escape(stringifyPrimitive(name)) + eq +
+             QueryString.escape(stringifyPrimitive(obj));
+  }
+};
+
+// Parse a key=val string.
+QueryString.parse = QueryString.decode = function(qs, sep, eq) {
+  sep = sep || '&';
+  eq = eq || '=';
+  var obj = {};
+
+  if (typeof qs !== 'string' || qs.length === 0) {
+    return obj;
+  }
+
+  qs.split(sep).forEach(function(kvp) {
+    var x = kvp.split(eq);
+    var k = QueryString.unescape(x[0], true);
+    var v = QueryString.unescape(x.slice(1).join(eq), true);
+
+    if (!obj.hasOwnProperty(k)) {
+      obj[k] = v;
+    } else if (!Array.isArray(obj[k])) {
+      obj[k] = [obj[k], v];
+    } else {
+      obj[k].push(v);
+    }
+  });
+
+  return obj;
+};
+
+});
+_sardines.register("/modules/fig/views/index.js", function(require, module, exports, __dirname, __filename) {
+	
+});
+_sardines.register("/modules/fig/views/model.js", function(require, module, exports, __dirname, __filename) {
+	var View = require('./concrete'),
+views = require('./index');
+
+
+var ItemView = exports.Item = View.extend({
+	
+
+	/**
+	 */
+
+	'merge _binders': {
+
+		'value': function(action, target, properties)
+		{
+			var self = this;
+
+
+			if(!self._data) return;
+
+			function bind(elementProp, dataProp)
+			{
+				target[elementProp](self._data.get(dataProp));
+
+				// target.attr(elementProp, self._data.get(dataProp));
+
+				self._data.subscribe(dataProp, function(value)
+				{
+					target.attr(elementProp, value);
+				})
+
+				target.bind('change', function()
+				{
+					if(!self._data) return;
+
+					self._data.set(dataProp, target[elementProp]());
+
+					//todo. why the hell is this here??
+
+					if(self._data.save) self._data.save()
+				})	
+			}
+
+
+			for(var elementProp in properties)
+			{
+				bind(elementProp, properties[elementProp]);
+			}
+		}
+	},
+
+	/**
+	 */
+
+	'override setup': function(ops)
+	{
+		this._super(ops);
+
+		if(this.ops.data) this.data(this.ops.data);
+
+		return this;
+	},
+
+
+	/**
+	 */
+
+	'data': function(v, skipLoad)
+	{
+		if(!arguments.length) return this._data;
+
+		this._data = v;
+
+		if(this.initialized)
+		{
+			if(v) this.listenToData(v);
+			if(!skipLoad) this.loadData();
+
+			//update EVERYFING
+			this.update();
+		}
+	},
+
+
+	/**
+	 */
+
+	'override init': function()
+	{
+		this._super.apply(this, arguments);
+
+		if(this._data) this.data(this._data);
+	},
+
+
+	/**
+	 */
+
+	'listenToData': function(data)
+	{
+		if(this._dataSubscription) this._dataSubscription.dispose();
+
+		var self = this;
+
+		this._dataSubscription = data.subscribe({
+			'update': this.getMethod('onDataChange')
+		});
+	},
+
+	/**
+	 */
+
+	'onDataChange': function()
+	{
+		this.update();
+	},
+
+	/**
+	 */
+
+	'loadData': function(next)
+	{
+		if(!this._data || this._data.loaded || !this._data.load) 
+		{
+			if(next) next();
+			return;
+		}
+
+
+		var self = this;
+
+		this._data.load(function()
+		{
+			if(next) next();
+		});
+	},
+
+	/**
+	 */
+
+	'removeData': function()
+	{                                                                                                            
+		if(this.data()) this.data().remove();
+	},
+
+	/**
+	 */
+
+	'override instructions': function()
+	{
+		return this._super().concat(['loadData']);
+	}
+
+});
+
+
+var CollectionView = exports.Collection = ItemView.extend({
+	
+	/**
+	 */
+
+	'override __construct': function(ops)
+	{
+		this._super(ops);
+
+
+		if(this.ops.view) this.view = this.ops.view;
+	},
+
+	/**
+	 */
+
+	'override setup': function(ops)
+	{
+		this._super(ops);
+
+		this.view = this.ops.view ? this.ops.view : (this.view || 'View');
+		this.tag = this.ops.tag || this.tag;
+	},
+
+	/**
+	 */
+
+	'listenToData': function(data)
+	{
+		if(this._collectionSubscription) this._collectionSubscription.dispose();
+
+		this._collectionSubscription = data.subscribe({
+			'add': this.getMethod('add'),
+			'reset': this.getMethod('render'),
+			'remove': this.getMethod('remove')
+		});
+
+		if(data.loaded) this.render();
+	},
+
+
+	'override render': function()
+	{
+		this._super();
+
+		if(!this.el || !this.data()) return;
+
+
+		this.childrenEl = this.children ? this.$(this.children)[0] : this.el;
+		if(!this.childrenEl) console.warn(this.children + ' does not exist');
+		this.childrenEl.innerHTML = '';
+
+		this.data().each(this.getMethod('add'));	
+	},
+
+	'add': function(item, index)
+	{
+		var el = this.childHolderElement(item, index);
+
+		// var el = this.el.
+		var view = this.create(item, el);
+
+		if(this.childrenEl) this.childrenEl.appendChild(el);
+	},
+
+	/**
+	 */
+
+	'childHolderElement': function(item, index)
+	{
+		return this.document.createElement(this.tag || 'div');
+	},
+
+	/**
+	 */
+
+	'remove': function(item, index)
+	{
+		var child = this.childrenEl.childNodes[index];
+		if(child) this.childrenEl.removeChild(child);
+	},
+
+	/**
+	 * creates a view from an item
+	 */
+
+	'create': function(item, element)
+	{
+		var v = this.newView(item);
+		v.setup({ el: element }, element);
+		var view = this.addChild(v);
+	},
+
+	/**
+	 * override me
+	 */
+
+	'newView': function(item, element)
+	{
+		return new views[this.view]({ data: item });
+	}
+
+});
+});
+_sardines.register("/modules/fig/views/template.js", function(require, module, exports, __dirname, __filename) {
+	var model = require('./model'),
+View = require('./concrete'),
+Parser = require('../template/parser'),
+logger = require('mesh-winston').loggers.get('fig');
+
+var TemplateViewPartial = {
+	
+	/**
+	 */
+
+	'override setup': function(ops)
+	{
+		this._super(ops);
+
+		this.tpl = this.ops.tpl || this.tpl;
+
+		return this;
+	},
+
+
+	/**
+	 * the data to use to fill in the template
+	 */
+
+	'templateData': function()
+	{
+		return { };
+	},
+
+	/**
+	 * render the template
+	 */
+
+
+	'override render': function()
+	{
+
+		var self = this, _super = this._super;
+
+
+		if(!this.templateSource) return;
+
+		var scriptsRegexp = /<script.*?>[\w\W]*?<\/script>/g;
+
+		var scripts = this.templateSource.match(scriptsRegexp) || [],
+		placeHolder = '||||script||||';
+		
+		
+		//we need to TEMPORARILY block out templates so they don't get parsed on load
+		Parser.parse(this.templateType, this.templateSource.replace(scriptsRegexp, placeHolder), this.templateData(), function(content)
+		{
+			if(!content) content = self.templateSource;
+
+			while(scripts.length)
+			{
+				content = content.replace(placeHolder, scripts.shift());
+			}
+
+			if(self.el == self.document && typeof window != 'undefined') return;
+
+			//server-side?
+			if(typeof window == 'undefined') {
+				self.el.innerHTML = String(content);
+			} else {
+				self.$$(self.el).html(String(content));
+			}		
+
+		});	
+
+		_super.call(this);
+	},
+
+	/**
+	 */
+
+	'override instructions': function()
+	{
+		return ['_loadTemplate'].concat(this._super());
+	},
+
+	/**
+	 * loads in a template, this should happen *once*
+	 */
+
+	'_loadTemplate': function(next)
+	{
+
+		if(!this.tpl || this.loadedTemplate) 
+		{
+			console.warn('Cannot load template');
+			return next();
+		}
+
+		this.loadedTemplate = true;
+
+		var self = this;
+
+		function onTemplate(source, type)
+		{
+			self.templateSource = source;
+			self.templateType = type;
+			next();
+		}
+
+		if(this.tpl.substr(0,1) == '#')
+		{
+			var el = this.document.getElementById(this.tpl.substr(1));
+
+			//text/x-tmpl-
+			if(el)
+			{
+				onTemplate(el.innerText || el.text || el.textContent, el.getAttribute('type').substr(12));
+			}
+			else
+			{
+				console.warn('Template %s does not exist', this.tpl);
+			}
+		}
+		else
+		{
+
+
+			this.router.request('template').query({ name: this.tpl }).headers({ cache: true }).success(function(content)
+			{
+				onTemplate(content, self.tpl.split('.').pop());
+			}).pull();
+		}
+	}
+}
+
+
+var ModelTemplatePartial = {
+	
+
+	/**
+	 */
+
+	'templateData': function()
+	{
+		return this.data ? this.data().doc : {};
+	}
+};
+
+exports.Template = View.extend(TemplateViewPartial);
+exports.ItemTemplate = model.Item.extend(TemplateViewPartial, ModelTemplatePartial);
+exports.CollectionTemplate = model.Collection.extend(TemplateViewPartial, ModelTemplatePartial);
+});
+_sardines.register("/modules/fig/views/concrete.js", function(require, module, exports, __dirname, __filename) {
+	var View = require('./abstract');
+
+module.exports = View.extend({
+
+
+	/**
+	 * need to override listen so we also comb through the element for any anchor links, and stuff
+	 * that needs to be replaces to make the app for of an SPA
+	 */
+
+	'override listen': function()
+	{
+		this._super();
+		
+		//come through the element
+		if(this._router) this._router.push('comb/element', { element: this.el });
+	}
+})
+});
+_sardines.register("/modules/fig/template/parser.js", function(require, module, exports, __dirname, __filename) {
+	var Structr = require('structr');
+
+
+module.exports = new (Structr({
+
+	/**
+	 */
+
+	'__construct': function()
+	{
+		this._parsers = {};
+	},
+	
+	/**
+	 */
+
+	'add': function(type, adapter)
+	{
+		this._parsers[type] = adapter;
+	},
+
+	/**
+	 */
+
+	'parse': function(type, content, data, callback)
+	{
+		var parser = this._parsers[type];
+
+		if(!parser) return callback();
+
+		parser.parse(content, data, callback);
+	}
+}));
+
+});
+_sardines.register("/modules/fig/template/adapters/mustache/index.js", function(require, module, exports, __dirname, __filename) {
+	var Mustache = require('./mustache');
+
+
+exports.parse = function(template, data, callback)
+{
+	callback(Mustache.to_html(template, data));
+}
+
+});
+_sardines.register("/modules/fig/plugins/views/viewChain.js", function(require, module, exports, __dirname, __filename) {
+	var Structr = require('structr'),
+logger = require('mesh-winston').loggers.get('views.core');
+
+                 
+var ViewChain = module.exports = Structr({    
+
+	/**
+	 */
+
+	'__construct': function(parent, root, name)
+	{
+		this._parent = parent;          
+		this._root   = root || this;   
+		this.name    = name;
+	},     
+
+	/**
+	 */
+
+	'contains': function(name)
+	{
+		return this.view && this.view.name == name;
+	}, 
+
+
+	/**  
+	 * applies the view chain to the request, or subifies it.
+	 */
+
+
+	'next': function(req, res, name)
+	{   
+
+
+		//already view chained? subify.
+		if(!this.__nextViewChain || this.__nextViewChain.name != name)
+		{                                                   
+			if(this.__nextViewChain) logger.debug( this.__nextViewChain.name + ' replaced by view: ' + name);
+
+			this._nextViewChain(name).clearView().apply(req, res);   
+		}    
+
+		return this.__nextViewChain;
+	},   
+
+	/**
+	 */
+
+	'apply': function(req, res)
+	{
+		var self = this;     
+
+		//sets a view and adds a view to the current view
+		req.addView = function(view)
+		{                      
+			logger.debug('add view');   
+
+			view.name = self.name;
+			self.view = view;            
+
+			//parent exists? add the child.
+			if(self._parent && self._parent.view) 
+			{
+
+        		logger.info('parent exists, adding child: '+ self.name);
+
+				self._parent.view.addChild(view, self.name);
+			}
+
+			return self;
+		}                     
+
+		if(!req.viewChained)
+		{                         
+			this.applyRoot(req, res);
+		}
+	},
+
+
+	/**
+	 */
+
+	'clearView': function()
+	{
+		if(!this.view) return this;              
+		this.view.remove();          
+		this.view = null;   
+		if(this.__nextViewChain) {
+			this.__nextViewChain.clearView();
+			this.__nextViewChain = null;
+		}    
+		return this;
+	},
+
+
+	/**
+	 */
+
+	'applyRoot': function(req, res)
+	{                           
+		var self = this;
+
+		req.viewChained = true;     
+
+		req.display = function(callback)
+		{                          
+			logger.debug('display view');
+
+
+			if(callback) self._root.view.subscribeOnce('complete', callback);
+
+
+			self._root.view.send(res);
+		}
+
+		req.addRootView = function(view)
+		{             
+			logger.debug('add root view');
+
+			view.name = self.name;
+			self.view = view;
+
+			self._root.view.addChild(view, self.name);
+
+			return self;
+		}
+	},
+
+	/**
+	 */
+
+	'_nextViewChain': function(name)
+	{             
+		var chain = this.__nextViewChain || (this.__nextViewChain = new ViewChain(this, this._root, name));  
+		chain.name = name;
+		return chain;
+	}
+});
+});
+_sardines.register("/modules/fig/plugins/views/index.js", function(require, module, exports, __dirname, __filename) {
+	var ViewChain = require('./viewChain'),
+logger = require('mesh-winston').loggers.get('views.core');
+  
+/** 
+ * caches the views for front-end applications
+ */
+
+
+exports.plugin = function(router) {
+
+
+    var rootView,
+    rootViewPath,  
+    rootViewChain,
+	rootViewClass,
+	serverSide = typeof window == "undefined";
+
+	function getRootViewChain(view) {
+		if(view && view.__viewChain) return view.__viewChain;
+
+		var viewChain = new ViewChain();
+
+		// if(!view) view = rootViewClass ? new rootViewClass() : null;
+		// if(view) view.__viewChain = viewChain;
+
+		viewChain.view = view;
+
+		return viewChain;
+	}
+
+    
+    router.on({
+
+		/**
+		 */
+
+		'push init': function() {
+			/*logger.debug('init root');
+
+			router.on('push -pull root/view', function(viewClass) {
+
+				logger.debug('get root view');
+
+				rootViewClass = viewClass;
+				rootViewChain = getRootViewChain();
+			});*/
+			
+			rootViewChain = getRootViewChain();	
+		},
+    
+		/**
+		 */
+
+        'pull view': function(req, res, mw) {
+
+
+			var crootViewChain = rootViewChain = rootViewChain || getRootViewChain();
+
+
+            
+            //get the path name of the view we're about to hit e.g: view -> dashboard
+            var viewPath = mw.router.parse.stringifyPaths(mw.current.getNextSibling().channel.paths, mw.params);
+
+            logger.debug('view path: ' + viewPath);
+
+                        
+
+			//if we're running server-side, it's a new view chain each time. However, client-side - we cache. And for every
+			//middleware item we pass through, we make sure that we're not replacing views which are already present. Much Faster.
+
+			if(req.viewChain) {
+				chain = req.viewChain.next(req, res, viewPath);
+			} else {
+				req.viewChain = chain = serverSide ? getRootViewChain() : crootViewChain;
+				chain.apply(req, res);
+			}
+
+            // chain = req.viewChain = (req.viewChain || (serverSide ? getRootViewChain() : crootViewChain)).next(req, res, viewPath);
+                                                                              
+			//view exists? This could be something like the home page. Skip it.
+			if(chain.view) {                             
+            	logger.info(viewPath + ' is already visible, skipping next');	
+                                 
+				//skip the next path
+				mw.skipNext();  
+			} else {
+				logger.debug('moving onto the next path');
+           		mw.next();
+			}
+        }
+    });
+}
+});
+_sardines.register("/modules/fig/plugins/template/index.js", function(require, module, exports, __dirname, __filename) {
+	var logger = require('mesh-winston').loggers.get('leche');
+
+exports.plugin = function(router)
+{
+    var cache = {};
+
+	router.on({
+
+		/**
+		 */
+
+		'pull -hook template OR template/:name': function(req, res, mw)
+		{                         
+            var name = mw.data('name');
+
+
+            logger.debug('loading template: ' + name);
+
+            if(cache[name]) {
+                logger.debug('template is cached, returning');
+                return res.end(cache[name]);
+            }
+
+            var onTemplate = function(content)
+            {
+                logger.debug('template '+name+' loaded');
+                cache[name] = content;
+
+                res.end(content);
+            }
+            
+            var ops = {
+                url: name + '?'+ Math.random(),
+                dataType: 'application/html',
+                success: function(content)
+                {
+                     req.template = content;
+                    
+                    if(!mw.next())
+                    {
+                        onTemplate(content);
+                    }
+                },
+                error: function(e)
+                {
+                    onTemplate(e.responseText);
+                }
+            }
+            
+            $.ajax(ops);
+
+		}
+	});
+}
+});
+_sardines.register("/modules/beanpoll/lib/push/director.js", function(require, module, exports, __dirname, __filename) {
+	(function() {
+  var Director, Messenger,
+    __hasProp = Object.prototype.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+  Director = require("../concrete/director");
+
+  Messenger = require("./messenger");
+
+  module.exports = (function(_super) {
+
+    __extends(_Class, _super);
+
+    function _Class() {
+      _Class.__super__.constructor.apply(this, arguments);
+    }
+
+    _Class.prototype.passive = true;
+
+    /*
+    */
+
+    _Class.prototype._newMessenger = function(message, middleware) {
+      return new Messenger(message, middleware, this);
+    };
+
+    return _Class;
+
+  })(Director);
+
+}).call(this);
+
+});
+_sardines.register("/modules/beanpoll/lib/pull/director.js", function(require, module, exports, __dirname, __filename) {
+	(function() {
+  var Director, Messenger,
+    __hasProp = Object.prototype.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+  Director = require("../concrete/director");
+
+  Messenger = require("./messenger");
+
+  module.exports = (function(_super) {
+
+    __extends(_Class, _super);
+
+    function _Class() {
+      _Class.__super__.constructor.apply(this, arguments);
+    }
+
+    _Class.prototype.passive = false;
+
+    /*
+    */
+
+    _Class.prototype._newMessenger = function(message, middleware) {
+      return new Messenger(message, middleware, this);
+    };
+
+    /*
+    */
+
+    _Class.prototype.getListeners = function(message, search) {
+      return this.prepareListeners(_Class.__super__.getListeners.call(this, message, search));
+    };
+
+    /*
+    */
+
+    _Class.prototype.prepareListeners = function(listeners) {
+      if (!!listeners.length) {
+        return [listeners[0]];
+      } else {
+        return [];
+      }
+    };
+
+    return _Class;
+
+  })(Director);
+
+}).call(this);
+
+});
+_sardines.register("/modules/beanpoll/lib/collect/director.js", function(require, module, exports, __dirname, __filename) {
+	(function() {
+  var Director,
+    __hasProp = Object.prototype.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
+
+  Director = require("../pull/director");
+
+  module.exports = (function(_super) {
+
+    __extends(_Class, _super);
+
+    function _Class() {
+      _Class.__super__.constructor.apply(this, arguments);
+    }
+
+    _Class.prototype.passive = true;
+
+    /*
+    */
+
+    _Class.prototype.prepareListeners = function(listeners) {
+      return listeners;
+    };
+
+    return _Class;
+
+  })(Director);
+
+}).call(this);
+
+});
+_sardines.register("/modules/beanpoll/lib/collections/linkedList.js", function(require, module, exports, __dirname, __filename) {
+	(function() {
+  var LinkedList;
+
+  module.exports = LinkedList = (function() {
+
+    function LinkedList() {}
+
+    /*
+    */
+
+    LinkedList.prototype.getNextSibling = function() {
+      return this._nextSibling;
+    };
+
+    /*
+    */
+
+    LinkedList.prototype.addNextSibling = function(sibling, replNext) {
+      if (!!this._nextSibling) this._nexSibling._prevSibling = sibling;
+      sibling._prevSibling = this;
+      if (!replNext) sibling._nextSibling = this._nextSibling;
+      return this._nextSibling = sibling;
+    };
+
+    /*
+    */
+
+    LinkedList.prototype.getPrevSibling = function() {
+      return this._prevSibling;
+    };
+
+    /*
+    */
+
+    LinkedList.prototype.addPrevSibling = function(sibling, replPrev) {
+      if (!!this._prevSibling) this._prevSibling._nextSibling = sibling;
+      sibling._nextSibling = this;
+      if (!replPrev) sibling._prevSibling = this._prevSibling;
+      return this._prevSibling = sibling;
+    };
+
+    /*
+    */
+
+    LinkedList.prototype.getFirstSibling = function() {
+      var first;
+      first = this;
+      while (!!first._prevSibling) {
+        first = first._prevSibling;
+      }
+      return first;
+    };
+
+    /*
+    */
+
+    LinkedList.prototype.getLastSibling = function() {
+      var last;
+      last = this;
+      while (!!last._nextSibling) {
+        last = last._nextSibling;
+      }
+      return last;
+    };
+
+    return LinkedList;
+
+  })();
+
+}).call(this);
+
+});
+_sardines.register("/modules/dolce/lib/collection.js", function(require, module, exports, __dirname, __filename) {
+	var crema  = require('crema'),
+tree 	   = require('./tree'),
+sift 	   = require('sift');
+
+
+
+
+
+var collection = module.exports = function() {
+	
+	var _rootTree = tree(),
+	self = {},
+	_id = 0;
+
+	/**
+	 * the *actual* add method
+	 */
+
+	var _addRoute = self.add = function(route, value) {
+		
+		var tree, type, lastPath = route.channel.paths[route.channel.paths.length - 1].value;
+
+		//first lets establish whether or not the expression is OVERRIDING, or EXTENDING 
+		if(lastPath == '*') {
+
+			type = 'before';
+
+			//remove the asterick
+			route.channel.paths.pop();
+
+		//everything AFTER this route is handleable by this data
+		} else if(lastPath == '**') {
+			
+			type = 'greedy';
+
+			route.channel.paths.pop();
+
+		} else if(lastPath == '***') {
+			
+			type = 'greedyEndpoint';
+
+			route.channel.paths.pop();
+		} else {
+			
+			type = 'after';
+
+		}
+
+		var thru = [], cthru = route.thru;
+
+		while(cthru) {
+			thru.unshift(cthru.channel.paths);
+			cthru = cthru.thru;
+		}
+
+		//next, let's find the tree this route belongs too
+		tree = _findTree(route.channel.paths, true);
+
+
+		//add the data to the tree obj
+		return tree.addListener[type]({
+
+			routeStr: crema.stringify(route),
+
+			//filterable tags
+			tags: route.tags,
+
+			//path to the route -- needed to fill in extra data
+			paths: route.channel.paths,
+
+			//explicit chain which gets expanded at runtime
+			thru: thru,
+
+			id: _id++,
+
+			//the callback function
+			value: value
+
+		}, type);
+
+	};
+
+	/**
+	 * returns TRUE if the given type exists
+	 */
+
+	self.contains = function(channel, ops) {
+
+		if(!ops) ops = {};
+
+		var child = _findTree(channel.paths);
+
+		return !!child ? !!_andSifter(ops, child.collections.after).length : false;
+	}
+
+	/**
+	 * returns collections and their chained data
+	 */
+
+	self.get = function(channel, ops) {
+		
+		if(!ops) ops = {};
+
+
+		//only allow path/to/collection in get vs pull blown parsing with metadata - not necessary
+		var chains = _chains(channel.paths, ops, true);
+
+		return {
+			paths: channel.paths,
+			tags: ops.tags,
+			chains: chains
+		}
+	};
+
+	/**
+	 * finds routes based on the filter tags given WITHOUT expanding them
+	 */
+
+	self.find = function(ops) {
+
+		var tagSifter, found = [];
+
+		if(ops.tags) {
+			tagSifter = _andSifter(ops);
+		} else 
+		if(ops.siftTags) {
+			tagSifter = sift({ tags: ops.siftTags });
+		}
+
+
+
+		_rootTree.traverse(function(tree) {
+
+			if(tagSifter)
+			for(var i = tree.collections.after.length; i--;) {
+
+				var data = tree.collections.after[i];
+
+				if(tagSifter.test(data)) {
+					
+					found.push(data);
+
+					break;
+				}
+			}
+
+		});
+
+		return found;
+	}
+
+	//changes {tag:value,tag2:value} to [{tag:value},{tag2:value}]
+	var _tagsToArray = function(tagsObj) {
+			
+		var key, tag, tags = [];
+
+		for(key in tagsObj) {
+			
+			tag = {};
+			tag[key] = tagsObj[key];
+			tags.push(tag);
+
+		}
+
+		return tags;
+	}
+
+
+	/**
+	 */
+
+	var _andSifter = function(ops, target) {
+
+		var tags = ops.tags || {};
+
+		for(var name in tags) {
+			if(tags[name] === true) {
+				tags[name] = { $exists: true };
+			}
+		}
+
+		var $and = _tagsToArray(tags);
+
+		if(ops.siftTags) $and.push(ops.siftTags);
+
+		return sift({ tags: { $and: $and }}, target);
+
+	}
+
+	/**
+	 */
+
+	var _chains = function(paths, ops) {
+		
+
+		var child  = _rootTree.findChild(paths);
+
+
+		//route does NOT exist? return a greedy endpoint
+		if(!child) return [];//_greedyEndpoint(paths, tags);
+
+		var entireChain = _allCollections(child),
+
+		currentData,
+
+		endCollection = _andSifter(ops)(child.collections.after),
+
+		//the collections expanded with all the explicit / implicit / greedy chains
+		expandedChains = [],
+
+		expandedChain;
+
+
+
+		//now we need to expand the EXPLICIT chain. Stuff like pass -> thru -> route
+		for(var i = 0, n = endCollection.length; i < n; i++) {
+
+			currentData = endCollection[i];
+			
+			expandedChains.push((ops.expand == undefined || ops.expand == true) ? _chain(currentData, paths, entireChain) : currentData);
+		}
+
+
+
+		return expandedChains;
+	};
+
+	var _chain = function(data, paths, entireChain) {
+
+		var chain = _chainSifter(data.tags, entireChain),
+		usedGreedyPaths = {};
+
+
+		//filter out any greedy middleware that's used more than once. This can cause problems
+		//for greedy middleware such as /**
+		return _expand(chain.concat(data), paths).filter(function(route) {
+
+			if(route.type != 'greedy') return true;
+			if(usedGreedyPaths[route.id]) return false;
+			return usedGreedyPaths[route.id] = true;
+
+		});
+	}
+
+	var _greedyEndpoint = function(paths, tags) {
+		
+		var tree;
+
+		for(var i = paths.length; i--;) {
+			if(tree = _rootTree.findChild(paths.slice(0, i))) break;	
+		}
+
+		if(!tree) return [];
+
+		var chain = _chainSifter(tags || {}, _greedyCollections(tree));
+
+		return chain;
+
+	}
+
+	var _copy = function(target) {
+		var to = {};
+		for(var i in target) {
+			to[i] = target[i];
+		}
+		return to;
+	}
+
+	/**
+	 */
+
+	var _expand = function(chain, paths) {
+		
+		var j, n2,  i = 0, n = chain.length;
+
+
+		var expanded = [];
+
+
+		for(; i < n; i++) {
+			
+			var data = chain[i];
+
+			var params = _params(data.paths, paths),
+			subChain = [];
+			
+			for(j = 0, n2 = data.thru.length; j < n2; j++) {
+					
+				subChain.push(_thru(_fillPaths(data.thru[j], params), data.tags));
+
+			}
+
+			expanded = expanded.concat.apply(expanded, subChain);
+
+			expanded.push({
+				routeStr: data.routeStr,
+				paths: data.paths,
+				cmpPath: paths,
+				params: params,
+				id: data.id,
+				tags: data.tags,
+				value: data.value,
+				type: data.type
+			});
+		}
+
+		return expanded;
+	}
+
+	/**
+	 */
+
+	var _chainSifter = function(tags, target) {
+
+		var test = function(target) {
+			
+			return target.filter(function(a) {
+
+				var atags = a.tags, av, tv;
+
+				//metadata in the atags (chain) must match the tags given
+
+				//examples of this:
+				//-method a/**
+				//-method=POST a  --- a/** -> a
+				//a --- a (would not go through a/**)
+				if(atags.unfilterable) return true;
+
+				for(var tagName in atags) {
+
+					av = atags[tagName];
+					tv = tags[tagName];
+
+					//MUST have a value - atags
+
+					//Example:
+
+					//-method=POST a/**
+
+					//matches: 
+					//-method=POST a
+
+					//does not match:
+					//-method a
+
+					if(av != tv && (!tv || av !== true) && av != '*')  return false;
+				}
+
+				return true;
+			});
+		}
+
+		//array exists? return the result
+		if(target) return test(target);
+
+		return test;
+	}
+
+	/**
+	 */
+
+	var _thru = function(paths, tags) {
+
+		var child  = _rootTree.findChild(paths);
+
+		if(!child) return [];
+
+
+		//need to sort the tags because a match for say.. method=DELETE matches both method, and method=DELETE
+		//NOTE - chainSifter was previously used here. Since it's EXPLICIT, we do NOT want to filter out the routes.
+		var filteredChildren = child.collections.after.sort(function(a, b) {
+
+			return _scoreTags(a.tags, tags) > _scoreTags(b.tags, tags) ? -1 : 1;
+
+		});
+
+		var targetChild = filteredChildren[0];
+
+		var chainSifter = _chainSifter(targetChild.tags);
+
+		chain = chainSifter(_allCollections(child));
+
+
+
+		//return only ONE item to go through - this is the best match.
+		return _expand(chain.concat(targetChild), paths);
+	}
+
+	/**
+	 * ranks data based on how similar tags are
+	 */
+
+	var _scoreTags = function(tags, match) {
+		var score = 0;
+
+
+		for(var tag in match) {
+
+			var tagV = tags[tag];
+			
+			if(tagV == match[tag]) {
+
+				score += 2;
+
+			} else 
+			if(tagV) {
+
+				score += 1;
+
+			}
+		}
+
+		return score;
+	}
+
+	/**
+	 * hydrates chain, e.g.,  validate/:firstName -> add/user/:firstName
+	 */
+
+	var _fillPaths = function(paths, params) {
+		var i, path, n = paths.length, newPaths = [];
+
+		for(i = 0; i < n; i++) {
+			
+			path = paths[i];
+
+			newPaths.push({
+				value: path.param ? params[path.value] : path.value,
+				param: path.param
+			});
+		}
+
+		return newPaths;
+	}
+
+	/**
+	 * returns the parameters associated with the found path against the queried path, e.g., add/:name/:last and add/craig/condon 
+	 */
+
+	var _params = function(treePaths, queryPaths) {
+		
+		var i, treePath, queryPath, params = {};
+
+		for(i = treePaths.length; i--;) {
+
+			treePath = treePaths[i];
+			queryPath = queryPaths[i];
+
+			if(treePath.param) {
+
+				params[treePath.value] = queryPath.value;
+
+			}
+
+		}
+
+
+		return params;
+	};
+
+	/**
+	 */
+
+	var _greedyCollections = function(tree) {
+		
+		var currentParent = tree,
+		collections = [],
+		gcol = [],
+		cpath;
+
+		while(currentParent) {
+			 
+			cpath = currentParent.pathStr();
+			collections = currentParent.collections.greedy.concat(collections);
+
+			currentParent = currentParent.parent();
+		}
+
+		return collections;
+	};
+
+	/**
+	 */
+
+	var _allCollections = function(tree) {
+		
+		return _greedyCollections(tree).concat(tree.collections.before);
+
+	}
+
+
+	/**
+	 * finds the deepest tree associated with the given paths
+	 */
+
+
+	var _findTree = function(paths, createIfNotFound) {
+		
+		var i, path, n = paths.length, currentTree = _rootTree;
+
+		for(i = 0; i < n; i++) {
+			
+			path = paths[i];
+
+			if(!(currentTree = currentTree.child(path, createIfNotFound))) break;
+
+		}
+
+		return currentTree;
+
+	};
+
+
+
+	return self;
+}
+
+
+});
+_sardines.register("/modules/stream", function(require, module, exports, __dirname, __filename) {
+	// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+var events = require('events');
+var util = require('util');
+
+function Stream() {
+  events.EventEmitter.call(this);
+}
+util.inherits(Stream, events.EventEmitter);
+module.exports = Stream;
+// Backwards-compat with node 0.4.x
+Stream.Stream = Stream;
+
+Stream.prototype.pipe = function(dest, options) {
+  var source = this;
+
+  function ondata(chunk) {
+    if (dest.writable) {
+      if (false === dest.write(chunk) && source.pause) {
+        source.pause();
+      }
+    }
+  }
+
+  source.on('data', ondata);
+
+  function ondrain() {
+    if (source.readable && source.resume) {
+      source.resume();
+    }
+  }
+
+  dest.on('drain', ondrain);
+
+  // If the 'end' option is not supplied, dest.end() will be called when
+  // source gets the 'end' or 'close' events.  Only dest.end() once.
+  if (!dest._isStdio && (!options || options.end !== false)) {
+    source.on('end', onend);
+    source.on('close', onclose);
+  }
+
+  var didOnEnd = false;
+  function onend() {
+    if (didOnEnd) return;
+    didOnEnd = true;
+
+    // remove the listeners
+    cleanup();
+
+    dest.end();
+  }
+
+
+  function onclose() {
+    if (didOnEnd) return;
+    didOnEnd = true;
+
+    // remove the listeners
+    cleanup();
+
+    dest.destroy();
+  }
+
+  // don't leave dangling pipes when there are errors.
+  function onerror(er) {
+    cleanup();
+    if (this.listeners('error').length === 0) {
+      throw er; // Unhandled stream error in pipe.
+    }
+  }
+
+  source.on('error', onerror);
+  dest.on('error', onerror);
+
+  // remove all the event listeners that were added.
+  function cleanup() {
+    source.removeListener('data', ondata);
+    dest.removeListener('drain', ondrain);
+
+    source.removeListener('end', onend);
+    source.removeListener('close', onclose);
+
+    source.removeListener('error', onerror);
+    dest.removeListener('error', onerror);
+
+    source.removeListener('end', cleanup);
+    source.removeListener('close', cleanup);
+
+    dest.removeListener('end', cleanup);
+    dest.removeListener('close', cleanup);
+  }
+
+  source.on('end', cleanup);
+  source.on('close', cleanup);
+
+  dest.on('end', cleanup);
+  dest.on('close', cleanup);
+
+  dest.emit('pipe', source);
+
+  // Allow for unix-like usage: A.pipe(B).pipe(C)
+  return dest;
+};
+
+
+});
+_sardines.register("/modules/tq/lib/index.js", function(require, module, exports, __dirname, __filename) {
+	var EventEmitter = require('events').EventEmitter;
+
+exports.queue = function() {
+
+	
+	var next = function() {
+		var callback = queue.pop();
+
+		if(!callback || !started) {
+			running = false;
+			return;
+		}
+
+		callback.apply(next, arguments);
+	},
+	running = false,
+	started = false,
+	queue = [],
+	em = new EventEmitter();
+
+	var self = {
+
+		/**
+		 * add a queue to the end
+		 */
+
+		push: function(callback) {
+			queue.unshift(callback);
+
+			if(!running && started) {
+				next();
+			}
+			return this;
+		},
+
+
+		/**
+		 * adds a queue to the begning
+		 */
+
+		unshift: function(callback) {
+			queue.push(callback);
+			return this;
+		},
+
+		/**
+		 */
+
+		on: function(type, callback) {
+			em.addListener(type, callback);
+		},
+
+
+		/**
+		 * starts the queue
+		 */
+
+		start: function() {
+			if(started) return this;
+			started = running = true;
+			em.emit('start');
+			next();
+			return this;
+		},
+
+		/**
+		 * returns a function that's added to the queue
+		 * when invoked
+		 */
+
+		fn: function(fn) {
+			return function() {
+				var args = arguments, listeners = [];
+
+
+				return self.push(function() {
+
+					var next = this;
+
+					fn.apply({
+						next: function() {
+							args = arguments;
+							listeners.forEach(function(listener) {
+								listener.apply(null, args);
+							});
+							next();
+						},
+						attach: function(listener) {
+							listeners.push(listener);
+						}
+					}, args);
+				});
+			}
+		},
+
+		/**
+		 * stops the queue
+		 */
+
+		stop: function() {
+			started = running = false;
+			return this;
+		}
+	};
+
+	return self;
+}
+});
+
+_sardines.register("/modules/tq", function(require, module, exports, __dirname, __filename) {
+	module.exports = require('modules/tq/lib/index.js');
+});
 _sardines.register("/modules/fig/views/abstract.js", function(require, module, exports, __dirname, __filename) {
 	var Structr = require('structr'),
 ConcreteModel = require('malt/lib/core/models/concrete').Model,
@@ -7945,1658 +9369,6 @@ module.exports = function() {
     }
   });
 }();
-});
-_sardines.register("/modules/fig/plugins/views/viewChain.js", function(require, module, exports, __dirname, __filename) {
-	var Structr = require('structr'),
-logger = require('mesh-winston').loggers.get('views.core');
-
-                 
-var ViewChain = module.exports = Structr({    
-
-	/**
-	 */
-
-	'__construct': function(parent, root, name)
-	{
-		this._parent = parent;          
-		this._root   = root || this;   
-		this.name    = name;
-	},     
-
-	/**
-	 */
-
-	'contains': function(name)
-	{
-		return this.view && this.view.name == name;
-	}, 
-
-
-	/**  
-	 * applies the view chain to the request, or subifies it.
-	 */
-
-
-	'next': function(req, res, name)
-	{   
-
-
-		//already view chained? subify.
-		if(!this.__nextViewChain || this.__nextViewChain.name != name)
-		{                                                   
-			if(this.__nextViewChain) logger.debug( this.__nextViewChain.name + ' replaced by view: ' + name);
-
-			this._nextViewChain(name).clearView().apply(req, res);   
-		}    
-
-		return this.__nextViewChain;
-	},   
-
-	/**
-	 */
-
-	'apply': function(req, res)
-	{
-		var self = this;     
-
-		//sets a view and adds a view to the current view
-		req.addView = function(view)
-		{                      
-			logger.debug('add view');   
-
-			view.name = self.name;
-			self.view = view;            
-
-			//parent exists? add the child.
-			if(self._parent && self._parent.view) 
-			{
-
-        		logger.info('parent exists, adding child: '+ self.name);
-
-				self._parent.view.addChild(view, self.name);
-			}
-
-			return self;
-		}                     
-
-		if(!req.viewChained)
-		{                         
-			this.applyRoot(req, res);
-		}
-	},
-
-
-	/**
-	 */
-
-	'clearView': function()
-	{
-		if(!this.view) return this;              
-		this.view.remove();          
-		this.view = null;   
-		if(this.__nextViewChain) {
-			this.__nextViewChain.clearView();
-			this.__nextViewChain = null;
-		}    
-		return this;
-	},
-
-
-	/**
-	 */
-
-	'applyRoot': function(req, res)
-	{                           
-		var self = this;
-
-		req.viewChained = true;     
-
-		req.display = function(callback)
-		{                          
-			logger.debug('display view');
-
-
-			if(callback) self._root.view.subscribeOnce('complete', callback);
-
-
-			self._root.view.send(res);
-		}
-
-		req.addRootView = function(view)
-		{             
-			logger.debug('add root view');
-
-			view.name = self.name;
-			self.view = view;
-
-			self._root.view.addChild(view, self.name);
-
-			return self;
-		}
-	},
-
-	/**
-	 */
-
-	'_nextViewChain': function(name)
-	{             
-		var chain = this.__nextViewChain || (this.__nextViewChain = new ViewChain(this, this._root, name));  
-		chain.name = name;
-		return chain;
-	}
-});
-});
-_sardines.register("/modules/punycode", function(require, module, exports, __dirname, __filename) {
-	// Copyright (C) 2011 by Ben Noordhuis <info@bnoordhuis.nl>
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
-exports.encode = encode;
-exports.decode = decode;
-
-var TMIN = 1;
-var TMAX = 26;
-var BASE = 36;
-var SKEW = 38;
-var DAMP = 700; // initial bias scaler
-var INITIAL_N = 128;
-var INITIAL_BIAS = 72;
-var MAX_INTEGER = Math.pow(2, 53);
-
-function adapt_bias(delta, n_points, is_first) {
-  // scale back, then increase delta
-  delta /= is_first ? DAMP : 2;
-  delta += ~~(delta / n_points);
-
-  var s = (BASE - TMIN);
-  var t = ~~((s * TMAX) / 2); // threshold=455
-
-  for (var k = 0; delta > t; k += BASE) {
-    delta = ~~(delta / s);
-  }
-
-  var a = (BASE - TMIN + 1) * delta;
-  var b = (delta + SKEW);
-
-  return k + ~~(a / b);
-}
-
-function next_smallest_codepoint(codepoints, n) {
-  var m = 0x110000; // unicode upper bound + 1
-
-  for (var i = 0, len = codepoints.length; i < len; ++i) {
-    var c = codepoints[i];
-    if (c >= n && c < m) {
-      m = c;
-    }
-  }
-
-  // sanity check - should not happen
-  if (m >= 0x110000) {
-    throw new Error('Next smallest code point not found.');
-  }
-
-  return m;
-}
-
-function encode_digit(d) {
-  return d + (d < 26 ? 97 : 22);
-}
-
-function decode_digit(d) {
-  if (d >= 48 && d <= 57) {
-    return d - 22; // 0..9
-  }
-  if (d >= 65 && d <= 90) {
-    return d - 65; // A..Z
-  }
-  if (d >= 97 && d <= 122) {
-    return d - 97; // a..z
-  }
-  throw new Error('Illegal digit #' + d);
-}
-
-function threshold(k, bias) {
-  if (k <= bias + TMIN) {
-    return TMIN;
-  }
-  if (k >= bias + TMAX) {
-    return TMAX;
-  }
-  return k - bias;
-}
-
-function encode_int(bias, delta) {
-  var result = [];
-
-  for (var k = BASE, q = delta;; k += BASE) {
-    var t = threshold(k, bias);
-    if (q < t) {
-      result.push(encode_digit(q));
-      break;
-    }
-    else {
-      result.push(encode_digit(t + ((q - t) % (BASE - t))));
-      q = ~~((q - t) / (BASE - t));
-    }
-  }
-
-  return result;
-}
-
-function encode(input) {
-  if (typeof input != 'string') {
-    throw new Error('Argument must be a string.');
-  }
-
-  input = input.split('').map(function(c) {
-    return c.charCodeAt(0);
-  });
-
-  var output = [];
-  var non_basic = [];
-
-  for (var i = 0, len = input.length; i < len; ++i) {
-    var c = input[i];
-    if (c < 128) {
-      output.push(c);
-    }
-    else {
-      non_basic.push(c);
-    }
-  }
-
-  var b, h;
-  b = h = output.length;
-
-  if (b) {
-    output.push(45); // delimiter '-'
-  }
-
-  var n = INITIAL_N;
-  var bias = INITIAL_BIAS;
-  var delta = 0;
-
-  for (var len = input.length; h < len; ++n, ++delta) {
-    var m = next_smallest_codepoint(non_basic, n);
-    delta += (m - n) * (h + 1);
-    n = m;
-
-    for (var i = 0; i < len; ++i) {
-      var c = input[i];
-      if (c < n) {
-        if (++delta == MAX_INTEGER) {
-          throw new Error('Delta overflow.');
-        }
-      }
-      else if (c == n) {
-        // TODO append in-place?
-        // i.e. -> output.push.apply(output, encode_int(bias, delta));
-        output = output.concat(encode_int(bias, delta));
-        bias = adapt_bias(delta, h + 1, b == h);
-        delta = 0;
-        h++;
-      }
-    }
-  }
-
-  return String.fromCharCode.apply(String, output);
-}
-
-function decode(input) {
-  if (typeof input != 'string') {
-    throw new Error('Argument must be a string.');
-  }
-
-  // find basic code points/delta separator
-  var b = 1 + input.lastIndexOf('-');
-
-  input = input.split('').map(function(c) {
-    return c.charCodeAt(0);
-  });
-
-  // start with a copy of the basic code points
-  var output = input.slice(0, b ? (b - 1) : 0);
-
-  var n = INITIAL_N;
-  var bias = INITIAL_BIAS;
-
-  for (var i = 0, len = input.length; b < len; ++i) {
-    var org_i = i;
-
-    for (var k = BASE, w = 1;; k += BASE) {
-      var d = decode_digit(input[b++]);
-
-      // TODO overflow check
-      i += d * w;
-
-      var t = threshold(k, bias);
-      if (d < t) {
-        break;
-      }
-
-      // TODO overflow check
-      w *= BASE - t;
-    }
-
-    var x = 1 + output.length;
-    bias = adapt_bias(i - org_i, x, org_i == 0);
-    // TODO overflow check
-    n += ~~(i / x);
-    i %= x;
-
-    output.splice(i, 0, n);
-  }
-
-  return String.fromCharCode.apply(String, output);
-}
-
-});
-_sardines.register("/modules/querystring", function(require, module, exports, __dirname, __filename) {
-	// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-// Query String Utilities
-
-var QueryString = exports;
-
-
-function charCode(c) {
-  return c.charCodeAt(0);
-}
-
-
-QueryString.unescape = function(s, decodeSpaces) {
-  return decodeURIComponent(s);////QueryString.unescapeBuffer(s, decodeSpaces).toString();
-};
-
-
-QueryString.escape = function(str) {
-  return encodeURIComponent(str);
-};
-
-var stringifyPrimitive = function(v) {
-  switch (typeof v) {
-    case 'string':
-      return v;
-
-    case 'boolean':
-      return v ? 'true' : 'false';
-
-    case 'number':
-      return isFinite(v) ? v : '';
-
-    default:
-      return '';
-  }
-};
-
-
-QueryString.stringify = QueryString.encode = function(obj, sep, eq, name) {
-  sep = sep || '&';
-  eq = eq || '=';
-  obj = (obj === null) ? undefined : obj;
-
-  switch (typeof obj) {
-    case 'object':
-      return Object.keys(obj).map(function(k) {
-        if (Array.isArray(obj[k])) {
-          return obj[k].map(function(v) {
-            return QueryString.escape(stringifyPrimitive(k)) +
-                   eq +
-                   QueryString.escape(stringifyPrimitive(v));
-          }).join(sep);
-        } else {
-          return QueryString.escape(stringifyPrimitive(k)) +
-                 eq +
-                 QueryString.escape(stringifyPrimitive(obj[k]));
-        }
-      }).join(sep);
-
-    default:
-      if (!name) return '';
-      return QueryString.escape(stringifyPrimitive(name)) + eq +
-             QueryString.escape(stringifyPrimitive(obj));
-  }
-};
-
-// Parse a key=val string.
-QueryString.parse = QueryString.decode = function(qs, sep, eq) {
-  sep = sep || '&';
-  eq = eq || '=';
-  var obj = {};
-
-  if (typeof qs !== 'string' || qs.length === 0) {
-    return obj;
-  }
-
-  qs.split(sep).forEach(function(kvp) {
-    var x = kvp.split(eq);
-    var k = QueryString.unescape(x[0], true);
-    var v = QueryString.unescape(x.slice(1).join(eq), true);
-
-    if (!obj.hasOwnProperty(k)) {
-      obj[k] = v;
-    } else if (!Array.isArray(obj[k])) {
-      obj[k] = [obj[k], v];
-    } else {
-      obj[k].push(v);
-    }
-  });
-
-  return obj;
-};
-
-});
-_sardines.register("/modules/beanpoll/lib/push/director.js", function(require, module, exports, __dirname, __filename) {
-	(function() {
-  var Director, Messenger,
-    __hasProp = Object.prototype.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-  Director = require("../concrete/director");
-
-  Messenger = require("./messenger");
-
-  module.exports = (function(_super) {
-
-    __extends(_Class, _super);
-
-    function _Class() {
-      _Class.__super__.constructor.apply(this, arguments);
-    }
-
-    _Class.prototype.passive = true;
-
-    /*
-    */
-
-    _Class.prototype._newMessenger = function(message, middleware) {
-      return new Messenger(message, middleware, this);
-    };
-
-    return _Class;
-
-  })(Director);
-
-}).call(this);
-
-});
-_sardines.register("/modules/beanpoll/lib/pull/director.js", function(require, module, exports, __dirname, __filename) {
-	(function() {
-  var Director, Messenger,
-    __hasProp = Object.prototype.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-  Director = require("../concrete/director");
-
-  Messenger = require("./messenger");
-
-  module.exports = (function(_super) {
-
-    __extends(_Class, _super);
-
-    function _Class() {
-      _Class.__super__.constructor.apply(this, arguments);
-    }
-
-    _Class.prototype.passive = false;
-
-    /*
-    */
-
-    _Class.prototype._newMessenger = function(message, middleware) {
-      return new Messenger(message, middleware, this);
-    };
-
-    /*
-    */
-
-    _Class.prototype.getListeners = function(message, search) {
-      return this.prepareListeners(_Class.__super__.getListeners.call(this, message, search));
-    };
-
-    /*
-    */
-
-    _Class.prototype.prepareListeners = function(listeners) {
-      if (!!listeners.length) {
-        return [listeners[0]];
-      } else {
-        return [];
-      }
-    };
-
-    return _Class;
-
-  })(Director);
-
-}).call(this);
-
-});
-_sardines.register("/modules/beanpoll/lib/collect/director.js", function(require, module, exports, __dirname, __filename) {
-	(function() {
-  var Director,
-    __hasProp = Object.prototype.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
-
-  Director = require("../pull/director");
-
-  module.exports = (function(_super) {
-
-    __extends(_Class, _super);
-
-    function _Class() {
-      _Class.__super__.constructor.apply(this, arguments);
-    }
-
-    _Class.prototype.passive = true;
-
-    /*
-    */
-
-    _Class.prototype.prepareListeners = function(listeners) {
-      return listeners;
-    };
-
-    return _Class;
-
-  })(Director);
-
-}).call(this);
-
-});
-_sardines.register("/modules/dolce/lib/collection.js", function(require, module, exports, __dirname, __filename) {
-	var crema  = require('crema'),
-tree 	   = require('./tree'),
-sift 	   = require('sift');
-
-
-
-
-
-var collection = module.exports = function() {
-	
-	var _rootTree = tree(),
-	self = {},
-	_id = 0;
-
-	/**
-	 * the *actual* add method
-	 */
-
-	var _addRoute = self.add = function(route, value) {
-		
-		var tree, type, lastPath = route.channel.paths[route.channel.paths.length - 1].value;
-
-		//first lets establish whether or not the expression is OVERRIDING, or EXTENDING 
-		if(lastPath == '*') {
-
-			type = 'before';
-
-			//remove the asterick
-			route.channel.paths.pop();
-
-		//everything AFTER this route is handleable by this data
-		} else if(lastPath == '**') {
-			
-			type = 'greedy';
-
-			route.channel.paths.pop();
-
-		} else if(lastPath == '***') {
-			
-			type = 'greedyEndpoint';
-
-			route.channel.paths.pop();
-		} else {
-			
-			type = 'after';
-
-		}
-
-		var thru = [], cthru = route.thru;
-
-		while(cthru) {
-			thru.unshift(cthru.channel.paths);
-			cthru = cthru.thru;
-		}
-
-		//next, let's find the tree this route belongs too
-		tree = _findTree(route.channel.paths, true);
-
-
-		//add the data to the tree obj
-		return tree.addListener[type]({
-
-			routeStr: crema.stringify(route),
-
-			//filterable tags
-			tags: route.tags,
-
-			//path to the route -- needed to fill in extra data
-			paths: route.channel.paths,
-
-			//explicit chain which gets expanded at runtime
-			thru: thru,
-
-			id: _id++,
-
-			//the callback function
-			value: value
-
-		}, type);
-
-	};
-
-	/**
-	 * returns TRUE if the given type exists
-	 */
-
-	self.contains = function(channel, ops) {
-
-		if(!ops) ops = {};
-
-		var child = _findTree(channel.paths);
-
-		return !!child ? !!_andSifter(ops, child.collections.after).length : false;
-	}
-
-	/**
-	 * returns collections and their chained data
-	 */
-
-	self.get = function(channel, ops) {
-		
-		if(!ops) ops = {};
-
-
-		//only allow path/to/collection in get vs pull blown parsing with metadata - not necessary
-		var chains = _chains(channel.paths, ops, true);
-
-		return {
-			paths: channel.paths,
-			tags: ops.tags,
-			chains: chains
-		}
-	};
-
-	/**
-	 * finds routes based on the filter tags given WITHOUT expanding them
-	 */
-
-	self.find = function(ops) {
-
-		var tagSifter, found = [];
-
-		if(ops.tags) {
-			tagSifter = _andSifter(ops);
-		} else 
-		if(ops.siftTags) {
-			tagSifter = sift({ tags: ops.siftTags });
-		}
-
-
-
-		_rootTree.traverse(function(tree) {
-
-			if(tagSifter)
-			for(var i = tree.collections.after.length; i--;) {
-
-				var data = tree.collections.after[i];
-
-				if(tagSifter.test(data)) {
-					
-					found.push(data);
-
-					break;
-				}
-			}
-
-		});
-
-		return found;
-	}
-
-	//changes {tag:value,tag2:value} to [{tag:value},{tag2:value}]
-	var _tagsToArray = function(tagsObj) {
-			
-		var key, tag, tags = [];
-
-		for(key in tagsObj) {
-			
-			tag = {};
-			tag[key] = tagsObj[key];
-			tags.push(tag);
-
-		}
-
-		return tags;
-	}
-
-
-	/**
-	 */
-
-	var _andSifter = function(ops, target) {
-
-		var tags = ops.tags || {};
-
-		for(var name in tags) {
-			if(tags[name] === true) {
-				tags[name] = { $exists: true };
-			}
-		}
-
-		var $and = _tagsToArray(tags);
-
-		if(ops.siftTags) $and.push(ops.siftTags);
-
-		return sift({ tags: { $and: $and }}, target);
-
-	}
-
-	/**
-	 */
-
-	var _chains = function(paths, ops) {
-		
-
-		var child  = _rootTree.findChild(paths);
-
-
-		//route does NOT exist? return a greedy endpoint
-		if(!child) return [];//_greedyEndpoint(paths, tags);
-
-		var entireChain = _allCollections(child),
-
-		currentData,
-
-		endCollection = _andSifter(ops)(child.collections.after),
-
-		//the collections expanded with all the explicit / implicit / greedy chains
-		expandedChains = [],
-
-		expandedChain;
-
-
-
-		//now we need to expand the EXPLICIT chain. Stuff like pass -> thru -> route
-		for(var i = 0, n = endCollection.length; i < n; i++) {
-
-			currentData = endCollection[i];
-			
-			expandedChains.push((ops.expand == undefined || ops.expand == true) ? _chain(currentData, paths, entireChain) : currentData);
-		}
-
-
-
-		return expandedChains;
-	};
-
-	var _chain = function(data, paths, entireChain) {
-
-		var chain = _chainSifter(data.tags, entireChain),
-		usedGreedyPaths = {};
-
-
-		//filter out any greedy middleware that's used more than once. This can cause problems
-		//for greedy middleware such as /**
-		return _expand(chain.concat(data), paths).filter(function(route) {
-
-			if(route.type != 'greedy') return true;
-			if(usedGreedyPaths[route.id]) return false;
-			return usedGreedyPaths[route.id] = true;
-
-		});
-	}
-
-	var _greedyEndpoint = function(paths, tags) {
-		
-		var tree;
-
-		for(var i = paths.length; i--;) {
-			if(tree = _rootTree.findChild(paths.slice(0, i))) break;	
-		}
-
-		if(!tree) return [];
-
-		var chain = _chainSifter(tags || {}, _greedyCollections(tree));
-
-		return chain;
-
-	}
-
-	var _copy = function(target) {
-		var to = {};
-		for(var i in target) {
-			to[i] = target[i];
-		}
-		return to;
-	}
-
-	/**
-	 */
-
-	var _expand = function(chain, paths) {
-		
-		var j, n2,  i = 0, n = chain.length;
-
-
-		var expanded = [];
-
-
-		for(; i < n; i++) {
-			
-			var data = chain[i];
-
-			var params = _params(data.paths, paths),
-			subChain = [];
-			
-			for(j = 0, n2 = data.thru.length; j < n2; j++) {
-					
-				subChain.push(_thru(_fillPaths(data.thru[j], params), data.tags));
-
-			}
-
-			expanded = expanded.concat.apply(expanded, subChain);
-
-			expanded.push({
-				routeStr: data.routeStr,
-				paths: data.paths,
-				cmpPath: paths,
-				params: params,
-				id: data.id,
-				tags: data.tags,
-				value: data.value,
-				type: data.type
-			});
-		}
-
-		return expanded;
-	}
-
-	/**
-	 */
-
-	var _chainSifter = function(tags, target) {
-
-		var test = function(target) {
-			
-			return target.filter(function(a) {
-
-				var atags = a.tags, av, tv;
-
-				//metadata in the atags (chain) must match the tags given
-
-				//examples of this:
-				//-method a/**
-				//-method=POST a  --- a/** -> a
-				//a --- a (would not go through a/**)
-				if(atags.unfilterable) return true;
-
-				for(var tagName in atags) {
-
-					av = atags[tagName];
-					tv = tags[tagName];
-
-					//MUST have a value - atags
-
-					//Example:
-
-					//-method=POST a/**
-
-					//matches: 
-					//-method=POST a
-
-					//does not match:
-					//-method a
-
-					if(av != tv && (!tv || av !== true) && av != '*')  return false;
-				}
-
-				return true;
-			});
-		}
-
-		//array exists? return the result
-		if(target) return test(target);
-
-		return test;
-	}
-
-	/**
-	 */
-
-	var _thru = function(paths, tags) {
-
-		var child  = _rootTree.findChild(paths);
-
-		if(!child) return [];
-
-
-		//need to sort the tags because a match for say.. method=DELETE matches both method, and method=DELETE
-		//NOTE - chainSifter was previously used here. Since it's EXPLICIT, we do NOT want to filter out the routes.
-		var filteredChildren = child.collections.after.sort(function(a, b) {
-
-			return _scoreTags(a.tags, tags) > _scoreTags(b.tags, tags) ? -1 : 1;
-
-		});
-
-		var targetChild = filteredChildren[0];
-
-		var chainSifter = _chainSifter(targetChild.tags);
-
-		chain = chainSifter(_allCollections(child));
-
-
-
-		//return only ONE item to go through - this is the best match.
-		return _expand(chain.concat(targetChild), paths);
-	}
-
-	/**
-	 * ranks data based on how similar tags are
-	 */
-
-	var _scoreTags = function(tags, match) {
-		var score = 0;
-
-
-		for(var tag in match) {
-
-			var tagV = tags[tag];
-			
-			if(tagV == match[tag]) {
-
-				score += 2;
-
-			} else 
-			if(tagV) {
-
-				score += 1;
-
-			}
-		}
-
-		return score;
-	}
-
-	/**
-	 * hydrates chain, e.g.,  validate/:firstName -> add/user/:firstName
-	 */
-
-	var _fillPaths = function(paths, params) {
-		var i, path, n = paths.length, newPaths = [];
-
-		for(i = 0; i < n; i++) {
-			
-			path = paths[i];
-
-			newPaths.push({
-				value: path.param ? params[path.value] : path.value,
-				param: path.param
-			});
-		}
-
-		return newPaths;
-	}
-
-	/**
-	 * returns the parameters associated with the found path against the queried path, e.g., add/:name/:last and add/craig/condon 
-	 */
-
-	var _params = function(treePaths, queryPaths) {
-		
-		var i, treePath, queryPath, params = {};
-
-		for(i = treePaths.length; i--;) {
-
-			treePath = treePaths[i];
-			queryPath = queryPaths[i];
-
-			if(treePath.param) {
-
-				params[treePath.value] = queryPath.value;
-
-			}
-
-		}
-
-
-		return params;
-	};
-
-	/**
-	 */
-
-	var _greedyCollections = function(tree) {
-		
-		var currentParent = tree,
-		collections = [],
-		gcol = [],
-		cpath;
-
-		while(currentParent) {
-			 
-			cpath = currentParent.pathStr();
-			collections = currentParent.collections.greedy.concat(collections);
-
-			currentParent = currentParent.parent();
-		}
-
-		return collections;
-	};
-
-	/**
-	 */
-
-	var _allCollections = function(tree) {
-		
-		return _greedyCollections(tree).concat(tree.collections.before);
-
-	}
-
-
-	/**
-	 * finds the deepest tree associated with the given paths
-	 */
-
-
-	var _findTree = function(paths, createIfNotFound) {
-		
-		var i, path, n = paths.length, currentTree = _rootTree;
-
-		for(i = 0; i < n; i++) {
-			
-			path = paths[i];
-
-			if(!(currentTree = currentTree.child(path, createIfNotFound))) break;
-
-		}
-
-		return currentTree;
-
-	};
-
-
-
-	return self;
-}
-
-
-});
-_sardines.register("/modules/beanpoll/lib/collections/linkedList.js", function(require, module, exports, __dirname, __filename) {
-	(function() {
-  var LinkedList;
-
-  module.exports = LinkedList = (function() {
-
-    function LinkedList() {}
-
-    /*
-    */
-
-    LinkedList.prototype.getNextSibling = function() {
-      return this._nextSibling;
-    };
-
-    /*
-    */
-
-    LinkedList.prototype.addNextSibling = function(sibling, replNext) {
-      if (!!this._nextSibling) this._nexSibling._prevSibling = sibling;
-      sibling._prevSibling = this;
-      if (!replNext) sibling._nextSibling = this._nextSibling;
-      return this._nextSibling = sibling;
-    };
-
-    /*
-    */
-
-    LinkedList.prototype.getPrevSibling = function() {
-      return this._prevSibling;
-    };
-
-    /*
-    */
-
-    LinkedList.prototype.addPrevSibling = function(sibling, replPrev) {
-      if (!!this._prevSibling) this._prevSibling._nextSibling = sibling;
-      sibling._nextSibling = this;
-      if (!replPrev) sibling._prevSibling = this._prevSibling;
-      return this._prevSibling = sibling;
-    };
-
-    /*
-    */
-
-    LinkedList.prototype.getFirstSibling = function() {
-      var first;
-      first = this;
-      while (!!first._prevSibling) {
-        first = first._prevSibling;
-      }
-      return first;
-    };
-
-    /*
-    */
-
-    LinkedList.prototype.getLastSibling = function() {
-      var last;
-      last = this;
-      while (!!last._nextSibling) {
-        last = last._nextSibling;
-      }
-      return last;
-    };
-
-    return LinkedList;
-
-  })();
-
-}).call(this);
-
-});
-_sardines.register("/modules/stream", function(require, module, exports, __dirname, __filename) {
-	// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-var events = require('events');
-var util = require('util');
-
-function Stream() {
-  events.EventEmitter.call(this);
-}
-util.inherits(Stream, events.EventEmitter);
-module.exports = Stream;
-// Backwards-compat with node 0.4.x
-Stream.Stream = Stream;
-
-Stream.prototype.pipe = function(dest, options) {
-  var source = this;
-
-  function ondata(chunk) {
-    if (dest.writable) {
-      if (false === dest.write(chunk) && source.pause) {
-        source.pause();
-      }
-    }
-  }
-
-  source.on('data', ondata);
-
-  function ondrain() {
-    if (source.readable && source.resume) {
-      source.resume();
-    }
-  }
-
-  dest.on('drain', ondrain);
-
-  // If the 'end' option is not supplied, dest.end() will be called when
-  // source gets the 'end' or 'close' events.  Only dest.end() once.
-  if (!dest._isStdio && (!options || options.end !== false)) {
-    source.on('end', onend);
-    source.on('close', onclose);
-  }
-
-  var didOnEnd = false;
-  function onend() {
-    if (didOnEnd) return;
-    didOnEnd = true;
-
-    // remove the listeners
-    cleanup();
-
-    dest.end();
-  }
-
-
-  function onclose() {
-    if (didOnEnd) return;
-    didOnEnd = true;
-
-    // remove the listeners
-    cleanup();
-
-    dest.destroy();
-  }
-
-  // don't leave dangling pipes when there are errors.
-  function onerror(er) {
-    cleanup();
-    if (this.listeners('error').length === 0) {
-      throw er; // Unhandled stream error in pipe.
-    }
-  }
-
-  source.on('error', onerror);
-  dest.on('error', onerror);
-
-  // remove all the event listeners that were added.
-  function cleanup() {
-    source.removeListener('data', ondata);
-    dest.removeListener('drain', ondrain);
-
-    source.removeListener('end', onend);
-    source.removeListener('close', onclose);
-
-    source.removeListener('error', onerror);
-    dest.removeListener('error', onerror);
-
-    source.removeListener('end', cleanup);
-    source.removeListener('close', cleanup);
-
-    dest.removeListener('end', cleanup);
-    dest.removeListener('close', cleanup);
-  }
-
-  source.on('end', cleanup);
-  source.on('close', cleanup);
-
-  dest.on('end', cleanup);
-  dest.on('close', cleanup);
-
-  dest.emit('pipe', source);
-
-  // Allow for unix-like usage: A.pipe(B).pipe(C)
-  return dest;
-};
-
-
-});
-_sardines.register("/modules/tq/lib/index.js", function(require, module, exports, __dirname, __filename) {
-	var EventEmitter = require('events').EventEmitter;
-
-exports.queue = function() {
-
-	
-	var next = function() {
-		var callback = queue.pop();
-
-		if(!callback || !started) {
-			running = false;
-			return;
-		}
-
-		callback.apply(next, arguments);
-	},
-	running = false,
-	started = false,
-	queue = [],
-	em = new EventEmitter();
-
-	var self = {
-
-		/**
-		 * add a queue to the end
-		 */
-
-		push: function(callback) {
-			queue.unshift(callback);
-
-			if(!running && started) {
-				next();
-			}
-			return this;
-		},
-
-
-		/**
-		 * adds a queue to the begning
-		 */
-
-		unshift: function(callback) {
-			queue.push(callback);
-			return this;
-		},
-
-		/**
-		 */
-
-		on: function(type, callback) {
-			em.addListener(type, callback);
-		},
-
-
-		/**
-		 * starts the queue
-		 */
-
-		start: function() {
-			if(started) return this;
-			started = running = true;
-			em.emit('start');
-			next();
-			return this;
-		},
-
-		/**
-		 * returns a function that's added to the queue
-		 * when invoked
-		 */
-
-		fn: function(fn) {
-			return function() {
-				var args = arguments, listeners = [];
-
-
-				return self.push(function() {
-
-					var next = this;
-
-					fn.apply({
-						next: function() {
-							args = arguments;
-							listeners.forEach(function(listener) {
-								listener.apply(null, args);
-							});
-							next();
-						},
-						attach: function(listener) {
-							listeners.push(listener);
-						}
-					}, args);
-				});
-			}
-		},
-
-		/**
-		 * stops the queue
-		 */
-
-		stop: function() {
-			started = running = false;
-			return this;
-		}
-	};
-
-	return self;
-}
-});
-
-_sardines.register("/modules/tq", function(require, module, exports, __dirname, __filename) {
-	module.exports = require('modules/tq/lib/index.js');
-});
-_sardines.register("/modules/malt/lib/core/models/concrete.js", function(require, module, exports, __dirname, __filename) {
-	var AbstractModel = require('./abstract');
-
-exports.partial = {
-
-	/**
-	 */
-
-	'override __construct': function(doc, ops)
-	{
-		this._explicit = {};
-
-
-		for(var prop in this)
-		{
-			if(this[prop] && this[prop].explicit)
-			{
-				this._bindFunc(prop);
-			}
-		}
-
-
-		this._super(ops);
-
-		this.doc = {}
-		this._set(doc);
-
-
-		if(this._schema) this._schema.apply(this);
-	},
-
-	/**
-	 */
-
-	'_bindFunc': function(prop)
-	{
-		this._explicit[prop] = 1;
-
-		var self = this,
-		oldFunc = this[prop];
-
-		this[prop] = function(value)
-		{
-			if(arguments.length)
-			{
-				oldFunc.call(self, value);
-				self._setDoc(prop, arguments[0])
-			}
-			else
-			{
-				return oldFunc.call(self);
-			}
-		}
-
-		this[prop].bind = function(callback)
-		{
-			self.bind(prop, callback);
-		}
-	},
-
-	/**
-	 */
-
-	'get': function(property)
-	{
-		if(this._explicit[property]) return this[property].call(this);
-
-		return this.doc[property];
-	},
-
-	/**
-	 */
-
-	'set': function(property, value, ignoreUpdate)
-	{
-		if(value == this.get(property)) return;
-
-		value = this._schema ? this._schema.set(this, property, value) : value;
-
-
-		if(this._explicit[property])
-		{
-			this[property].call(this, value);
-		}
-		else
-		{
-			this._setDoc(property, value, ignoreUpdate);
-		}
-
-		
-	},
-
-	/**
-	 */
-
-	'_setDoc': function(property, value, ignoreUpdate)
-	{
-		//might just be exposing the doc properties
-		this.doc[property] = value;
-
-		this.change(property, value);
-
-		//notify any listeners to update 
-		if(!ignoreUpdate) this._update();
-	},
-
-	/**
-	 */
-
-	'bind': function(property, callback)
-	{
-		var ret = this.subscribe(property, callback);
-
-		if(this.get(property) != undefined) callback(this.get(property));
-		return ret;
-	},
-
-	/**
-	 */
-
-	'_set': function(doc)
-	{
-		if(!doc) return;
-
-		if(typeof doc == 'object')
-		{
-			for(var property in doc)
-			{
-				this.set(property, doc[property], true);
-			}	
-
-			// this.change('update');
-
-			this._update();
-		}
-		else
-		{
-			this.doc = doc;
-		}
-	},
-
-	/**
-	 */
-
-	'_update': function()
-	{
-		this.change('update');
-	}
-};
-
-exports.Model = AbstractModel.extend(exports.partial);
-});
-_sardines.register("/modules/fig/instructor/index.js", function(require, module, exports, __dirname, __filename) {
-	var Structr = require('structr');
-
-module.exports = Structr({
-	
-	/**
-	 */
-
-	'__construct': function(target)
-	{
-		this._instructions = [];
-		this._target = target;
-	},
-	/**
-	 */
-
-	'add': function(instructions)
-	{
-		this._instructions = this._instructions.concat(instructions);
-
-		this._next();
-	},
-
-	/**
-	 */
-
-	'_next': function()
-	{
-		if(this._running || !this._instructions.length)
-		{
-			return;
-		}
-
-		this._running = true;
-		var self = this;
-
-
-		var name = this._instructions.shift();
-
-
-		this._target[name](function()
-		{
-			self._target.change(name);
-
-
-			if(!self._instructions.length)
-			{
-				self._target.complete = true;
-				self._target.change('complete');
-			}
-		
-			self._running = false;
-			self._next();
-		});
-	}
-});
-});
-_sardines.register("/modules/fig/renderView/index.js", function(require, module, exports, __dirname, __filename) {
-	var logger = require('mesh-winston').loggers.get('fig');
-
-module.exports = function(view, res) {
-	
-	logger.debug('rendering view');
-	
-	view.setup({ el: window.document, $: $ }).init({
-		complete: function() {
-
-			logger.debug('finishing view');
-
-			if(res) res.end();
-		}
-	});
-}
 });
 _sardines.register("/modules/beanpoll/lib/push/messenger.js", function(require, module, exports, __dirname, __filename) {
 	(function() {
@@ -10768,6 +10540,232 @@ exports.inherits = function(ctor, superCtor) {
   });
 };
 
+});
+_sardines.register("/modules/malt/lib/core/models/concrete.js", function(require, module, exports, __dirname, __filename) {
+	var AbstractModel = require('./abstract');
+
+exports.partial = {
+
+	/**
+	 */
+
+	'override __construct': function(doc, ops)
+	{
+		this._explicit = {};
+
+
+		for(var prop in this)
+		{
+			if(this[prop] && this[prop].explicit)
+			{
+				this._bindFunc(prop);
+			}
+		}
+
+
+		this._super(ops);
+
+		this.doc = {}
+		this._set(doc);
+
+
+		if(this._schema) this._schema.apply(this);
+	},
+
+	/**
+	 */
+
+	'_bindFunc': function(prop)
+	{
+		this._explicit[prop] = 1;
+
+		var self = this,
+		oldFunc = this[prop];
+
+		this[prop] = function(value)
+		{
+			if(arguments.length)
+			{
+				oldFunc.call(self, value);
+				self._setDoc(prop, arguments[0])
+			}
+			else
+			{
+				return oldFunc.call(self);
+			}
+		}
+
+		this[prop].bind = function(callback)
+		{
+			self.bind(prop, callback);
+		}
+	},
+
+	/**
+	 */
+
+	'get': function(property)
+	{
+		if(this._explicit[property]) return this[property].call(this);
+
+		return this.doc[property];
+	},
+
+	/**
+	 */
+
+	'set': function(property, value, ignoreUpdate)
+	{
+		if(value == this.get(property)) return;
+
+		value = this._schema ? this._schema.set(this, property, value) : value;
+
+
+		if(this._explicit[property])
+		{
+			this[property].call(this, value);
+		}
+		else
+		{
+			this._setDoc(property, value, ignoreUpdate);
+		}
+
+		
+	},
+
+	/**
+	 */
+
+	'_setDoc': function(property, value, ignoreUpdate)
+	{
+		//might just be exposing the doc properties
+		this.doc[property] = value;
+
+		this.change(property, value);
+
+		//notify any listeners to update 
+		if(!ignoreUpdate) this._update();
+	},
+
+	/**
+	 */
+
+	'bind': function(property, callback)
+	{
+		var ret = this.subscribe(property, callback);
+
+		if(this.get(property) != undefined) callback(this.get(property));
+		return ret;
+	},
+
+	/**
+	 */
+
+	'_set': function(doc)
+	{
+		if(!doc) return;
+
+		if(typeof doc == 'object')
+		{
+			for(var property in doc)
+			{
+				this.set(property, doc[property], true);
+			}	
+
+			// this.change('update');
+
+			this._update();
+		}
+		else
+		{
+			this.doc = doc;
+		}
+	},
+
+	/**
+	 */
+
+	'_update': function()
+	{
+		this.change('update');
+	}
+};
+
+exports.Model = AbstractModel.extend(exports.partial);
+});
+_sardines.register("/modules/fig/instructor/index.js", function(require, module, exports, __dirname, __filename) {
+	var Structr = require('structr');
+
+module.exports = Structr({
+	
+	/**
+	 */
+
+	'__construct': function(target)
+	{
+		this._instructions = [];
+		this._target = target;
+	},
+	/**
+	 */
+
+	'add': function(instructions)
+	{
+		this._instructions = this._instructions.concat(instructions);
+
+		this._next();
+	},
+
+	/**
+	 */
+
+	'_next': function()
+	{
+		if(this._running || !this._instructions.length)
+		{
+			return;
+		}
+
+		this._running = true;
+		var self = this;
+
+
+		var name = this._instructions.shift();
+
+
+		this._target[name](function()
+		{
+			self._target.change(name);
+
+
+			if(!self._instructions.length)
+			{
+				self._target.complete = true;
+				self._target.change('complete');
+			}
+		
+			self._running = false;
+			self._next();
+		});
+	}
+});
+});
+_sardines.register("/modules/fig/renderView/index.js", function(require, module, exports, __dirname, __filename) {
+	var logger = require('mesh-winston').loggers.get('fig');
+
+module.exports = function(view, res) {
+	
+	logger.debug('rendering view');
+	
+	view.setup({ el: window.document, $: $ }).init({
+		complete: function() {
+
+			logger.debug('finishing view');
+
+			if(res) res.end();
+		}
+	});
+}
 });
 _sardines.register("/modules/malt/lib/core/models/abstract.js", function(require, module, exports, __dirname, __filename) {
 	var Structr = require('structr'),

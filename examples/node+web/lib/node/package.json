@@ -3,7 +3,8 @@
   "dependencies": {
     "fig": "0.0.x",
     "plugin.http.history": "*",
-    "haba": "0.0.x"
+    "haba": "0.0.x",
+    "daisy": "*"
   },
   "name": "",
   "description": "",

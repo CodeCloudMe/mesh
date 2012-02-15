@@ -107,18 +107,7 @@ mainScriptPath  = utils.mainScriptPath;
 			function() {
 				var inc = [], self = this;
 
-				findFiles(dir, /\.js$/, function(file) {
-
-					//the included dir MIGHT be a module, so make sure that's the starting point
-					if(file.substr(file.indexOf(dir) + dir.length).indexOf('node_modules/') > -1) return;
-
-					var script = getPathInfo(file);
-
-					inc.push(script);
-
-				}, on.success(function() {
-					self(null, inc);
-				}));
+				findJsFiles(dir, this);
 			},
 
 			/**
@@ -220,7 +209,8 @@ mainScriptPath  = utils.mainScriptPath;
 	if(entry.path) entry = entry.path;
 
 	var cwd    = path.dirname(entry),
-	on         = outcome.error(callback);
+	on         = outcome.error(callback),
+	content    = null;
 
 	
 	step(
@@ -237,11 +227,20 @@ mainScriptPath  = utils.mainScriptPath;
 		/**
 		 */
 
-		on.success(function(content) {
+		on.success(function(cn) {
 
-			scanRequired(content, cwd, this);
+			content = cn;
 
+			var self = this;
+
+			scanRequired(content, cwd, on.success(function(deps) {
+				scanInclude(content, cwd, on.success(function(incDeps) {
+					// console.log(incDeps)
+					self(null, deps.concat(incDeps));
+				}));
+			}));
 		}),
+
 		
 		/**
 		 */
@@ -252,6 +251,49 @@ mainScriptPath  = utils.mainScriptPath;
 
 		})
 	);
+}
+
+function findJsFiles(entry, callback) {
+
+	var inc = [];
+
+	findFiles(entry, /\.js$/, function(file) {
+
+		//the included dir MIGHT be a module, so make sure that's the starting point
+		if(file.substr(file.indexOf(entry) + entry.length).indexOf('node_modules/') > -1) return;
+
+		var script = getPathInfo(file);
+
+		inc.push(script);
+
+	}, function(err, success) {
+		callback(null, inc);
+	});
+}
+
+//scans for #include file.js or/path
+function scanInclude(content, cwd, callback) {
+	var include = String(content).match(/\/\/#include\s([^\n]+)/g) || [];
+
+	step(
+		function() {	
+
+			var next = this;
+			async.map(include, function(fn, next) {
+				inc = fn.split(/\s+/g);
+				inc.shift();
+				
+				async.map(inc, function(path, next) {
+					findJsFiles(cwd+"/"+path, next);
+				}, next);
+
+			}, function(err, inc) {
+				next(null, flatten(inc));
+			});
+
+		},
+		callback
+	)
 }
 
 function scanRequired(content, cwd, callback) {
@@ -277,14 +319,21 @@ function scanRequired(content, cwd, callback) {
 	})
 }
 
-function flatten2d(target) {
-	return Array.prototype.concat.apply([], target);
-}
 
-function flatten3d() {
-	return flatten2d(flatten2d(arguments));
+function flatten( oArray ) {
+  var retVal = [];
+  for (var i=0;i<oArray.length;i++) {
+    if (!(oArray[i] instanceof Array) ) {
+      retVal.push( oArray[i] );
+    } else {
+      var tempFlatt = flatten(oArray[i]);
+      for (var j=0;j<tempFlatt.length;j++) {
+        retVal.push( tempFlatt[j] );
+      }
+    }
+  }
+  return retVal;
 }
-
 
 
 
