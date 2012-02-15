@@ -18,13 +18,14 @@ exports.build = function(target, next) {
 	 */
 
 
-	var include = [ops.entry].concat(ops.include);
+	var include = [ops.entry].concat(ops.include || []);
 
 	for(var i = include.length; i--;) {
 		include[i] = target.cwd + "/" + include[i];
 	}
+
 	
-	analyzeDeps({ entries: include }, function(err, deps) {
+	analyzeDeps({ entries: include }, on.success(function(deps) {
 
 		//next item should take this script
 		ops.input = ops.output;
@@ -35,7 +36,7 @@ exports.build = function(target, next) {
 		}, on.success(function(content) {
 			fs.writeFile(target.cwd + "/" + ops.input, content, next);
 		}))
-	});
+	}));
 }
 
 

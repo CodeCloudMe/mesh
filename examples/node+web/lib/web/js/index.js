@@ -227,14 +227,20 @@ _sardines.register("/modules/beanpoll/lib/index.js", function(require, module, e
 _sardines.register("/modules/beanpoll", function(require, module, exports, __dirname, __filename) {
 	module.exports = require('modules/beanpoll/lib/index.js');
 });
-_sardines.register("/modules/haba/index.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/haba/lib/index.js", function(require, module, exports, __dirname, __filename) {
 	 var core = require('./core'),
-fs = require('./fs'),
+fs = require('fs'),
 path = require('path');
 
 
+
 var fileExists = function(file) {
-	return fs.exists(file);
+	try {
+		fs.statSync(file);
+		return true;
+	} catch (e) {
+		return false;
+	}
 }
 
 //deprecated.
@@ -307,7 +313,7 @@ module.exports = function() {
 
 	var loadDirectory = {
 		test: function(dir) {
-			return fileExists(dir) && fs.isDirectory(dir);
+			return fileExists(dir) && fs.statSync(dir).isDirectory();
 		},
 		prepare: function(dir, callback) {
 			var files = fs.readdirSync(dir),
@@ -359,7 +365,7 @@ module.exports = function() {
 
 		fs.readdirSync(cwd).forEach(function(basename) {
 			var fullPath = cwd + '/' + basename;
-			if(fs.isDirectory(fullPath)) {
+			if(fs.statSync(fullPath).isDirectory()) {
 				findModules(search, fullPath, modules);
 			} else 
 			if(basename.match(search)) {
@@ -413,7 +419,7 @@ module.exports = function() {
 
 
 	//now that all the core loaders are in, we can add the additional loaders dropped in ./loaders (cleaner)
-	// haba.require( __dirname + '/plugins');
+	haba.require( __dirname + '/plugins');
 
 
 	return haba;
@@ -421,6 +427,10 @@ module.exports = function() {
 
 module.exports.loader = module.exports;
 module.exports.paths  = core.paths;
+});
+
+_sardines.register("/modules/haba", function(require, module, exports, __dirname, __filename) {
+	module.exports = require('modules/haba/lib/index.js');
 });
 _sardines.register("/modules/fig/index.js", function(require, module, exports, __dirname, __filename) {
 	//#include ./plugins
@@ -1574,7 +1584,7 @@ _sardines.register("/modules/beanpoll/lib/concrete/response.js", function(requir
 }).call(this);
 
 });
-_sardines.register("/modules/haba/core.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/haba/lib/core.js", function(require, module, exports, __dirname, __filename) {
 	var path = require('path'),
 EventEmitter = require('events').EventEmitter,
 pluginNameTester = require('./nameTester'),
@@ -1845,7 +1855,7 @@ module.exports = function() {
 		}
 
 
-		throw new Error('Unable to load plugin: ' + required);
+		throw new Error('Unable to load plugin ' + required);
 	}
 
 
@@ -2095,14 +2105,20 @@ module.exports.paths = function() {
 	}
 }
 });
-_sardines.register("/modules/haba/fs.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/fs", function(require, module, exports, __dirname, __filename) {
 	var allFiles = _sardines.allFiles;
 
-exports.isDirectory = function(path) {
-	return !path.match(/\.\w+$/);
+exports.statSync = function(path) {
+	return {
+		isDirectory: function() {
+			return !path.match(/\.\w+$/);
+		}
+	}
 }
 
-function getPath(path) {
+exports.readdirSync = function(path) {
+
+	console.log(cp)
 	var parts = path.split('/'),
 	cp = allFiles;
 
@@ -2110,27 +2126,16 @@ function getPath(path) {
 		cp = cp[part];
 	});
 
-	return cp;
-}
-
-exports.readdirSync = function(path) {
-
-	var cp = getPath(path);
-
 	if(!cp) return [];
 
 
 	return Object.keys(cp);
 }
 
-exports.exists = function(file) {
-	return !!getPath(file);
-}
-
-
 exports.realpathSync = function(path) {
-	return path;
+	console.log("RPS");
 }
+
 
 });
 _sardines.register("/modules/path", function(require, module, exports, __dirname, __filename) {
@@ -5686,7 +5691,7 @@ EventEmitter.prototype.listeners = function(type) {
 };
 
 });
-_sardines.register("/modules/haba/nameTester.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/haba/lib/nameTester.js", function(require, module, exports, __dirname, __filename) {
 	module.exports = function(search) {
 
 	if(!search) {
@@ -5715,7 +5720,7 @@ _sardines.register("/modules/haba/nameTester.js", function(require, module, expo
 	return test;
 }
 });
-_sardines.register("/modules/haba/collection.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/haba/lib/collection.js", function(require, module, exports, __dirname, __filename) {
 	
 var pluginNameTester = require('./nameTester'),
 tq = require('tq');
@@ -5873,9 +5878,7 @@ _sardines.register("/modules/structr/lib/index.js", function(require, module, ex
 
 	var that = Structr.extend.apply(null, [parent].concat(target))
 
-	for(var prop in that) {
-		that.__construct.prototype[prop] = that[prop];
-	}
+	that.__construct.prototype = that;
 
 	if(!that.__construct.extend)
 	//allow for easy extending.
@@ -5915,7 +5918,7 @@ Structr.copy = function (from, to, lite)
 		newValue;
 
 		//don't copy anything fancy other than objects and arrays. this could really screw classes up, such as dates.... (yuck)
-		if (!lite && typeof fromValue == 'object' && (!fromValue || fromValue.constructor.prototype == Object.prototype || fromValue instanceof Array)) 
+		if (!lite && typeof fromValue == 'object' && (!fromValue || fromValue.__proto__ == Object.prototype || fromValue.__proto__ == Array.prototype)) 
 		{
 
 			//if the toValue exists, and the fromValue is the same data type as the TO value, then
@@ -5923,7 +5926,6 @@ Structr.copy = function (from, to, lite)
 			if (toValue && fromValue instanceof toValue.constructor)
 			{
 				newValue = toValue;
-
 			}
 
 			//otherwise replace it, because FROM has priority over TO
@@ -6174,62 +6176,7 @@ Structr.modifiers =  {
 		
 		return multiFunc; 
 	}
-}              
-
-function getWrappedStep(property, index, steps)
-{
-	return function() {
-
-		var args = arguments;
-
-		
-		this.next = function() {
-			steps[index + 1].apply(this, args);
-		}
-
-		this[property].apply(this, args);
-
-		this.next = undefined;
-	}
-} 
-
-function getStepper(inner, middleware, last) {
-
-	var steps = [];
-
-	for(var i = 0, n = middleware.length; i < n; i++) {
-		steps.push(getWrappedStep(middleware, i, steps));
-	}
-
-
-	steps.push(last);
-
-	return function() {
-
-		steps[0].apply(this, arguments);
-	};
-}
-
-
-//check for middleware: some -> value
-function wrapAround(target, property) 
-{
-	
-	var fn = target[property];
-		
-	if(property.indexOf('->') == -1) return { property: property, value: fn };
-
-	var mw = property.split(/\s*->\s*/g),
-	accessorParts = mw[0].split(' ');
-
-	mw[0] = accessorParts.pop();
-	accessorParts.push(mw[mw.length - 1]);
-
-	mw.pop();
-
-
-	return { property: accessorParts.join(' '), value: getStepper(target, mw, fn) };
-}
+}               
 
 
 //extends from one class to another. note: the TO object should be the parent. a copy is returned.
@@ -6237,19 +6184,6 @@ Structr.extend = function ()
 {
 	var from = arguments[0],
 	to = {};
-
-	//class? fetch the prototype
-	if(typeof from == 'function') {
-
-		var fromConstructor = from;
-
-		//copy the prototype to make sure we don't modify it.
-		from = Structr.copy(from.prototype);
-
-		//next we need to convert the class into something we can handle
-		from.__construct = fromConstructor;
-
-	}
 
 	for(var i = 1, n = arguments.length; i < n; i++)
 	{
@@ -6275,10 +6209,6 @@ Structr.extend = function ()
 
 	for(property in to) 
 	{
-		/*var propInfo = wrapAround(to, property),
-		property = propInfo.property,
-		value = propInfo.value;*/
-
 		var value = to[property];
 
 
@@ -6364,12 +6294,9 @@ Structr.extend = function ()
 	}
 
 
-	//copy the static methods.
+	//copy 
 	for(var property in from.__construct)
 	{
-
-		//make sure it's static. Don't want copying the prototype over. Also make sure NOT to override any
-		//static methods on the new obj
 		if(from.__construct[property]['static'] && !that[property])
 		{
 			that.__construct[property] = from.__construct[property];
@@ -7551,8 +7478,6 @@ _sardines.register("/modules/fig/plugins/comb/index.js", function(require, modul
 
 exports.plugin = function(router) {
 
-	alert("MESH")
-	
 	
 	router.on({
 		
@@ -7603,7 +7528,7 @@ exports.plugin = function(router) {
 		 * once the app's been initialized, we need to comb through the statically-served page
 		 */
 
-		'push -hook history/ready': function() {
+		'push -hook html/ready': function() {
 		                
 			router.push('comb/element', window.document);
 
@@ -8452,7 +8377,7 @@ _sardines.register("/modules/tq/lib/index.js", function(require, module, exports
 	var EventEmitter = require('events').EventEmitter;
 
 exports.queue = function() {
-
+	
 	
 	var next = function() {
 		var callback = queue.pop();
@@ -8523,14 +8448,12 @@ exports.queue = function() {
 			return function() {
 				var args = arguments, listeners = [];
 
-
 				return self.push(function() {
 
-					var next = this;
-
+					var next = this, args = arguments;
+					
 					fn.apply({
 						next: function() {
-							args = arguments;
 							listeners.forEach(function(listener) {
 								listener.apply(null, args);
 							});
@@ -8539,7 +8462,7 @@ exports.queue = function() {
 						attach: function(listener) {
 							listeners.push(listener);
 						}
-					}, args);
+					}, callback);
 				});
 			}
 		},

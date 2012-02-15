@@ -1,4 +1,4 @@
-var Url        = require('url'),
+var Url    = require('url'),
 sprintf    = require('sprintf').sprintf,
 mime       = require('mime'),
 _          = require('underscore'),
