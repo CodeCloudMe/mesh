@@ -447,8 +447,7 @@ var views = {
 
 exports.plugin = function(router, params) {
 	
-	this.require(__dirname + "/plugins/template");
-	this.require(__dirname + "/plugins/views");
+	this.require(__dirname + "/plugins");
 
 
 	
@@ -651,6 +650,68 @@ exports.plugin = function(router)
 
 				router.push('history/ready');                            
 			}, 1);
+		}
+	})
+}
+});
+_sardines.register("/modules/41147061/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
+	module.exports = function(fig) {
+		
+	var views = fig.views;
+
+
+	views.IndexView = views.Template.extend({
+		
+		tpl: '/index.html',
+
+		'override render': function() {
+			this._super();
+		}
+	});
+	
+
+	views.HelloView = views.View.extend({
+		
+		'el': '#page',
+
+		'override render': function() {
+			this._super();
+			this.$$(this.el).html('html!');
+		}
+	});
+
+	return views;
+}
+});
+_sardines.register("/modules/41147061/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
+	
+
+exports.plugin = function(router) {
+	
+	var views;
+	
+	router.on({
+		
+		'push -pull fig': function(fig) {
+			views = require('./views')(fig);
+		},
+
+
+		/**
+		 */
+
+		'pull -method=GET view -> home OR /': function(req, res) {
+			req.addView(new views.IndexView());
+			if(!this.next()) req.display();
+		},
+
+		/**
+		 */
+
+		'pull -method=GET home -> view -> hello': function(req, res) {
+			
+			req.addView(new views.HelloView());
+			if(!this.next()) req.display();
 		}
 	})
 }
@@ -2497,68 +2558,6 @@ exports.existsSync = function(path) {
   }
 };
 
-});
-_sardines.register("/modules/41147061/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
-	module.exports = function(fig) {
-		
-	var views = fig.views;
-
-
-	views.IndexView = views.Template.extend({
-		
-		tpl: '/index.html',
-
-		'override render': function() {
-			this._super();
-		}
-	});
-	
-
-	views.HelloView = views.View.extend({
-		
-		'el': '#page',
-
-		'override render': function() {
-			this._super();
-			this.$$(this.el).html('html!');
-		}
-	});
-
-	return views;
-}
-});
-_sardines.register("/modules/41147061/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
-	
-
-exports.plugin = function(router) {
-	
-	var views;
-	
-	router.on({
-		
-		'push -pull fig': function(fig) {
-			views = require('./views')(fig);
-		},
-
-
-		/**
-		 */
-
-		'pull -method=GET view -> home OR /': function(req, res) {
-			req.addView(new views.IndexView());
-			if(!this.next()) req.display();
-		},
-
-		/**
-		 */
-
-		'pull -method=GET home -> view -> hello': function(req, res) {
-			
-			req.addView(new views.HelloView());
-			if(!this.next()) req.display();
-		}
-	})
-}
 });
 _sardines.register("/modules/plugin.http.history/history.js", function(require, module, exports, __dirname, __filename) {
 	
@@ -7202,8 +7201,10 @@ module.exports = View.extend({
 	{
 		this._super();
 		
-		//come through the element
-		if(this._router) this._router.push('comb/element', { element: this.el });
+		
+		//come through the element - goes through the links and replaces listens to them primarily. 
+		//Not needed server-side, good client-side.
+		this.router.push('comb/element', { element: this.el });
 	}
 })
 });
@@ -7541,6 +7542,73 @@ exports.plugin = function(router)
 
 		}
 	});
+}
+});
+_sardines.register("/modules/fig/plugins/comb/index.js", function(require, module, exports, __dirname, __filename) {
+	var logger = require('mesh-winston').loggers.get('element.core');
+
+
+
+exports.plugin = function(router) {
+
+	alert("MESH")
+	
+	
+	router.on({
+		
+		/**
+		 * combs an element for anything that needs to be replaced by javascript ~ static page into single page app
+		 */
+
+		'push comb/element': function(data) {
+
+			logger.debug('combing element');
+
+			var element = data.element;
+
+			if(element == window.document) element = element.body;
+
+
+			//all the anchor tags need to be listened to, so we can intercept 
+			$(element).find('a').each(function(index, anchor) {
+
+				//external? don't replace.
+				if(anchor.href.indexOf(window.location.host) == -1) return;
+
+				var href = anchor.href;
+				// anchor.href = '#';
+
+				//need to remove the host info if it exists
+				href = href.indexOf('://') > -1 ? href.split('/').slice(3).join('/') : href;
+
+				$(anchor).bind('click', function(event) {
+
+					logger.debug('link click');
+
+					//if a keyboard modifier is selected, such as cmd for new tab, then ignore
+					if(event.altKey || event.shiftKey || event.metaKey || event.ctrlKey || !router.request(href).type('pull').hasListeners()) return;
+
+					logger.debug('clicked link is handleable - redirecting');
+					//otherwise, prevent the user from redirecting, and handle the request in-app
+					event.preventDefault();
+
+					
+					//redirect in app!
+					router.push('redirect', href);
+				});
+			});
+		},
+
+		/**
+		 * once the app's been initialized, we need to comb through the statically-served page
+		 */
+
+		'push -hook history/ready': function() {
+		                
+			router.push('comb/element', window.document);
+
+		}
+	})
 }
 });
 _sardines.register("/modules/beanpoll/lib/push/director.js", function(require, module, exports, __dirname, __filename) {

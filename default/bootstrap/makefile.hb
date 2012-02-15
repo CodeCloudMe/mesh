@@ -5,5 +5,5 @@ clean:
 
 {{#each platforms}}
 {{this}}:
-	./node_modules/mesh/bin/mesh make {{this}} 
+	mesh make {{this}} 
 {{/each}}
