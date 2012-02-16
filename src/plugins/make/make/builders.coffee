@@ -35,7 +35,7 @@ module.exports = class Builders
 		for name of @_builders
 			return @_builders[name] if tester.test name
 
-		return null
+		throw new Error "Cannot find builder \"#{search}\""
 		
 
 	###
