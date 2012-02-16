@@ -9,9 +9,6 @@
 	"devDependencies": {
 		
 	},
-	"scripts": {
-		"install": "make {{defaultPlatform}}"
-	},
 	"main": "./lib/{{defaultPlatform}}/index.js",
 	"directories": {
 		"mesh-src": "./src",
