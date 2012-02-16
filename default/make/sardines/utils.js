@@ -46,7 +46,13 @@ exports.loadPackage = function(pkgPath) {
  */
 
 exports.mainScriptPath = function(pkgPath) {
-	return path.normalize(path.dirname(pkgPath) + "/" + exports.loadPackage(pkgPath).main);
+	var mainScript = path.normalize(path.dirname(pkgPath) + "/" + exports.loadPackage(pkgPath).main);
+
+	try {
+		return require.resolve(mainScript);
+	} catch(e) {
+		return null;
+	}
 }
 
 
@@ -67,7 +73,7 @@ exports.eachDir = function(dir, each) {
  */
 
 exports.isMain = function(scriptPath, pkgPath) {
-	return scriptPath == exports.mainScriptPath(pkgPath);
+	return require.resolve(scriptPath) == exports.mainScriptPath(pkgPath);
 }
 
 

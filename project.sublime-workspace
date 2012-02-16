@@ -419,7 +419,7 @@
 			"file": "default/make/sardines/utils.js",
 			"settings":
 			{
-				"buffer_size": 4617,
+				"buffer_size": 4722,
 				"line_ending": "Unix"
 			}
 		},
@@ -559,7 +559,7 @@
 			"file": "lib/index.js",
 			"settings":
 			{
-				"buffer_size": 587,
+				"buffer_size": 594,
 				"line_ending": "Unix"
 			}
 		},
@@ -568,6 +568,22 @@
 			"settings":
 			{
 				"buffer_size": 8454,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/tmp/subl stdin RdQkRj.txt",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "default/make/sardines/tpl/main.tpl.js",
+			"settings":
+			{
+				"buffer_size": 3215,
 				"line_ending": "Unix"
 			}
 		}
@@ -741,6 +757,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"normalizePath",
 			"inspect",
 			"flatten3d",
 			"findJsFiles",
@@ -859,7 +876,7 @@
 	"groups":
 	[
 		{
-			"selected": 68,
+			"selected": 49,
 			"sheets":
 			[
 				{
@@ -2180,15 +2197,15 @@
 					"file": "default/make/sardines/utils.js",
 					"settings":
 					{
-						"buffer_size": 4617,
+						"buffer_size": 4722,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3497,
-								3497
+								3602,
+								3602
 							]
 						],
 						"settings":
@@ -2197,7 +2214,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 2269.0,
+						"translation.y": 2704.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -2657,15 +2674,15 @@
 					"file": "lib/index.js",
 					"settings":
 					{
-						"buffer_size": 587,
+						"buffer_size": 594,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								472,
-								472
+								0,
+								0
 							]
 						],
 						"settings":
@@ -2704,6 +2721,59 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 992.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 69,
+					"file": "/tmp/subl stdin RdQkRj.txt",
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 70,
+					"file": "default/make/sardines/tpl/main.tpl.js",
+					"settings":
+					{
+						"buffer_size": 3215,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2604,
+								2618
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1624.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
