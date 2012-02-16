@@ -192,7 +192,7 @@
 			"file": "src/index.coffee",
 			"settings":
 			{
-				"buffer_size": 435,
+				"buffer_size": 442,
 				"line_ending": "Unix"
 			}
 		},
@@ -240,7 +240,7 @@
 			"file": "src/plugins/merge/copyr.coffee",
 			"settings":
 			{
-				"buffer_size": 1540,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -256,7 +256,7 @@
 			"file": "src/default/make/sardines/combineScripts.js",
 			"settings":
 			{
-				"buffer_size": 1941,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -280,7 +280,7 @@
 			"file": "lib/plugins/merge/merge.js",
 			"settings":
 			{
-				"buffer_size": 8093,
+				"buffer_size": 8203,
 				"line_ending": "Unix"
 			}
 		},
@@ -288,7 +288,7 @@
 			"file": "src/default/make/sardines/utils.js",
 			"settings":
 			{
-				"buffer_size": 4587,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -296,7 +296,7 @@
 			"file": "src/default/make/sardines/builder.js",
 			"settings":
 			{
-				"buffer_size": 960,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -304,7 +304,7 @@
 			"file": "src/default/modules/plugin.http.history/package.json",
 			"settings":
 			{
-				"buffer_size": 268,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -312,7 +312,7 @@
 			"file": "src/default/modules/plugin.http.history/src/node/index.js",
 			"settings":
 			{
-				"buffer_size": 395,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -320,7 +320,7 @@
 			"file": "src/default/bootstrap/makefile.hb",
 			"settings":
 			{
-				"buffer_size": 150,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -336,7 +336,7 @@
 			"file": "src/default/bootstrap/package.hb.json",
 			"settings":
 			{
-				"buffer_size": 332,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -352,7 +352,7 @@
 			"file": "src/default/modules/plugin.http.history/src/node/beanpoll.js",
 			"settings":
 			{
-				"buffer_size": 5193,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -371,7 +371,7 @@
 			"file": "src/index.js",
 			"settings":
 			{
-				"buffer_size": 691,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -411,7 +411,7 @@
 			"file": "default/make/sardines/builder.js",
 			"settings":
 			{
-				"buffer_size": 1073,
+				"buffer_size": 1099,
 				"line_ending": "Unix"
 			}
 		},
@@ -528,6 +528,46 @@
 			"settings":
 			{
 				"buffer_size": 46,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/tmp/subl stdin 8tTpqE.txt",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/plugins/make/make/factory.coffee",
+			"settings":
+			{
+				"buffer_size": 1162,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/plugins/make/make/adapters/shellBuilder.coffee",
+			"settings":
+			{
+				"buffer_size": 709,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "lib/index.js",
+			"settings":
+			{
+				"buffer_size": 587,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "default/make/sardines/builtin/util.js",
+			"settings":
+			{
+				"buffer_size": 8454,
 				"line_ending": "Unix"
 			}
 		}
@@ -701,6 +741,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"inspect",
 			"flatten3d",
 			"findJsFiles",
 			"copyr",
@@ -818,6 +859,7 @@
 	"groups":
 	[
 		{
+			"selected": 68,
 			"sheets":
 			[
 				{
@@ -1387,15 +1429,15 @@
 					"file": "src/index.coffee",
 					"settings":
 					{
-						"buffer_size": 435,
+						"buffer_size": 442,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								371,
-								371
+								361,
+								361
 							]
 						],
 						"settings":
@@ -1547,15 +1589,15 @@
 					"file": "src/plugins/merge/copyr.coffee",
 					"settings":
 					{
-						"buffer_size": 1540,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								759,
-								759
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1601,15 +1643,15 @@
 					"file": "src/default/make/sardines/combineScripts.js",
 					"settings":
 					{
-						"buffer_size": 1941,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1746,
-								1746
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1644,7 +1686,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 4.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1681,15 +1723,15 @@
 					"file": "lib/plugins/merge/merge.js",
 					"settings":
 					{
-						"buffer_size": 8093,
+						"buffer_size": 8203,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1050,
-								1050
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1709,15 +1751,15 @@
 					"file": "src/default/make/sardines/utils.js",
 					"settings":
 					{
-						"buffer_size": 4587,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2339,
-								2339
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1736,15 +1778,15 @@
 					"file": "src/default/make/sardines/builder.js",
 					"settings":
 					{
-						"buffer_size": 960,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								634,
-								634
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1763,15 +1805,15 @@
 					"file": "src/default/modules/plugin.http.history/package.json",
 					"settings":
 					{
-						"buffer_size": 268,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								224,
-								224
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1789,15 +1831,15 @@
 					"file": "src/default/modules/plugin.http.history/src/node/index.js",
 					"settings":
 					{
-						"buffer_size": 395,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								156,
-								156
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1816,15 +1858,15 @@
 					"file": "src/default/bootstrap/makefile.hb",
 					"settings":
 					{
-						"buffer_size": 150,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								64,
-								64
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1869,15 +1911,15 @@
 					"file": "src/default/bootstrap/package.hb.json",
 					"settings":
 					{
-						"buffer_size": 332,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								198,
-								202
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1923,15 +1965,15 @@
 					"file": "src/default/modules/plugin.http.history/src/node/beanpoll.js",
 					"settings":
 					{
-						"buffer_size": 5193,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								261,
-								261
+								0,
+								0
 							]
 						],
 						"settings":
@@ -1977,15 +2019,15 @@
 					"file": "src/index.js",
 					"settings":
 					{
-						"buffer_size": 691,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								500,
-								500
+								0,
+								0
 							]
 						],
 						"settings":
@@ -2111,15 +2153,15 @@
 					"file": "default/make/sardines/builder.js",
 					"settings":
 					{
-						"buffer_size": 1073,
+						"buffer_size": 1099,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								601,
-								601
+								825,
+								825
 							]
 						],
 						"settings":
@@ -2283,7 +2325,8 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage"
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -2313,7 +2356,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 3739.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -2525,6 +2568,142 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 64,
+					"file": "/tmp/subl stdin 8tTpqE.txt",
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 65,
+					"file": "src/plugins/make/make/factory.coffee",
+					"settings":
+					{
+						"buffer_size": 1162,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								559,
+								559
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Coffeescript/CoffeeScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 66,
+					"file": "src/plugins/make/make/adapters/shellBuilder.coffee",
+					"settings":
+					{
+						"buffer_size": 709,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								606,
+								606
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Coffeescript/CoffeeScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 67,
+					"file": "lib/index.js",
+					"settings":
+					{
+						"buffer_size": 587,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								472,
+								472
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 68,
+					"file": "default/make/sardines/builtin/util.js",
+					"settings":
+					{
+						"buffer_size": 8454,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3167,
+								3167
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 992.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

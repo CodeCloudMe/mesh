@@ -2,8 +2,9 @@ fs            = require "fs"
 path          = require "path"
 step          = require "stepc"
 outcome       = require "outcome"
-ChainBuilder  = require "./chainBuilder"
-ScriptBuilder = require "./scriptBuilder"
+ChainBuilder  = require "./adapters/chainBuilder"
+ScriptBuilder = require "./adapters/scriptBuilder"
+ShellBuilder  = require "./adapters/shellBuilder"
 
 
 ###
@@ -22,6 +23,7 @@ module.exports = class Factory
 		# add the default builders
 		@addBuilderClass ChainBuilder
 		@addBuilderClass ScriptBuilder
+		@addBuilderClass ShellBuilder
 		
 	###
 	 adds a builder class - must also be a tester

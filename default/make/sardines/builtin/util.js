@@ -98,7 +98,7 @@ function inspect(obj, showHidden, depth, colors) {
   var ctx = {
     showHidden: showHidden,
     seen: [],
-    stylize: colors ? stylizeWithColor : stylizeNoColor,
+    stylize: colors ? stylizeWithColor : stylizeNoColor
   };
   return formatValue(ctx, obj, (typeof depth === 'undefined' ? 2 : depth));
 }

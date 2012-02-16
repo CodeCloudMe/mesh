@@ -19,7 +19,7 @@ exports.load = (callback) ->
 	require(__dirname + "/plugins").
 	load(() ->
 		loader.router.push("init")
-		callback null, router if callback
+		callback null, loader.router if callback
 	);
 
 

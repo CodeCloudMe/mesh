@@ -28,7 +28,7 @@ exports.build = function(target, next) {
 	analyzeDeps({ entries: include }, on.success(function(deps) {
 
 		//next item should take this script
-		ops.input = ops.output;
+		ops.entry = ops.input = ops.output;
 
 		combineScripts({
 			include: deps,
