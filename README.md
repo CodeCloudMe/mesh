@@ -11,6 +11,13 @@
 - Seamlessly communicate between two different javascript apps, e.g., web + node.
 - To do other really cool stuff, e.g., serving single-page apps and static websites from the same code.
 
+## Features
+
+- Builders
+	- [browserify](/substack/node-browserify)-like combining of scripts
+	- [catchall](/crcn/catchall) - catch *all* exceptions thrown in javascript
+
+
 ## Supports
 
 - Web 

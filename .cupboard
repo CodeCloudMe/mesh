@@ -2,3 +2,8 @@
 proj = subl --project project.sublime-project
 start = node .
 make  = make clean all
+
+
+[ignore]
+lib
+project.sublime-\w+

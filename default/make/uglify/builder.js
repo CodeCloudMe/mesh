@@ -11,7 +11,6 @@ async      = require('async');
 
 exports.build = function(target, next) {
 	
-	var on = outcome.error(next);
 
 	step(
 		function() {
@@ -26,7 +25,7 @@ exports.build = function(target, next) {
 			})
 		},
 
-		on.success(function(files) {
+		next.success(function(files) {
 			async.forEach(files, uglifyFile, this);
 		}),
 		next
@@ -39,11 +38,11 @@ exports.build = function(target, next) {
 			function() {
 				fs.readFile(file, "utf8", this)
 			},
-			on.success(function(content) {
+			next.success(function(content) {
 				var body = uglify.uglify.gen_code(parser.parse(content, false, false), { beautify: target.options.beautify });
 				this(null, body);
 			}),
-			on.success(function(body) {
+			next.success(function(body) {
 				fs.writeFile(file, body, this)
 			}),
 			callback

@@ -1,13 +1,11 @@
 var analyzeDeps = require('./analyzeDeps'),
 _ 	            = require('underscore'),
 async           = require('async'),
-combineScripts  = require('./combineScripts'),
-outcome         = require('outcome');
+combineScripts  = require('./combineScripts');
 
 exports.build = function(target, next) {
 
-	var ops = target.options,
-	on      = outcome.error(next);
+	var ops = target.options;
 
 
 	/**
@@ -25,7 +23,7 @@ exports.build = function(target, next) {
 	}
 
 	
-	analyzeDeps({ entries: include }, on.success(function(deps) {
+	analyzeDeps({ entries: include }, next.success(function(deps) {
 
 		//next item should take this script
 		ops.entry = ops.input = ops.output;
@@ -33,7 +31,7 @@ exports.build = function(target, next) {
 		combineScripts({
 			include: deps,
 			entries: [deps[0]]
-		}, on.success(function(content) {
+		}, next.success(function(content) {
 			fs.writeFile(target.cwd + "/" + ops.input, content, next);
 		}))
 	}));

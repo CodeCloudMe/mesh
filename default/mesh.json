@@ -8,6 +8,9 @@
 		},
 		"uglify": {
 			"script": "./make/uglify/builder.js"
+		},
+		"catchall": {
+			"script": "./make/catchall/builder.js"
 		}
 	}
 }

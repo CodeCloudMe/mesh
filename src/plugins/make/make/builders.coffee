@@ -1,3 +1,5 @@
+outcome = require "outcome"
+
 ###
  collection of builders loaded from configurations
 ###
@@ -53,7 +55,7 @@ module.exports = class Builders
 
 		console.log "--> #{builder.buildMessage target}"
 
-		builder.start target, next
+		builder.start target, outcome.error(next).success(next)
 
 
 	###
