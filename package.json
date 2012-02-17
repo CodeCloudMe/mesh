@@ -1,6 +1,10 @@
 {
   "name": "mesh",
   "description": "Write one app, deploy to many platforms",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/crcn/mesh.js.git"
+  },
   "version": "0.0.1",
   "repository": {},
   "engines": {},
