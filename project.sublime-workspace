@@ -207,6 +207,14 @@
 			}
 		},
 		{
+			"file": "/tmp/subl stdin KA5LJH.txt",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "/tmp/subl stdin k3OLaS.txt",
 			"settings":
 			{
@@ -991,7 +999,7 @@
 	"groups":
 	[
 		{
-			"selected": 22,
+			"selected": 13,
 			"sheets":
 			[
 				{
@@ -1351,8 +1359,8 @@
 						"selection":
 						[
 							[
-								133,
-								133
+								189,
+								189
 							]
 						],
 						"settings":
@@ -1610,7 +1618,7 @@
 				},
 				{
 					"buffer": 23,
-					"file": "/tmp/subl stdin k3OLaS.txt",
+					"file": "/tmp/subl stdin KA5LJH.txt",
 					"settings":
 					{
 						"buffer_size": 0,
@@ -1636,6 +1644,32 @@
 				},
 				{
 					"buffer": 24,
+					"file": "/tmp/subl stdin k3OLaS.txt",
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 25,
 					"file": "src/index.coffee",
 					"settings":
 					{
@@ -1662,7 +1696,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 25,
+					"buffer": 26,
 					"file": "src/core/utils/getPlatforms.coffee",
 					"settings":
 					{
@@ -1688,7 +1722,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 26,
+					"buffer": 27,
 					"file": "makefile",
 					"settings":
 					{
@@ -1714,7 +1748,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 27,
+					"buffer": 28,
 					"file": "src/core/bootstrap/Bootstrap.coffee",
 					"settings":
 					{
@@ -1741,7 +1775,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 28,
+					"buffer": 29,
 					"file": "src/core/template/engines/mustache.coffee",
 					"settings":
 					{
@@ -1768,7 +1802,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 29,
+					"buffer": 30,
 					"file": "src/plugins/merge/merge.coffee",
 					"settings":
 					{
@@ -1795,7 +1829,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 30,
+					"buffer": 31,
 					"file": "src/plugins/merge/copyr.coffee",
 					"settings":
 					{
@@ -1822,7 +1856,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 31,
+					"buffer": 32,
 					"file": "src/plugins/template/index.coffee",
 					"settings":
 					{
@@ -1849,7 +1883,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 32,
+					"buffer": 33,
 					"file": "src/default/make/sardines/combineScripts.js",
 					"settings":
 					{
@@ -1875,7 +1909,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 33,
+					"buffer": 34,
 					"file": "src/plugins/make/index.coffee",
 					"settings":
 					{
@@ -1902,7 +1936,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 34,
+					"buffer": 35,
 					"file": "src/plugins/merge/index.coffee",
 					"settings":
 					{
@@ -1929,7 +1963,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 35,
+					"buffer": 36,
 					"file": "lib/plugins/merge/merge.js",
 					"settings":
 					{
@@ -1957,7 +1991,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 36,
+					"buffer": 37,
 					"file": "src/default/make/sardines/utils.js",
 					"settings":
 					{
@@ -1984,7 +2018,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 37,
+					"buffer": 38,
 					"file": "src/default/make/sardines/builder.js",
 					"settings":
 					{
@@ -2011,7 +2045,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 38,
+					"buffer": 39,
 					"file": "src/default/modules/plugin.http.history/package.json",
 					"settings":
 					{
@@ -2037,7 +2071,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 39,
+					"buffer": 40,
 					"file": "src/default/modules/plugin.http.history/src/node/index.js",
 					"settings":
 					{
@@ -2064,7 +2098,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 40,
+					"buffer": 41,
 					"file": "src/default/bootstrap/makefile.hb",
 					"settings":
 					{
@@ -2090,7 +2124,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 41,
+					"buffer": 42,
 					"file": "src/plugins/bootstrap/index.coffee",
 					"settings":
 					{
@@ -2117,7 +2151,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 42,
+					"buffer": 43,
 					"file": "src/default/bootstrap/package.hb.json",
 					"settings":
 					{
@@ -2144,7 +2178,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 43,
+					"buffer": 44,
 					"file": "README.md",
 					"settings":
 					{
@@ -2171,7 +2205,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 44,
+					"buffer": 45,
 					"file": "src/default/modules/plugin.http.history/src/node/beanpoll.js",
 					"settings":
 					{
@@ -2198,7 +2232,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 45,
+					"buffer": 46,
 					"file": "src/default/modules/plugin.http.history/src/web/index.js",
 					"settings":
 					{
@@ -2225,7 +2259,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 46,
+					"buffer": 47,
 					"file": "src/index.js",
 					"settings":
 					{
@@ -2253,7 +2287,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 47,
+					"buffer": 48,
 					"file": "default/modules/plugin.dnode/package.json",
 					"settings":
 					{
@@ -2279,7 +2313,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 48,
+					"buffer": 49,
 					"file": "default/bootstrap/package.hb.json",
 					"settings":
 					{
@@ -2306,7 +2340,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 49,
+					"buffer": 50,
 					"file": "/tmp/subl stdin oIo319.txt",
 					"settings":
 					{
@@ -2332,7 +2366,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 50,
+					"buffer": 51,
 					"file": "default/bootstrap/src/web/index.html",
 					"settings":
 					{
@@ -2358,7 +2392,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 51,
+					"buffer": 52,
 					"file": "src/plugins/make/make/targets.coffee",
 					"settings":
 					{
@@ -2385,7 +2419,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 52,
+					"buffer": 53,
 					"file": "default/make/sardines/builder.js",
 					"settings":
 					{
@@ -2412,7 +2446,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 53,
+					"buffer": 54,
 					"file": "default/make/sardines/utils.js",
 					"settings":
 					{
@@ -2439,7 +2473,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 54,
+					"buffer": 55,
 					"file": "/tmp/subl stdin ubrURx.txt",
 					"settings":
 					{
@@ -2465,7 +2499,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 55,
+					"buffer": 56,
 					"file": "default/modules/plugin.http.history/src/node/index.js",
 					"settings":
 					{
@@ -2491,7 +2525,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 56,
+					"buffer": 57,
 					"file": "default/modules/plugin.http.history/src/node/checkAgent.js",
 					"settings":
 					{
@@ -2517,7 +2551,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 57,
+					"buffer": 58,
 					"settings":
 					{
 						"buffer_size": 0,
@@ -2543,7 +2577,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 58,
+					"buffer": 59,
 					"file": "examples/node+web/src/node web/plugins/example.home/views.js",
 					"settings":
 					{
@@ -2570,7 +2604,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 59,
+					"buffer": 60,
 					"file": "examples/node+web/package.json",
 					"settings":
 					{
@@ -2597,7 +2631,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 60,
+					"buffer": 61,
 					"file": "default/make/sardines/analyzeDeps.js",
 					"settings":
 					{
@@ -2624,7 +2658,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 61,
+					"buffer": 62,
 					"file": "default/bootstrap/makefile.hb",
 					"settings":
 					{
@@ -2650,7 +2684,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 62,
+					"buffer": 63,
 					"file": "default/bootstrap/src/web/mesh.merge.json",
 					"settings":
 					{
@@ -2678,7 +2712,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 63,
+					"buffer": 64,
 					"file": "default/bootstrap/src/web/package.json",
 					"settings":
 					{
@@ -2704,7 +2738,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 64,
+					"buffer": 65,
 					"file": "default/modules/plugin.http.history/src/node/beanpoll.js",
 					"settings":
 					{
@@ -2723,32 +2757,6 @@
 						{
 							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
 							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 65,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"default_dir": "/Users/craig/Dropbox/Developer/Public/mesh-http/src/web",
-							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -2810,6 +2818,32 @@
 				},
 				{
 					"buffer": 68,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"default_dir": "/Users/craig/Dropbox/Developer/Public/mesh-http/src/web",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 69,
 					"file": "examples/node+web/src/node web/package.json",
 					"settings":
 					{
@@ -2835,7 +2869,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 69,
+					"buffer": 70,
 					"file": "/tmp/subl stdin 8tTpqE.txt",
 					"settings":
 					{
@@ -2861,7 +2895,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 70,
+					"buffer": 71,
 					"file": "src/plugins/make/make/factory.coffee",
 					"settings":
 					{
@@ -2888,7 +2922,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 71,
+					"buffer": 72,
 					"file": "src/plugins/make/make/adapters/shellBuilder.coffee",
 					"settings":
 					{
@@ -2915,7 +2949,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 72,
+					"buffer": 73,
 					"file": "/tmp/subl stdin jqaAp8.txt",
 					"settings":
 					{
@@ -2941,7 +2975,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 73,
+					"buffer": 74,
 					"file": "lib/index.js",
 					"settings":
 					{
@@ -2969,7 +3003,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 74,
+					"buffer": 75,
 					"file": "default/make/sardines/builtin/util.js",
 					"settings":
 					{
@@ -2997,7 +3031,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 75,
+					"buffer": 76,
 					"file": "/tmp/subl stdin RdQkRj.txt",
 					"settings":
 					{
@@ -3023,7 +3057,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 76,
+					"buffer": 77,
 					"file": "default/make/sardines/tpl/main.tpl.js",
 					"settings":
 					{
@@ -3050,7 +3084,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 77,
+					"buffer": 78,
 					"file": "src/plugins/make/make/builders.coffee",
 					"settings":
 					{
@@ -3077,7 +3111,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 78,
+					"buffer": 79,
 					"file": "/tmp/subl stdin 4n4inA.txt",
 					"settings":
 					{
@@ -3094,32 +3128,6 @@
 						],
 						"settings":
 						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 79,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"default_dir": "/Users/craig/Dropbox/Developer/Public/mesh.js/default/make/sardines/builtin",
 							"syntax": "Packages/Text/Plain text.tmLanguage"
 						},
 						"translation.x": 0.0,
@@ -3156,6 +3164,32 @@
 				},
 				{
 					"buffer": 81,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"default_dir": "/Users/craig/Dropbox/Developer/Public/mesh.js/default/make/sardines/builtin",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 82,
 					"file": "default/make/sardines/builtin/net.js",
 					"settings":
 					{
@@ -3183,7 +3217,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 82,
+					"buffer": 83,
 					"file": "/tmp/subl stdin Hof5hA.txt",
 					"settings":
 					{
@@ -3209,7 +3243,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 83,
+					"buffer": 84,
 					"file": "default/mesh.json",
 					"settings":
 					{
@@ -3236,7 +3270,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 84,
+					"buffer": 85,
 					"file": "default/make/uglify/builder.js",
 					"settings":
 					{

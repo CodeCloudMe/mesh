@@ -285,7 +285,8 @@ module.exports = merge = (ops, callback) ->
 
 		async.map incModules
 			,(module, next) =>
-				router.request("find/module/dir").query({ module: module, dirs: ["#{input}/modules", "#{input}/node_modules"] }).response(next).pull()
+
+				router.request("find/module/dir").query({ module: module, input: input, dirs: ["#{input}/modules", "#{input}/node_modules"] }).response(next).pull()
 			,@
 
 	)

@@ -55,7 +55,7 @@ exports.plugin = (router, params) ->
 
 			# find the files that exist, and return the first result
 			async.filter possibilities, path.exists, (results) ->
-				return res.error new Error "module \"#{module}\" does not exist" if not results.length
+				return res.error new Error "module \"#{module}\" does not exist in #{req.query.input}" if not results.length
 				res.end results.shift()
 
 			
