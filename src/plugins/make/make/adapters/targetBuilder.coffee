@@ -13,8 +13,8 @@ module.exports = class TargetBuilder extends BaseBuilder
 	###
 	###
 
-	load: (@options) ->
-		@builder = @builders.factory.newBuilder null, @options.build
+	load: (@target) ->
+		@builder = @builders.factory.newBuilder null, @target.task
 
 	###
 	 passes the build phase 
@@ -24,8 +24,10 @@ module.exports = class TargetBuilder extends BaseBuilder
 		
 		obj = {}
 
+
+		#structr.copy @target, target
 		structr.copy target, obj
-		structr.copy @options, obj
+		structr.copy @target, obj
 
 		@builder.start obj, callback
 	
@@ -44,4 +46,4 @@ module.exports = class TargetBuilder extends BaseBuilder
 
 
 module.exports.test = (config) ->
-	return !!config.build
+	return !!config.task

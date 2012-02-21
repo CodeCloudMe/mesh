@@ -26,23 +26,24 @@ module.exports = class Config
 
 	constructor: () ->
 
-		buildFactory = new BuilderFactory()
-		buildFactory.addBuilderClass ChainBuilder
-		buildFactory.addBuilderClass ScriptBuilder
-		buildFactory.addBuilderClass ShellBuilder
-		buildFactory.addBuilderClass RefBuilder
-
-		taskFactory  = new BuilderFactory()
+		taskFactory = new BuilderFactory()
 		taskFactory.addBuilderClass ChainBuilder
-		taskFactory.addBuilderClass TargetBuilder
+		taskFactory.addBuilderClass ScriptBuilder
+		taskFactory.addBuilderClass ShellBuilder
 		taskFactory.addBuilderClass RefBuilder
+		taskFactory.addBuilderClass TargetBuilder
+
+		##taskFactory  = new BuilderFactory()
+		##taskFactory.addBuilderClass ChainBuilder
+		##taskFactory.addBuilderClass TargetBuilder
+		##taskFactory.addBuilderClass RefBuilder
 
 		@vars = {}
 
 		# the collection of available builders
-		@builders    = new Builders buildFactory, @
+		# @scripts  = new Builders scriptsFactory, @
 
-		@tasks       = new Builders taskFactory, @builders, @
+		@tasks    = new Builders taskFactory, @
 
 
 
@@ -89,10 +90,11 @@ module.exports = class Config
 			if typeof v == 'string' && /^(\.|~)+(\/\w*)+/.test v
 				this.update path.normalize v.replace(/^\./, self.cwd + "/.").replace(/^~/, process.env.HOME + "/");
 
+		config.tasks = {} if not config.tasks
 		
-			
-		# physical builders
-		@builders.load(config.build) if config.build
+		# move make commands over to tasks - used to separate tasks from build system depending
+		# on targets
+		config.tasks.make = config.make if config.make
 
 		@tasks.load(config.tasks) if config.tasks
 

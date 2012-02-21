@@ -7,7 +7,7 @@ exports.Builder = class
 	###
 	###
 
-	constructor: (@name, @builders) ->
+	constructor: (@name, @builders = null) ->
 	
 	###
 	 load from raw config
@@ -20,7 +20,15 @@ exports.Builder = class
 	###
 
 	start: (target, callback) ->
-		console.log "#{@_pointer()}#{@_buildMessage target}"
+			
+		# only set the name if it exists - could be a reference, or chain. In
+		# which case we want the PARENT chain
+		if @name
+			target.namespace   = @name
+			target.currentTask = @name.split(":").pop()
+
+		@_printMessage target
+
 		@_start target, callback
 
 	###
@@ -31,7 +39,14 @@ exports.Builder = class
 	###
 	###
 
-	_buildMessage: (target) -> "build #{@name}"
+	_printMessage: (target) ->
+		console.log "#{@_pointer()}#{@_buildMessage target}"
+		
+
+	###
+	###
+
+	_buildMessage: (target) -> "make #{@name}"
 
 
 	###

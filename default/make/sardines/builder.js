@@ -21,8 +21,7 @@ exports.build = function(target, next) {
 
 	/*for(var i = include.length; i--;) {
 		include[i] = target.cwd + "/" + include[i];
-	}*/
-
+		}*/
 
 	
 	analyzeDeps({ entries: include }, next.success(function(deps) {

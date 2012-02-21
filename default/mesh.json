@@ -1,5 +1,5 @@
 {
-	"build": {
+	"tasks": {
 		"combine": {
 			"script": "./make/sardines/builder.js"
 		},

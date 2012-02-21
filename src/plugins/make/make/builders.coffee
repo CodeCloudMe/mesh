@@ -10,7 +10,7 @@ module.exports = class Builders
 	###
 	###
 
-	constructor: (@factory, @sibling, @makeConfig) ->
+	constructor: (@factory, @makeConfig) ->
 		@_builders = {}
 		@factory.builders = @
 
@@ -21,17 +21,26 @@ module.exports = class Builders
 
 		namespaces = [] if not namespaces
 
+
 		for builderNames of builders
 			for builderName in builderNames.split(" ")
-				
+
 				builderData = builders[builderNames]
 
-				if builderName.substr(0, 1) == "@" 
-					@load builderData, namespaces.concat builderName.substr(1)
-				else
-					@add @factory.newBuilder(namespaces.concat(builderName).join(":"), builders[builderNames]) 
-						
+				builder = @factory.newBuilder(namespaces.concat(builderName).join(":"), builders[builderNames]) 
 
+				if builder
+					@add builder
+				else
+					@load builderData, namespaces.concat builderName
+
+				
+				#
+				#if builderName.substr(0, 1) == "/" 
+				#	@load builderData, namespaces.concat builderName.substr(1)
+				#else
+				#	@add 
+						
 		@
 			
 
@@ -44,8 +53,6 @@ module.exports = class Builders
 
 		for name of @_builders
 			return @_builders[name] if tester.test name
-
-		return @sibling.find(search) if @sibling
 
 		throw new Error "Cannot find builder \"#{search}\""
 		

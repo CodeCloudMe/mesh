@@ -18,10 +18,13 @@ module.exports = class RefBuilder extends BaseBuilder
 	 passes the build phase 
 	###
 
-	start: (target, callback) -> 
+	_start: (target, callback) -> 
 		@builders.find(@_find(target)).start target, callback
 
-
+	###
+	###
+	_printMessage: () ->
+	
 	###
 	###
 

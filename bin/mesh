@@ -100,7 +100,7 @@ function loadCli(router) {
 		request('make').
 		query(_.defaults({
 			input    : ops.input,
-			target   : ops.target || "debug",
+			task     : ops.task || "debug",
 			platform : ops.platform
 		}, ops)).
 		error(function(err) {

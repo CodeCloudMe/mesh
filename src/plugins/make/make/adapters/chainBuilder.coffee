@@ -17,23 +17,23 @@ module.exports = class ChainBuilder extends BaseBuilder
 	###
 
 	load: (chains) ->
-
+		
 		@chains = []
 		for builder in chains
 			@chains.push @builders.factory.newBuilder(null, builder)
 		
-					
+				
 	###
 	###
 
-	_start: (input, callback) ->
+	_start: (target, callback) ->
 
 		self = @
 
 
 		seq(@chains).
 		seqEach( (chain, next) ->
-			chain.start input, outcome.error(this).success(this)
+			chain.start target, outcome.error(this).success(this)
 		).seq ->
 			callback()
 	
