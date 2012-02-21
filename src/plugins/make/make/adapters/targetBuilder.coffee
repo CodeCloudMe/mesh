@@ -33,6 +33,11 @@ module.exports = class TargetBuilder extends BaseBuilder
 	###
 
 	_buildMessage: (target) -> "target #{@name}"
+
+	###
+	###
+
+	_pointer: () -> ""
 		
 
 

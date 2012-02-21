@@ -20,7 +20,7 @@ exports.Builder = class
 	###
 
 	start: (target, callback) ->
-		console.log "--> #{@_buildMessage target}"
+		console.log "#{@_pointer()}#{@_buildMessage target}"
 		@_start target, callback
 
 	###
@@ -32,4 +32,10 @@ exports.Builder = class
 	###
 
 	_buildMessage: (target) -> "build #{@name}"
+
+
+	###
+	###
+
+	_pointer: () -> "--> "
 
