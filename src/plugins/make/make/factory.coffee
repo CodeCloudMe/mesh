@@ -2,11 +2,6 @@ fs            = require "fs"
 path          = require "path"
 step          = require "stepc"
 outcome       = require "outcome"
-ChainBuilder  = require "./adapters/chainBuilder"
-ScriptBuilder = require "./adapters/scriptBuilder"
-ShellBuilder  = require "./adapters/shellBuilder"
-RefBuilder    = require "./adapters/refBuilder"
-TargetBuilder = require "./adapters/targetBuilder"
 
 
 ###
@@ -18,16 +13,9 @@ module.exports = class Factory
 	###
 	###
 
-	constructor: (@builders) ->
+	constructor: () ->
 
 		@_builderClasses = []
-
-		# add the default builders
-		@addBuilderClass ChainBuilder
-		@addBuilderClass ScriptBuilder
-		@addBuilderClass ShellBuilder
-		@addBuilderClass TargetBuilder
-		@addBuilderClass RefBuilder
 		
 	###
 	 adds a builder class - must also be a tester

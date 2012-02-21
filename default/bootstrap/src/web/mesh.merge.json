@@ -1,14 +1,16 @@
 {
     "build": {
-        "web:debug": ["combine"],
-        "web:release": ["web:debug", "uglify"]
+        "@web": {
+            "debug": ["combine"],
+            "release": ["web:release", "uglify"]
+        }
     },
     "tasks": {
         "debug release all": {
             "entry"   : "./src/index.js",
             "include" : "./src",
             "output"  : "./js/index.js",
-            "build"   : "web:{{target}}"
+            "build"   : "web:$target"
         }
     }
 }

@@ -4,6 +4,13 @@ step           = require "stepc"
 outcome        = require "outcome"
 Builders       = require "./builders"
 traverse       = require "traverse"
+BuilderFactory = require "./factory"
+
+ChainBuilder  = require "./adapters/chainBuilder"
+ScriptBuilder = require "./adapters/scriptBuilder"
+ShellBuilder  = require "./adapters/shellBuilder"
+RefBuilder    = require "./adapters/refBuilder"
+TargetBuilder = require "./adapters/targetBuilder"
 
 
 ### 
@@ -18,11 +25,22 @@ module.exports = class Config
 
 	constructor: () ->
 
+		buildFactory = new BuilderFactory()
+		buildFactory.addBuilderClass ChainBuilder
+		buildFactory.addBuilderClass ScriptBuilder
+		buildFactory.addBuilderClass ShellBuilder
+		buildFactory.addBuilderClass RefBuilder
+
+		taskFactory  = new BuilderFactory()
+		taskFactory.addBuilderClass ChainBuilder
+		taskFactory.addBuilderClass TargetBuilder
+		taskFactory.addBuilderClass RefBuilder
+
 
 		# the collection of available builders
-		@builders    = new Builders
+		@builders    = new Builders buildFactory
 
-		@tasks       = new Builders @builders
+		@tasks       = new Builders taskFactory, @builders
 
 
 

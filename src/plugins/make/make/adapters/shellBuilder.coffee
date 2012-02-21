@@ -1,6 +1,6 @@
 async       = require "async"
 BaseBuilder = require("./base").Builder
-handlebars  = require('handlebars')
+parseTpl    = require "../parseTpl"
 exec        = require("child_process").exec
 
 ###
@@ -38,7 +38,7 @@ module.exports = class ShellBuilder extends BaseBuilder
 	###
 
 	_cmd: (target) -> 	
-		handlebars.compile(@exec)(target.options)
+		return parseTpl @builderName, target
 
 
 

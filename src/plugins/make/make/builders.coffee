@@ -1,5 +1,4 @@
 outcome = require "outcome"
-BuilderFactory = require "./factory"
 
 ###
  collection of builders loaded from configurations
@@ -10,17 +9,27 @@ module.exports = class Builders
 	###
 	###
 
-	constructor: (@sibling) ->
+	constructor: (@factory, @sibling) ->
 		@_builders = {}
-		@factory = new BuilderFactory(@)
+		@factory.builders = @
 
 	###
 	###
 
-	load: (builders) ->
+	load: (builders, namespaces) ->
+
+		namespaces = [] if not namespaces
+
 		for builderNames of builders
 			for builderName in builderNames.split(" ")
-				@add @factory.newBuilder(builderName, builders[builderNames]) 
+				
+				builderData = builders[builderNames]
+
+				if builderName.substr(0, 1) == "@" 
+					@load builderData, namespaces.concat builderName.substr(1)
+				else
+					@add @factory.newBuilder(namespaces.concat(builderName).join(":"), builders[builderNames]) 
+						
 
 		@
 			

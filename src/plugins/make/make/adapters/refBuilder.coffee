@@ -1,6 +1,6 @@
 async       = require "async"
 BaseBuilder = require("./base").Builder
-handlebars  = require('handlebars')
+parseTpl    = require "../parseTpl"
 
 ###
  builds from a .js file
@@ -26,7 +26,7 @@ module.exports = class RefBuilder extends BaseBuilder
 	###
 
 	_find: (target) ->
-		return handlebars.compile(@builderName)(target)
+		return parseTpl @builderName, target
 
 
 
