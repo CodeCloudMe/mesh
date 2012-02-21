@@ -1,4 +1,5 @@
 outcome = require "outcome"
+_       = require "underscore"
 
 ###
  collection of builders loaded from configurations
@@ -9,7 +10,7 @@ module.exports = class Builders
 	###
 	###
 
-	constructor: (@factory, @sibling) ->
+	constructor: (@factory, @sibling, @makeConfig) ->
 		@_builders = {}
 		@factory.builders = @
 
@@ -59,6 +60,7 @@ module.exports = class Builders
 	###
 
 	build: (name, target, next) ->
+		_.defaults target, @makeConfig.vars
 		@find(name).start target, next
 
 

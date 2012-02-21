@@ -5,6 +5,7 @@ outcome        = require "outcome"
 Builders       = require "./builders"
 traverse       = require "traverse"
 BuilderFactory = require "./factory"
+_              = require "underscore"
 
 ChainBuilder  = require "./adapters/chainBuilder"
 ScriptBuilder = require "./adapters/scriptBuilder"
@@ -36,11 +37,12 @@ module.exports = class Config
 		taskFactory.addBuilderClass TargetBuilder
 		taskFactory.addBuilderClass RefBuilder
 
+		@vars = {}
 
 		# the collection of available builders
-		@builders    = new Builders buildFactory
+		@builders    = new Builders buildFactory, @
 
-		@tasks       = new Builders taskFactory, @builders
+		@tasks       = new Builders taskFactory, @builders, @
 
 
 
@@ -87,11 +89,14 @@ module.exports = class Config
 			if typeof v == 'string' && /^(\.|~)+(\/\w*)+/.test v
 				this.update path.normalize v.replace(/^\./, self.cwd + "/.").replace(/^~/, process.env.HOME + "/");
 
+		
 			
 		# physical builders
 		@builders.load(config.build) if config.build
 
 		@tasks.load(config.tasks) if config.tasks
+
+		@_loadVars config.vars if config.vars
 
 
 
@@ -102,6 +107,19 @@ module.exports = class Config
 
 		for key of config
 			value = config[config]
+
+
+	###
+	###
+
+	_loadVars: (vars) ->
+		
+		vars = JSON.parse(fs.readFileSync(vars, "utf8")) if typeof vars == "string"
+
+		_.extend @vars, vars
+
+
+
 
 
 
