@@ -7,6 +7,6 @@
             "task"    : "{{namespace}}:make"
         },
         "debug:make": ["combine", "catchall"],
-        "release:make": ["combine", "catchall"]
+        "release:make": ["combine"]
     }
 }
