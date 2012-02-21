@@ -33,7 +33,7 @@ module.exports = class ChainBuilder extends BaseBuilder
 
 		seq(@chains).
 		seqEach( (chain, next) ->
-			chain.start input, outcome.callback(this)
+			chain.start input, outcome.error(this).success(this)
 		).seq ->
 			callback()
 	

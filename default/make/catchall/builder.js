@@ -1,5 +1,6 @@
 var catchall = require('catchall'),
-fs = require('fs');
+fs = require('fs'),
+path = require('path')
 
 
 exports.build = function(target, next) {
@@ -14,6 +15,6 @@ exports.build = function(target, next) {
 
 exports.buildMessage = function(target) {
 
-	return "catchall " + target.options.entry;
+	return "catchall " + path.basename(target.entry);
 	
 }

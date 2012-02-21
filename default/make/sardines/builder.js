@@ -1,7 +1,8 @@
 var analyzeDeps = require('./analyzeDeps'),
 _ 	            = require('underscore'),
 async           = require('async'),
-combineScripts  = require('./combineScripts');
+combineScripts  = require('./combineScripts'),
+path            = require('path')
 
 exports.build = function(target, next) {
 
@@ -22,6 +23,7 @@ exports.build = function(target, next) {
 		include[i] = target.cwd + "/" + include[i];
 	}*/
 
+
 	
 	analyzeDeps({ entries: include }, next.success(function(deps) {
 
@@ -33,11 +35,11 @@ exports.build = function(target, next) {
 			entries: [deps[0]]
 		}, next.success(function(content) {
 			fs.writeFile(ops.input, content, next);
-		}))
+		}));
 	}));
 }
 
 
 exports.buildMessage = function(target) {
-	return "combining " + target.entry;
+	return "combining " + path.basename(target.entry);
 }

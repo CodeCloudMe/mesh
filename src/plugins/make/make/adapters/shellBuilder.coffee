@@ -38,7 +38,7 @@ module.exports = class ShellBuilder extends BaseBuilder
 	###
 
 	_cmd: (target) -> 	
-		return parseTpl @builderName, target
+		return parseTpl @exec, target
 
 
 
