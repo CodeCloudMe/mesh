@@ -5,7 +5,6 @@ step    = require "stepc"
 path    = require "path"
 async   = require "async"
 mkdirp  = require "mkdirp"
-rmdirr  = require "rmdirr"
 outcome = require "outcome"
 structr = require "structr"
 Seq     = require "seq"
@@ -71,7 +70,6 @@ module.exports = merge = (ops, callback) ->
 	)
 
 	# first make the output dir
-
 	,() ->
 		mkdirp outputModulesDir, 0777, @
 

@@ -99,9 +99,9 @@ function loadCli(router) {
 		router.
 		request('make').
 		query(_.defaults({
-			input: ops.input,
-			platform: ops.platform,
-			phase: ops.phase || "debug"
+			input    : ops.input,
+			target   : ops.target || "debug",
+			platform : ops.platform
 		}, ops)).
 		error(function(err) {
 			console.log(err.stack);

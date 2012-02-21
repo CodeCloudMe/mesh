@@ -1,5 +1,6 @@
 seq			= require "seq"
 BaseBuilder = require("./base").Builder
+outcome     = require "outcome"
 
 
 ###
@@ -15,18 +16,24 @@ module.exports = class ChainBuilder extends BaseBuilder
 	###
 	###
 
-	load: (@chains) ->
+	load: (chains) ->
+
+		@chains = []
+		for builder in chains
+			@chains.push @builders.factory.newBuilder(null, builder)
+		
 					
 	###
 	###
 
-	start: (input, callback) ->
+	_start: (input, callback) ->
 
 		self = @
 
+
 		seq(@chains).
 		seqEach( (chain, next) ->
-			self.makeConfig.builders.build chain, input, this
+			chain.start input, outcome.callback(this)
 		).seq ->
 			callback()
 	

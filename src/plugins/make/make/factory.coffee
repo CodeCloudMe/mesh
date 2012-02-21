@@ -5,6 +5,8 @@ outcome       = require "outcome"
 ChainBuilder  = require "./adapters/chainBuilder"
 ScriptBuilder = require "./adapters/scriptBuilder"
 ShellBuilder  = require "./adapters/shellBuilder"
+RefBuilder    = require "./adapters/refBuilder"
+TargetBuilder = require "./adapters/targetBuilder"
 
 
 ###
@@ -16,7 +18,7 @@ module.exports = class Factory
 	###
 	###
 
-	constructor: (@makeConfig) ->
+	constructor: (@builders) ->
 
 		@_builderClasses = []
 
@@ -24,6 +26,8 @@ module.exports = class Factory
 		@addBuilderClass ChainBuilder
 		@addBuilderClass ScriptBuilder
 		@addBuilderClass ShellBuilder
+		@addBuilderClass TargetBuilder
+		@addBuilderClass RefBuilder
 		
 	###
 	 adds a builder class - must also be a tester
@@ -38,17 +42,18 @@ module.exports = class Factory
 	 important since SOME builders may load from disc
 	###
 
-	newBuilder: (name, ops, cwd) ->
+	newBuilder: (name, ops) ->
+
 
 		for builderClass in @_builderClasses
 
 			if builderClass.test ops
 				
 				# new builder 
-				builder = new builderClass name, @makeConfig
+				builder = new builderClass name, @builders
 
 				# load it with the options given
-				builder.load ops, cwd || @makeConfig.cwd
+				builder.load ops
 
 				# return the builder
 				return builder

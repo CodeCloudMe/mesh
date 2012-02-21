@@ -1,39 +1,40 @@
 async       = require "async"
 BaseBuilder = require("./base").Builder
-handlebars  = require('handlebars')
+handlebars  = require "handlebars"
 exec        = require("child_process").exec
+structr     = require "structr"
 
 ###
  builds from a .js file
 ###
 
-module.exports = class ShellBuilder extends BaseBuilder
+module.exports = class TargetBuilder extends BaseBuilder
 	
 	###
 	###
 
-	load: (ops) ->
-		@exec = ops.exec
+	load: (@options) ->
+		@builder = @builders.factory.newBuilder null, @options.build
 
 	###
 	 passes the build phase 
 	###
 
-	start: (target, callback) -> 
+	_start: (target, callback) -> 
+		
+		obj = {}
 
+		structr.copy target, obj
+		structr.copy @options, obj
+
+		@builder.start obj, callback
+	
+	###
+	###
+
+	_buildMessage: (target) -> "target #{@name}"
 		
 
-	###
-	###
-
-	buildMessage: (target) -> @_cmd target
-
-
-	###
-	###
-
-	_cmd: (target) -> 
-		handlebars.compile(@exec)(target.options)
 
 
 

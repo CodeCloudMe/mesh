@@ -19,13 +19,13 @@ module.exports = class ScriptBuilder extends BaseBuilder
 	 passes the build phase 
 	###
 
-	start: (target, callback) -> 
+	_start: (target, callback) -> 
 		@builder.build.call this, target, callback
 
 	###
 	###
 
-	buildMessage: (target) ->
+	_buildMessage: (target) ->
 		return if @builder.buildMessage then @builder.buildMessage target else super target
 
 

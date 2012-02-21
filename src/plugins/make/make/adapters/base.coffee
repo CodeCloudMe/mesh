@@ -7,7 +7,7 @@ exports.Builder = class
 	###
 	###
 
-	constructor: (@name, @makeConfig) ->
+	constructor: (@name, @builders) ->
 	
 	###
 	 load from raw config
@@ -20,9 +20,16 @@ exports.Builder = class
 	###
 
 	start: (target, callback) ->
+		console.log "--> #{@_buildMessage target}"
+		@_start target, callback
 
 	###
 	###
 
-	buildMessage: (target) -> "build #{@name}"
+	_start: (target, callback) ->
+
+	###
+	###
+
+	_buildMessage: (target) -> "build #{@name}"
 

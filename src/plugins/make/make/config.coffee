@@ -3,39 +3,11 @@ path           = require "path"
 step           = require "stepc"
 outcome        = require "outcome"
 Builders       = require "./builders"
-MakeTargets    = require "./targets"
-BuilderFactory = require "./factory"
-Modules		   = require "./modules"
 traverse       = require "traverse"
 
 
 ### 
  the mesh config value object
-
- Example config:
-
-
- {
- 	
-
- 	build: {
- 		"web:debug": ["sardines"],
- 		"web:release": ["web:debug", "minify"]
- 	},
-
- 	target: [
- 		{
- 			input: "./script.js",
- 			output: "./script.out.js",
- 			build: "web:*"
- 		},
- 		{
- 			input: "./script2.js",
- 			output: "./script2.out.js",
- 			build: "web:*"
- 		}
- 	]
- }
 ###
 
 module.exports = class Config
@@ -46,16 +18,11 @@ module.exports = class Config
 
 	constructor: () ->
 
-		@buildFactory = new BuilderFactory @
 
 		# the collection of available builders
-		@builders    = new Builders @buildFactory
+		@builders    = new Builders
 
-		# the collection of targets to build
-		@targets     = new MakeTargets @builders
-
-
-		# @modules     = new Modules()
+		@tasks       = new Builders @builders
 
 
 
@@ -103,13 +70,11 @@ module.exports = class Config
 				this.update path.normalize v.replace(/^\./, self.cwd + "/.").replace(/^~/, process.env.HOME + "/");
 
 			
-		# @modules.addDir config.directories.modules if config.directories and config.directories.modules
-
 		# physical builders
 		@builders.load(config.build) if config.build
 
-		# next parse the targets
-		@targets.load(config.targets, @cwd) if config.targets
+		@tasks.load(config.tasks) if config.tasks
+
 
 
 	###

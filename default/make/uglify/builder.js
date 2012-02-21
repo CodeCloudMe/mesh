@@ -17,8 +17,7 @@ exports.build = function(target, next) {
 
 			var toUglify = [], self = this;
 
-
-			utils.findFiles(target.options.input, /\.js$/, function(file) {
+			utils.findFiles(target.input, /\.js$/, function(file) {
 				toUglify.push(file);
 			}, function() {
 				self(null, toUglify);
@@ -52,6 +51,6 @@ exports.build = function(target, next) {
 
 
 exports.buildMessage = function(target) {
-	return "uglifying - beautify: " + (!!target.options.beautfy)
+	return "uglifying - beautify: " + (!!target.beautfy)
 }
 

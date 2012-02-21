@@ -37,7 +37,7 @@ exports.plugin = (router, params) ->
 			cfg   = req.sanitized.makeConfig
 
 			# phase of the builder we want to execute: debug, release, etc.
-			phase = req.query.phase
+			target = req.query.target
 
 			# load the target mesh file
 			step.async () ->
@@ -45,7 +45,12 @@ exports.plugin = (router, params) ->
 
 			# on load start building
 			,(config) ->
-				cfg.targets.build phase, res.success (result) -> res.end result 
+				
+				cfg.tasks.build target, { target: target }, res.success (result) -> res.end result
+
+			,(err) ->
+				res.error err
+				
 
 
 		###
@@ -53,6 +58,5 @@ exports.plugin = (router, params) ->
 		###
 
 		"push make/config/path": (configPath) ->
-
 			makeConfigs.push configPath
 

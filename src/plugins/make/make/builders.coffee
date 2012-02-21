@@ -1,4 +1,5 @@
 outcome = require "outcome"
+BuilderFactory = require "./factory"
 
 ###
  collection of builders loaded from configurations
@@ -9,23 +10,20 @@ module.exports = class Builders
 	###
 	###
 
-	constructor: (@factory) ->
+	constructor: (@sibling) ->
 		@_builders = {}
+		@factory = new BuilderFactory(@)
 
 	###
 	###
 
 	load: (builders) ->
+		for builderNames of builders
+			for builderName in builderNames.split(" ")
+				@add @factory.newBuilder(builderName, builders[builderNames]) 
 
-		@add @factory.newBuilder(builderName, builders[builderName]) for builderName of builders
+		@
 			
-
-	###
-	 returns a builder based on the name
-	###
-
-	get: (name) -> 
-		@_builders[name]
 
 	###
 	 finds a builder based on the pattern given
@@ -36,6 +34,8 @@ module.exports = class Builders
 
 		for name of @_builders
 			return @_builders[name] if tester.test name
+
+		return @sibling.find(search) if @sibling
 
 		throw new Error "Cannot find builder \"#{search}\""
 		
@@ -50,19 +50,13 @@ module.exports = class Builders
 	###
 
 	build: (name, target, next) ->
-		
-		builder = @find name
-
-		console.log "--> #{builder.buildMessage target}"
-
-		builder.start target, outcome.error(next).success(next)
+		@find(name).start target, next
 
 
 	###
 	###
 
 	_nameTester: (search) ->
-		
 		return search if search instanceof RegExp
 		return { test: search } if search instanceof Function
 		return new RegExp("^#{search.replace(/\./g,"\\.").replace(/\*\*/g,".*").replace(/\*/g,"[^\\.]")}$") if typeof search == "string"

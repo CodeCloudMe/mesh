@@ -19,7 +19,7 @@ module.exports = class ShellBuilder extends BaseBuilder
 	 passes the build phase 
 	###
 
-	start: (target, callback) -> 
+	_start: (target, callback) -> 
 
 		cmd = @_cmd target
 
@@ -32,13 +32,12 @@ module.exports = class ShellBuilder extends BaseBuilder
 	###
 	###
 
-	buildMessage: (target) -> @_cmd target
-
+	_buildMessage: (target) -> @_cmd target
 
 	###
 	###
 
-	_cmd: (target) -> 
+	_cmd: (target) -> 	
 		handlebars.compile(@exec)(target.options)
 
 

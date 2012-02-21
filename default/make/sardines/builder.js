@@ -5,7 +5,7 @@ combineScripts  = require('./combineScripts');
 
 exports.build = function(target, next) {
 
-	var ops = target.options;
+	var ops = target;
 
 
 	/**
@@ -39,5 +39,5 @@ exports.build = function(target, next) {
 
 
 exports.buildMessage = function(target) {
-	return "combining " + target.options.entry;
+	return "combining " + target.entry;
 }

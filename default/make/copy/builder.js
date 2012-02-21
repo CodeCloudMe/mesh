@@ -2,7 +2,7 @@ dirmr = require("dirmr");
 
 exports.build = function(target, next) {
 
-	var ops = target.options;
+	var ops = target;
 	
 	var include = ops.include instanceof Array ? ops.include : [ops.include],
 
