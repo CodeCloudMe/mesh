@@ -14,7 +14,7 @@ params({
 }).
 require(__dirname + "/plugins").
 require('fig').
-require('plugin.http.history').
+require('mesh-http').
 load();
 
 exports.router = router;

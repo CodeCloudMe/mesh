@@ -49,11 +49,10 @@ mainScriptPath  = utils.mainScriptPath;
  	 */
 
  	var includeScript = function(script, callback) {
- 				
- 		// if(isUsed(script)) console.log(script.alias);
 
  		//script already used? skip.
- 		if(isUsed(script)) return callback();
+ 		if(isUsed(script) || !script.path) return callback();
+ 		
  		use(script);
 
  		var on = outcome.error(callback);

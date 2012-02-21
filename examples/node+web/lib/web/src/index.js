@@ -169,7 +169,7 @@ var __app = (function(){
 	}
 })();
 
-_sardines.register("/modules/41147061/index.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/edd6af44/src/index.js", function(require, module, exports, __dirname, __filename) {
 	var main = require('./main');
 
 $(document).ready(function() {
@@ -177,7 +177,7 @@ $(document).ready(function() {
 });
 
 });
-_sardines.register("/modules/41147061/main.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/edd6af44/src/main.js", function(require, module, exports, __dirname, __filename) {
 	
 var beanpoll = require('beanpoll'),
 haba         = require('haba'),
@@ -194,7 +194,7 @@ params({
 }).
 require(__dirname + "/plugins").
 require('fig').
-require('plugin.http.history').
+require('mesh-http').
 load();
 
 exports.router = router;
@@ -432,7 +432,7 @@ module.exports.paths  = core.paths;
 _sardines.register("/modules/haba", function(require, module, exports, __dirname, __filename) {
 	module.exports = require('modules/haba/lib/index.js');
 });
-_sardines.register("/modules/fig/index.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/faebed62/index.js", function(require, module, exports, __dirname, __filename) {
 	//#include ./plugins
 
 var views      = require('./views'),
@@ -445,6 +445,10 @@ MustacheParser = require('./template/adapters/mustache');
 
 Parser.add('mu', MustacheParser);
 
+/**
+ * 
+ */
+
 var views = {
 	View: concrete,
 	Item: model.Item,
@@ -454,6 +458,22 @@ var views = {
 	CollectionTemplate: template.CollectionTemplate
 }
 
+/**
+ */
+
+exports.mixins = {
+	errorHandling: require('./mixin/errorHandling')
+}
+
+/**
+ * allow the views to be extended upon
+ */
+
+exports.views = views;
+
+/**
+ */
+ 
 
 exports.plugin = function(router, params) {
 	
@@ -461,16 +481,20 @@ exports.plugin = function(router, params) {
 
 
 	
-	var plviews = {};
-
-	for(name in views) {
-		plviews[name] = views[name].extend({ router: router });
-	}
-
-
-	var fig = {
+	var plviews = {},
+	fig = {
 		views: plviews
 	};
+
+	for(name in views) {
+		var viewClazz = plviews[name] = views[name].extend({
+			'override __construct': function() {
+				this._super.apply(this, arguments);
+				this.router = router;
+				this.views = plviews;
+			}
+		});
+	}
 
 
 	router.on({
@@ -482,6 +506,8 @@ exports.plugin = function(router, params) {
 
 	router.push('fig', fig);
 
+	router.views = plviews;
+
 
 	return {
 		views: fig
@@ -489,7 +515,7 @@ exports.plugin = function(router, params) {
 }
 
 });
-_sardines.register("/modules/plugin.http.history/index.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/4411e1c8/index.js", function(require, module, exports, __dirname, __filename) {
 	require('./history');
 
 var utils = require('./utils'),
@@ -548,18 +574,29 @@ exports.plugin = function(router)
 
 			logger.info('dumping stream data');
 
+			var buffer = '', response = {};
+
 			stream.dump({
 				error: function(err) {
 					console.log(err.stack);
 				},
 				headers: function(res)
 				{
+					response = res;
+
 					if(res.redirect)
 					{
 						router.push('redirect', res.redirect);
 					}
 				},
-				end: function(){}
+				data: function(chunk) {
+					buffer += chunk
+				},
+				end: function() {
+					if(response.redirect || response.dontPrint) return;
+					
+					document.body.innerHTML = buffer;
+				}
 			})
 		}).pull();
 	}
@@ -567,6 +604,7 @@ exports.plugin = function(router)
 
 	window.onpopstate = function(e)
 	{
+		logger.verbose('pop state');
 
 		var state = e.state;     
 
@@ -588,8 +626,7 @@ exports.plugin = function(router)
 		 */
 
 		'push redirect': function(ops)
-		{                                           
-
+		{        
 			var channel, data;
 
 			if(typeof ops == 'string')
@@ -623,7 +660,6 @@ exports.plugin = function(router)
                                                       
 				logger.info('redirect to ' + channel);
 
-
 				window.history.pushState({ data: data, channel: channel } , null, ('/' + channel).replace(/\/+/g,'/'));     
 
 				router.push('track/pageView', { page: channel });
@@ -643,6 +679,15 @@ exports.plugin = function(router)
 		/**
 		 */
 
+		'pull load/*': function(req, res, mw) {
+			$(document).ready(function() {
+				mw.next();
+			});
+		},
+
+		/**
+		 */
+
 		'push -one init': function() {
 			logger.info('app ready');
 
@@ -650,78 +695,15 @@ exports.plugin = function(router)
 			var hasListeners = router.request(window.location.pathname).tag('static', false).type('pull').hasListeners();
 
 
-
-			setTimeout(function()
-			{      
-				//console.log(!meta['static'] && window.location.pathname != '/')                                 
-				// if(!tags['static'] /*&& window.location.pathname != '/'*/) 
-				// if(hasListeners) 
-				router.push('redirect', window.location.pathname + window.location.search);
-
-				router.push('history/ready');                            
-			}, 1);
-		}
-	})
-}
-});
-_sardines.register("/modules/41147061/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
-	module.exports = function(fig) {
-		
-	var views = fig.views;
+			router.push('redirect', window.location.pathname + window.location.search);
+			router.push('history/ready');   
 
 
-	views.IndexView = views.Template.extend({
-		
-		tpl: '/index.html',
-
-		'override render': function() {
-			this._super();
-		}
-	});
-	
-
-	views.HelloView = views.View.extend({
-		
-		'el': '#page',
-
-		'override render': function() {
-			this._super();
-			this.$$(this.el).html('html!');
-		}
-	});
-
-	return views;
-}
-});
-_sardines.register("/modules/41147061/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
-	
-
-exports.plugin = function(router) {
-	
-	var views;
-	
-	router.on({
-		
-		'push -pull fig': function(fig) {
-			views = require('./views')(fig);
-		},
-
-
-		/**
-		 */
-
-		'pull -method=GET view -> home OR /': function(req, res) {
-			req.addView(new views.IndexView());
-			if(!this.next()) req.display();
-		},
-
-		/**
-		 */
-
-		'pull -method=GET home -> view -> hello': function(req, res) {
-			
-			req.addView(new views.HelloView());
-			if(!this.next()) req.display();
+			router.on({
+				'pull history/ready': function(req, res) {
+					res.end(true);
+				}
+			})
 		}
 	})
 }
@@ -2564,7 +2546,7 @@ exports.existsSync = function(path) {
 };
 
 });
-_sardines.register("/modules/plugin.http.history/history.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/4411e1c8/history.js", function(require, module, exports, __dirname, __filename) {
 	
 /**
  * @preserve By Filipe Fortes ( www.fortes.com )
@@ -2781,15 +2763,15 @@ if (document.location.hash) {
   }
 }(window.history_js, window, document.location));
 });
-_sardines.register("/modules/plugin.http.history/utils.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/4411e1c8/utils.js", function(require, module, exports, __dirname, __filename) {
 	exports.urlPath = function(url)
 {
 	return url.indexOf('://') > -1 ? url.split('/').slice(3).join('/') : url;
 }
 });
 _sardines.register("/modules/underscore/underscore.js", function(require, module, exports, __dirname, __filename) {
-	//     Underscore.js 1.3.1
-//     (c) 2009-2012 Jeremy Ashkenas, DocumentCloud Inc.
+	//     Underscore.js 1.2.3
+//     (c) 2009-2011 Jeremy Ashkenas, DocumentCloud Inc.
 //     Underscore is freely distributable under the MIT license.
 //     Portions of Underscore are inspired or borrowed from Prototype,
 //     Oliver Steele's Functional, and John Resig's Micro-Templating.
@@ -2815,6 +2797,7 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
 
   // Create quick reference variables for speed access to core prototypes.
   var slice            = ArrayProto.slice,
+      concat           = ArrayProto.concat,
       unshift          = ArrayProto.unshift,
       toString         = ObjProto.toString,
       hasOwnProperty   = ObjProto.hasOwnProperty;
@@ -2838,21 +2821,26 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
   // Create a safe reference to the Underscore object for use below.
   var _ = function(obj) { return new wrapper(obj); };
 
-  // Export the Underscore object for **Node.js**, with
-  // backwards-compatibility for the old `require()` API. If we're in
-  // the browser, add `_` as a global object via a string identifier,
-  // for Closure Compiler "advanced" mode.
+  // Export the Underscore object for **Node.js** and **"CommonJS"**, with
+  // backwards-compatibility for the old `require()` API. If we're not in
+  // CommonJS, add `_` to the global object.
   if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
       exports = module.exports = _;
     }
     exports._ = _;
+  } else if (typeof define === 'function' && define.amd) {
+    // Register as a named module with AMD.
+    define('underscore', function() {
+      return _;
+    });
   } else {
+    // Exported as a string, for Closure Compiler "advanced" mode.
     root['_'] = _;
   }
 
   // Current version.
-  _.VERSION = '1.3.1';
+  _.VERSION = '1.2.3';
 
   // Collection Functions
   // --------------------
@@ -2870,7 +2858,7 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
       }
     } else {
       for (var key in obj) {
-        if (_.has(obj, key)) {
+        if (hasOwnProperty.call(obj, key)) {
           if (iterator.call(context, obj[key], key, obj) === breaker) return;
         }
       }
@@ -2879,14 +2867,13 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
 
   // Return the results of applying the iterator to each element.
   // Delegates to **ECMAScript 5**'s native `map` if available.
-  _.map = _.collect = function(obj, iterator, context) {
+  _.map = function(obj, iterator, context) {
     var results = [];
     if (obj == null) return results;
     if (nativeMap && obj.map === nativeMap) return obj.map(iterator, context);
     each(obj, function(value, index, list) {
       results[results.length] = iterator.call(context, value, index, list);
     });
-    if (obj.length === +obj.length) results.length = obj.length;
     return results;
   };
 
@@ -3003,7 +2990,7 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
   _.invoke = function(obj, method) {
     var args = slice.call(arguments, 2);
     return _.map(obj, function(value) {
-      return (_.isFunction(method) ? method || value : value[method]).apply(value, args);
+      return (method.call ? method || value : value[method]).apply(value, args);
     });
   };
 
@@ -3296,7 +3283,7 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
     hasher || (hasher = _.identity);
     return function() {
       var key = hasher.apply(this, arguments);
-      return _.has(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
+      return hasOwnProperty.call(memo, key) ? memo[key] : (memo[key] = func.apply(this, arguments));
     };
   };
 
@@ -3368,7 +3355,7 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
   // conditionally execute the original function.
   _.wrap = function(func, wrapper) {
     return function() {
-      var args = [func].concat(slice.call(arguments, 0));
+      var args = concat.apply([func], arguments);
       return wrapper.apply(this, args);
     };
   };
@@ -3402,7 +3389,7 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
   _.keys = nativeKeys || function(obj) {
     if (obj !== Object(obj)) throw new TypeError('Invalid object');
     var keys = [];
-    for (var key in obj) if (_.has(obj, key)) keys[keys.length] = key;
+    for (var key in obj) if (hasOwnProperty.call(obj, key)) keys[keys.length] = key;
     return keys;
   };
 
@@ -3425,7 +3412,7 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
   _.extend = function(obj) {
     each(slice.call(arguments, 1), function(source) {
       for (var prop in source) {
-        obj[prop] = source[prop];
+        if (source[prop] !== void 0) obj[prop] = source[prop];
       }
     });
     return obj;
@@ -3523,17 +3510,17 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
       if ('constructor' in a != 'constructor' in b || a.constructor != b.constructor) return false;
       // Deep compare objects.
       for (var key in a) {
-        if (_.has(a, key)) {
+        if (hasOwnProperty.call(a, key)) {
           // Count the expected number of properties.
           size++;
           // Deep compare each member.
-          if (!(result = _.has(b, key) && eq(a[key], b[key], stack))) break;
+          if (!(result = hasOwnProperty.call(b, key) && eq(a[key], b[key], stack))) break;
         }
       }
       // Ensure that both objects contain the same number of properties.
       if (result) {
         for (key in b) {
-          if (_.has(b, key) && !(size--)) break;
+          if (hasOwnProperty.call(b, key) && !(size--)) break;
         }
         result = !size;
       }
@@ -3552,7 +3539,7 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
   // An "empty" object has no enumerable own-properties.
   _.isEmpty = function(obj) {
     if (_.isArray(obj) || _.isString(obj)) return obj.length === 0;
-    for (var key in obj) if (_.has(obj, key)) return false;
+    for (var key in obj) if (hasOwnProperty.call(obj, key)) return false;
     return true;
   };
 
@@ -3578,7 +3565,7 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
   };
   if (!_.isArguments(arguments)) {
     _.isArguments = function(obj) {
-      return !!(obj && _.has(obj, 'callee'));
+      return !!(obj && hasOwnProperty.call(obj, 'callee'));
     };
   }
 
@@ -3626,11 +3613,6 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
   // Is a given variable undefined?
   _.isUndefined = function(obj) {
     return obj === void 0;
-  };
-
-  // Has own property?
-  _.has = function(obj, key) {
-    return hasOwnProperty.call(obj, key);
   };
 
   // Utility Functions
@@ -3682,17 +3664,6 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
     escape      : /<%-([\s\S]+?)%>/g
   };
 
-  // When customizing `templateSettings`, if you don't want to define an
-  // interpolation, evaluation or escaping regex, we need one that is
-  // guaranteed not to match.
-  var noMatch = /.^/;
-
-  // Within an interpolation, evaluation, or escaping, remove HTML escaping
-  // that had been previously added.
-  var unescape = function(code) {
-    return code.replace(/\\\\/g, '\\').replace(/\\'/g, "'");
-  };
-
   // JavaScript micro-templating, similar to John Resig's implementation.
   // Underscore templating handles arbitrary delimiters, preserves whitespace,
   // and correctly escapes quotes within interpolated code.
@@ -3702,14 +3673,15 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
       'with(obj||{}){__p.push(\'' +
       str.replace(/\\/g, '\\\\')
          .replace(/'/g, "\\'")
-         .replace(c.escape || noMatch, function(match, code) {
-           return "',_.escape(" + unescape(code) + "),'";
+         .replace(c.escape, function(match, code) {
+           return "',_.escape(" + code.replace(/\\'/g, "'") + "),'";
          })
-         .replace(c.interpolate || noMatch, function(match, code) {
-           return "'," + unescape(code) + ",'";
+         .replace(c.interpolate, function(match, code) {
+           return "'," + code.replace(/\\'/g, "'") + ",'";
          })
-         .replace(c.evaluate || noMatch, function(match, code) {
-           return "');" + unescape(code).replace(/[\r\n\t]/g, ' ') + ";__p.push('";
+         .replace(c.evaluate || null, function(match, code) {
+           return "');" + code.replace(/\\'/g, "'")
+                              .replace(/[\r\n\t]/g, ' ') + ";__p.push('";
          })
          .replace(/\r/g, '\\r')
          .replace(/\n/g, '\\n')
@@ -3720,11 +3692,6 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
     return function(data) {
       return func.call(this, data, _);
     };
-  };
-
-  // Add a "chain" function, which will delegate to the wrapper.
-  _.chain = function(obj) {
-    return _(obj).chain();
   };
 
   // The OOP Wrapper
@@ -3759,11 +3726,8 @@ _sardines.register("/modules/underscore/underscore.js", function(require, module
   each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function(name) {
     var method = ArrayProto[name];
     wrapper.prototype[name] = function() {
-      var wrapped = this._wrapped;
-      method.apply(wrapped, arguments);
-      var length = wrapped.length;
-      if ((name == 'shift' || name == 'splice') && length === 0) delete wrapped[0];
-      return result(wrapped, this._chain);
+      method.apply(this._wrapped, arguments);
+      return result(this._wrapped, this._chain);
     };
   });
 
@@ -4351,10 +4315,9 @@ function parseHost(host) {
 }
 
 });
-_sardines.register("/modules/mesh-winston/index.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/7c43bcdc/index.js", function(require, module, exports, __dirname, __filename) {
 	var loggers = {};
 
-console.log("G")
 var newLogger = function(module) {
 
 	function logger(name) {
@@ -4378,6 +4341,68 @@ exports.loggers = {
 	get: function(name) {
 		return loggers[name] || (loggers[name] = newLogger(name))
 	}
+}
+});
+_sardines.register("/modules/edd6af44/src/plugins/example.home/views.js", function(require, module, exports, __dirname, __filename) {
+	module.exports = function(fig) {
+		
+	var views = fig.views;
+
+
+	views.IndexView = views.Template.extend({
+		
+		tpl: '/index.html',
+
+		'override render': function() {
+			this._super();
+		}
+	});
+	
+
+	views.HelloView = views.View.extend({
+		
+		'el': '#page',
+
+		'override render': function() {
+			this._super();
+			this.$$(this.el).html('html!');
+		}
+	});
+
+	return views;
+}
+});
+_sardines.register("/modules/edd6af44/src/plugins/example.home/index.js", function(require, module, exports, __dirname, __filename) {
+	
+
+exports.plugin = function(router) {
+	
+	var views;
+	
+	router.on({
+		
+		'push -pull fig': function(fig) {
+			views = require('./views')(fig);
+		},
+
+
+		/**
+		 */
+
+		'pull -method=GET view -> home OR /': function(req, res) {
+			req.addView(new views.IndexView());
+			if(!this.next()) req.display();
+		},
+
+		/**
+		 */
+
+		'pull -method=GET home -> view -> hello': function(req, res) {
+			
+			req.addView(new views.HelloView());
+			if(!this.next()) req.display();
+		}
+	})
 }
 });
 _sardines.register("/modules/crema/lib/index.js", function(require, module, exports, __dirname, __filename) {
@@ -6702,12 +6727,11 @@ QueryString.parse = QueryString.decode = function(qs, sep, eq) {
 };
 
 });
-_sardines.register("/modules/fig/views/index.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/faebed62/views/index.js", function(require, module, exports, __dirname, __filename) {
 	
 });
-_sardines.register("/modules/fig/views/model.js", function(require, module, exports, __dirname, __filename) {
-	var View = require('./concrete'),
-views = require('./index');
+_sardines.register("/modules/faebed62/views/model.js", function(require, module, exports, __dirname, __filename) {
+	var View = require('./concrete');
 
 
 var ItemView = exports.Item = View.extend({
@@ -6960,29 +6984,32 @@ var CollectionView = exports.Collection = ItemView.extend({
 
 	'newView': function(item, element)
 	{
-		return new views[this.view]({ data: item });
+		console.log(this.views)
+		return new this.views[this.view]({ data: item });
 	}
 
 });
 });
-_sardines.register("/modules/fig/views/template.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/faebed62/views/template.js", function(require, module, exports, __dirname, __filename) {
 	var model = require('./model'),
 View = require('./concrete'),
 Parser = require('../template/parser'),
-logger = require('mesh-winston').loggers.get('fig');
+logger = require('mesh-winston').loggers.get('fig'),
+sprintf = require('sprintf').sprintf;
 
 var TemplateViewPartial = {
 	
 	/**
 	 */
 
-	'override setup': function(ops)
-	{
+	'override setup': function(ops) {
+
 		this._super(ops);
 
 		this.tpl = this.ops.tpl || this.tpl;
 
 		return this;
+
 	},
 
 
@@ -6990,9 +7017,10 @@ var TemplateViewPartial = {
 	 * the data to use to fill in the template
 	 */
 
-	'templateData': function()
-	{
+	'templateData': function() {
+
 		return { };
+
 	},
 
 	/**
@@ -7000,8 +7028,7 @@ var TemplateViewPartial = {
 	 */
 
 
-	'override render': function()
-	{
+	'override render': function() {
 
 		var self = this, _super = this._super;
 
@@ -7015,22 +7042,27 @@ var TemplateViewPartial = {
 		
 		
 		//we need to TEMPORARILY block out templates so they don't get parsed on load
-		Parser.parse(this.templateType, this.templateSource.replace(scriptsRegexp, placeHolder), this.templateData(), function(content)
-		{
+		Parser.parse(this.templateType, this.templateSource.replace(scriptsRegexp, placeHolder), this.templateData(), function(content) {
+
 			if(!content) content = self.templateSource;
 
-			while(scripts.length)
-			{
+			while(scripts.length) {
+
 				content = content.replace(placeHolder, scripts.shift());
+
 			}
 
 			if(self.el == self.document && typeof window != 'undefined') return;
 
 			//server-side?
 			if(typeof window == 'undefined') {
+
 				self.el.innerHTML = String(content);
+
 			} else {
+
 				self.$$(self.el).html(String(content));
+
 			}		
 
 		});	
@@ -7041,8 +7073,7 @@ var TemplateViewPartial = {
 	/**
 	 */
 
-	'override instructions': function()
-	{
+	'override instructions': function() {
 		return ['_loadTemplate'].concat(this._super());
 	},
 
@@ -7050,48 +7081,55 @@ var TemplateViewPartial = {
 	 * loads in a template, this should happen *once*
 	 */
 
-	'_loadTemplate': function(next)
-	{
+	'_loadTemplate': function(next) {
 
-		if(!this.tpl || this.loadedTemplate) 
-		{
+		logger.verbose(sprintf('loading template %s', this.tpl));
+
+		if(!this.tpl || this.loadedTemplate) {
+
 			console.warn('Cannot load template');
+
 			return next();
+
 		}
 
 		this.loadedTemplate = true;
 
 		var self = this;
 
-		function onTemplate(source, type)
-		{
+		function onTemplate(source, type) {
+
+			logger.verbose('loaded template');
+
 			self.templateSource = source;
 			self.templateType = type;
 			next();
+			
 		}
 
-		if(this.tpl.substr(0,1) == '#')
-		{
+		if(this.tpl.substr(0, 1) == '#') {
+
 			var el = this.document.getElementById(this.tpl.substr(1));
 
 			//text/x-tmpl-
-			if(el)
-			{
+			if(el) {
+
 				onTemplate(el.innerText || el.text || el.textContent, el.getAttribute('type').substr(12));
-			}
-			else
-			{
+
+			} else {
+
 				console.warn('Template %s does not exist', this.tpl);
+
 			}
-		}
-		else
-		{
+		} else {
 
 
-			this.router.request('template').query({ name: this.tpl }).headers({ cache: true }).success(function(content)
-			{
+			this.router.request('template').query({ name: this.tpl }).headers({ cache: true }).success(function(content) {
+
 				onTemplate(content, self.tpl.split('.').pop());
+
 			}).pull();
+
 		}
 	}
 }
@@ -7103,17 +7141,18 @@ var ModelTemplatePartial = {
 	/**
 	 */
 
-	'templateData': function()
-	{
+	'templateData': function() {
+
 		return this.data ? this.data().doc : {};
+
 	}
 };
 
-exports.Template = View.extend(TemplateViewPartial);
-exports.ItemTemplate = model.Item.extend(TemplateViewPartial, ModelTemplatePartial);
+exports.Template           = View.extend(TemplateViewPartial);
+exports.ItemTemplate       = model.Item.extend(TemplateViewPartial, ModelTemplatePartial);
 exports.CollectionTemplate = model.Collection.extend(TemplateViewPartial, ModelTemplatePartial);
 });
-_sardines.register("/modules/fig/views/concrete.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/faebed62/views/concrete.js", function(require, module, exports, __dirname, __filename) {
 	var View = require('./abstract');
 
 module.exports = View.extend({
@@ -7124,18 +7163,17 @@ module.exports = View.extend({
 	 * that needs to be replaces to make the app for of an SPA
 	 */
 
-	'override listen': function()
-	{
+	'override listen': function() {
+
 		this._super();
-		
 		
 		//come through the element - goes through the links and replaces listens to them primarily. 
 		//Not needed server-side, good client-side.
 		this.router.push('comb/element', { element: this.el });
 	}
-})
 });
-_sardines.register("/modules/fig/template/parser.js", function(require, module, exports, __dirname, __filename) {
+});
+_sardines.register("/modules/faebed62/template/parser.js", function(require, module, exports, __dirname, __filename) {
 	var Structr = require('structr');
 
 
@@ -7171,7 +7209,7 @@ module.exports = new (Structr({
 }));
 
 });
-_sardines.register("/modules/fig/template/adapters/mustache/index.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/faebed62/template/adapters/mustache/index.js", function(require, module, exports, __dirname, __filename) {
 	var Mustache = require('./mustache');
 
 
@@ -7181,9 +7219,61 @@ exports.parse = function(template, data, callback)
 }
 
 });
-_sardines.register("/modules/fig/plugins/views/viewChain.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/faebed62/mixin/errorHandling.js", function(require, module, exports, __dirname, __filename) {
+	var outcome = require('outcome');
+
+/**
+ * handles error
+ */
+
+
+module.exports = {
+
+	/**
+	 */
+
+	'errorEl': '.alert-message',
+	
+	/**
+	 */
+
+	'successCb': function(callback) {
+		return this.outcome().success(callback);
+	},
+
+	/**
+	 */
+
+	'outcome': function() {
+		return this._outcome || outcome.error(this.getMethod('onError'));
+	},
+
+	/**
+	 * called when an error happens remotely
+	 */
+
+	'onError': function(err) {
+		// console.log(this.$())
+		// this.$(ths.errorEl).alert('close')
+		this.$(this.errorEl).find('.message').html(err.message);
+		// this.$(this.errorEl).css({'display':'block'});
+		this.$(this.errorEl).slideDown(200);
+
+		var self = this;
+
+		setTimeout(function() {
+			self.$(self.errorEl).slideUp(200);//.css({'display':'none'});
+		}, 1000 * 5);
+	}
+	
+	 
+};
+});
+_sardines.register("/modules/faebed62/plugins/views/viewChain.js", function(require, module, exports, __dirname, __filename) {
 	var Structr = require('structr'),
-logger = require('mesh-winston').loggers.get('views.core');
+logger = require('mesh-winston').loggers.get('views.core'),
+sprintf = require('sprintf').sprintf;
+
 
                  
 var ViewChain = module.exports = Structr({    
@@ -7191,11 +7281,10 @@ var ViewChain = module.exports = Structr({
 	/**
 	 */
 
-	'__construct': function(parent, root, name)
+	'__construct': function(parent, root)
 	{
 		this._parent = parent;          
 		this._root   = root || this;   
-		this.name    = name;
 	},     
 
 	/**
@@ -7219,9 +7308,9 @@ var ViewChain = module.exports = Structr({
 		//already view chained? subify.
 		if(!this.__nextViewChain || this.__nextViewChain.name != name)
 		{                                                   
-			if(this.__nextViewChain) logger.debug( this.__nextViewChain.name + ' replaced by view: ' + name);
+			if(this.__nextViewChain) logger.verbose(sprintf('"%s" replaced by view "%s" ',this.__nextViewChain.name, name));
 
-			this._nextViewChain(name).clearView().apply(req, res);   
+			this._nextViewChain().clearView().apply(req, res, name);   
 		}    
 
 		return this.__nextViewChain;
@@ -7230,9 +7319,10 @@ var ViewChain = module.exports = Structr({
 	/**
 	 */
 
-	'apply': function(req, res)
+	'apply': function(req, res, name)
 	{
 		var self = this;     
+		self.name = name;
 
 		//sets a view and adds a view to the current view
 		req.addView = function(view)
@@ -7246,7 +7336,7 @@ var ViewChain = module.exports = Structr({
 			if(self._parent && self._parent.view) 
 			{
 
-        		logger.info('parent exists, adding child: '+ self.name);
+				logger.verbose(sprintf('"%s" adding child "%s"', self._parent.name, self.name));
 
 				self._parent.view.addChild(view, self.name);
 			}
@@ -7313,15 +7403,14 @@ var ViewChain = module.exports = Structr({
 	/**
 	 */
 
-	'_nextViewChain': function(name)
+	'_nextViewChain': function()
 	{             
-		var chain = this.__nextViewChain || (this.__nextViewChain = new ViewChain(this, this._root, name));  
-		chain.name = name;
+		var chain = this.__nextViewChain || (this.__nextViewChain = new ViewChain(this, this._root));  
 		return chain;
 	}
 });
 });
-_sardines.register("/modules/fig/plugins/views/index.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/faebed62/plugins/views/index.js", function(require, module, exports, __dirname, __filename) {
 	var ViewChain = require('./viewChain'),
 logger = require('mesh-winston').loggers.get('views.core');
   
@@ -7344,8 +7433,8 @@ exports.plugin = function(router) {
 
 		var viewChain = new ViewChain();
 
-		// if(!view) view = rootViewClass ? new rootViewClass() : null;
-		// if(view) view.__viewChain = viewChain;
+		if(!view) view = rootViewClass ? new rootViewClass() : null;
+		if(view) view.__viewChain = viewChain;
 
 		viewChain.view = view;
 
@@ -7355,22 +7444,36 @@ exports.plugin = function(router) {
     
     router.on({
 
-		/**
-		 */
+    	/**
+    	 */
 
-		'push init': function() {
-			/*logger.debug('init root');
+    	'pull load/*': function(req, res, mw) {
+    		
+    		logger.verbose('loading views');
 
-			router.on('push -pull root/view', function(viewClass) {
 
-				logger.debug('get root view');
+    		//a root view is essential incase the root changes for any reason.
+    		//for example - displaying a page over ANOTHER pager, which would be a HUD.
+    		router.on('push -pull root/view', function(viewClass) {
+    			
+    			logger.verbose('set root view');
+
 
 				rootViewClass = viewClass;
 				rootViewChain = getRootViewChain();
-			});*/
-			
-			rootViewChain = getRootViewChain();	
-		},
+
+				mw.next();
+    		});
+    	},
+
+
+    	/**
+    	 * overridable
+    	 */
+
+    	'pull -priority=-999 root/view': function(req, res) {
+    		res.end(null);
+    	},
     
 		/**
 		 */
@@ -7378,31 +7481,49 @@ exports.plugin = function(router) {
         'pull view': function(req, res, mw) {
 
 
-			var crootViewChain = rootViewChain = rootViewChain || getRootViewChain();
+			var crootViewChain = rootViewChain;// = rootViewChain = rootViewChain || getRootViewChain();
 
 
+			//override the current root view - useful for HUDS and such...
+			if(req.query.root)
+			{
+				crootViewChain = getRootViewChain(req.query.root);
+			}
+			else
+			{
+				if(!rootViewChain) rootViewChain = getRootViewChain();
+
+				crootViewChain = rootViewChain;
+			}
             
             //get the path name of the view we're about to hit e.g: view -> dashboard
-            var viewPath = mw.router.parse.stringifyPaths(mw.current.getNextSibling().channel.paths, mw.params);
+            var viewPath = mw.router.parse.stringifyPaths(mw.current.getNextSibling().channel.paths, mw.params),
+            nextChain;
 
             logger.debug('view path: ' + viewPath);
+
 
                         
 
 			//if we're running server-side, it's a new view chain each time. However, client-side - we cache. And for every
 			//middleware item we pass through, we make sure that we're not replacing views which are already present. Much Faster.
 
-			if(req.viewChain) {
-				chain = req.viewChain.next(req, res, viewPath);
+			/*if(req.viewChain) {
+				nextChain = req.viewChain.next(req, res, viewPath);
 			} else {
-				req.viewChain = chain = serverSide ? getRootViewChain() : crootViewChain;
-				chain.apply(req, res);
-			}
+				nextChain = serverSide ? getRootViewChain() : crootViewChain;
+				nextChain.apply(req, res, viewPath);
+			}*/
 
-            // chain = req.viewChain = (req.viewChain || (serverSide ? getRootViewChain() : crootViewChain)).next(req, res, viewPath);
-                                                                              
+			//if we're running server-side, it's a new view chain each time. However, client-side - we cache. And for every
+			//middleware item we pass through, we make sure that we're not replacing views which are already present. Much Faster.
+            nextChain = req.viewChain = (req.viewChain || (serverSide ? getRootViewChain() : crootViewChain)).next(req, res, viewPath);
+
+            console.log(nextChain)
+			// req.viewChain = nextChain;
+                                    
 			//view exists? This could be something like the home page. Skip it.
-			if(chain.view) {                             
+			if(nextChain.view) {                             
             	logger.info(viewPath + ' is already visible, skipping next');	
                                  
 				//skip the next path
@@ -7415,8 +7536,8 @@ exports.plugin = function(router) {
     });
 }
 });
-_sardines.register("/modules/fig/plugins/template/index.js", function(require, module, exports, __dirname, __filename) {
-	var logger = require('mesh-winston').loggers.get('leche');
+_sardines.register("/modules/faebed62/plugins/template/index.js", function(require, module, exports, __dirname, __filename) {
+	var logger = require('mesh-winston').loggers.get('fig');
 
 exports.plugin = function(router)
 {
@@ -7471,7 +7592,7 @@ exports.plugin = function(router)
 	});
 }
 });
-_sardines.register("/modules/fig/plugins/comb/index.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/faebed62/plugins/comb/index.js", function(require, module, exports, __dirname, __filename) {
 	var logger = require('mesh-winston').loggers.get('element.core');
 
 
@@ -8484,9 +8605,232 @@ exports.queue = function() {
 _sardines.register("/modules/tq", function(require, module, exports, __dirname, __filename) {
 	module.exports = require('modules/tq/lib/index.js');
 });
-_sardines.register("/modules/fig/views/abstract.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/32188c34/index.js", function(require, module, exports, __dirname, __filename) {
+	var loggers = {};
+
+var newLogger = function(module) {
+
+	function logger(name) {
+
+		return function(msg) {
+			console.log(name + ": " + module + ": " + msg);
+		}	
+	}
+
+	return {
+		info: logger('info'),
+		warn: logger('warn'),
+		error: logger('error'),
+		debug: logger('debug'),
+		verbose: logger('verbose')
+	};
+}
+
+
+exports.loggers = {
+	get: function(name) {
+		return loggers[name] || (loggers[name] = newLogger(name))
+	}
+}
+});
+_sardines.register("/modules/sprintf/lib/sprintf.js", function(require, module, exports, __dirname, __filename) {
+	/**
+sprintf() for JavaScript 0.7-beta1
+http://www.diveintojavascript.com/projects/javascript-sprintf
+
+Copyright (c) Alexandru Marasteanu <alexaholic [at) gmail (dot] com>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of sprintf() for JavaScript nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL Alexandru Marasteanu BE LIABLE FOR ANY
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Changelog:
+2010.11.07 - 0.7-beta1-node
+  - converted it to a node.js compatible module
+
+2010.09.06 - 0.7-beta1
+  - features: vsprintf, support for named placeholders
+  - enhancements: format cache, reduced global namespace pollution
+
+2010.05.22 - 0.6:
+ - reverted to 0.4 and fixed the bug regarding the sign of the number 0
+ Note:
+ Thanks to Raphael Pigulla <raph (at] n3rd [dot) org> (http://www.n3rd.org/)
+ who warned me about a bug in 0.5, I discovered that the last update was
+ a regress. I appologize for that.
+
+2010.05.09 - 0.5:
+ - bug fix: 0 is now preceeded with a + sign
+ - bug fix: the sign was not at the right position on padded results (Kamal Abdali)
+ - switched from GPL to BSD license
+
+2007.10.21 - 0.4:
+ - unit test and patch (David Baird)
+
+2007.09.17 - 0.3:
+ - bug fix: no longer throws exception on empty paramenters (Hans Pufal)
+
+2007.09.11 - 0.2:
+ - feature: added argument swapping
+
+2007.04.03 - 0.1:
+ - initial release
+**/
+
+var sprintf = (function() {
+	function get_type(variable) {
+		return Object.prototype.toString.call(variable).slice(8, -1).toLowerCase();
+	}
+	function str_repeat(input, multiplier) {
+		for (var output = []; multiplier > 0; output[--multiplier] = input) {/* do nothing */}
+		return output.join('');
+	}
+
+	var str_format = function() {
+		if (!str_format.cache.hasOwnProperty(arguments[0])) {
+			str_format.cache[arguments[0]] = str_format.parse(arguments[0]);
+		}
+		return str_format.format.call(null, str_format.cache[arguments[0]], arguments);
+	};
+
+	str_format.format = function(parse_tree, argv) {
+		var cursor = 1, tree_length = parse_tree.length, node_type = '', arg, output = [], i, k, match, pad, pad_character, pad_length;
+		for (i = 0; i < tree_length; i++) {
+			node_type = get_type(parse_tree[i]);
+			if (node_type === 'string') {
+				output.push(parse_tree[i]);
+			}
+			else if (node_type === 'array') {
+				match = parse_tree[i]; // convenience purposes only
+				if (match[2]) { // keyword argument
+					arg = argv[cursor];
+					for (k = 0; k < match[2].length; k++) {
+						if (!arg.hasOwnProperty(match[2][k])) {
+							throw(sprintf('[sprintf] property "%s" does not exist', match[2][k]));
+						}
+						arg = arg[match[2][k]];
+					}
+				}
+				else if (match[1]) { // positional argument (explicit)
+					arg = argv[match[1]];
+				}
+				else { // positional argument (implicit)
+					arg = argv[cursor++];
+				}
+
+				if (/[^s]/.test(match[8]) && (get_type(arg) != 'number')) {
+					throw(sprintf('[sprintf] expecting number but found %s', get_type(arg)));
+				}
+				switch (match[8]) {
+					case 'b': arg = arg.toString(2); break;
+					case 'c': arg = String.fromCharCode(arg); break;
+					case 'd': arg = parseInt(arg, 10); break;
+					case 'e': arg = match[7] ? arg.toExponential(match[7]) : arg.toExponential(); break;
+					case 'f': arg = match[7] ? parseFloat(arg).toFixed(match[7]) : parseFloat(arg); break;
+					case 'o': arg = arg.toString(8); break;
+					case 's': arg = ((arg = String(arg)) && match[7] ? arg.substring(0, match[7]) : arg); break;
+					case 'u': arg = Math.abs(arg); break;
+					case 'x': arg = arg.toString(16); break;
+					case 'X': arg = arg.toString(16).toUpperCase(); break;
+				}
+				arg = (/[def]/.test(match[8]) && match[3] && arg >= 0 ? '+'+ arg : arg);
+				pad_character = match[4] ? match[4] == '0' ? '0' : match[4].charAt(1) : ' ';
+				pad_length = match[6] - String(arg).length;
+				pad = match[6] ? str_repeat(pad_character, pad_length) : '';
+				output.push(match[5] ? arg + pad : pad + arg);
+			}
+		}
+		return output.join('');
+	};
+
+	str_format.cache = {};
+
+	str_format.parse = function(fmt) {
+		var _fmt = fmt, match = [], parse_tree = [], arg_names = 0;
+		while (_fmt) {
+			if ((match = /^[^\x25]+/.exec(_fmt)) !== null) {
+				parse_tree.push(match[0]);
+			}
+			else if ((match = /^\x25{2}/.exec(_fmt)) !== null) {
+				parse_tree.push('%');
+			}
+			else if ((match = /^\x25(?:([1-9]\d*)\$|\(([^\)]+)\))?(\+)?(0|'[^$])?(-)?(\d+)?(?:\.(\d+))?([b-fosuxX])/.exec(_fmt)) !== null) {
+				if (match[2]) {
+					arg_names |= 1;
+					var field_list = [], replacement_field = match[2], field_match = [];
+					if ((field_match = /^([a-z_][a-z_\d]*)/i.exec(replacement_field)) !== null) {
+						field_list.push(field_match[1]);
+						while ((replacement_field = replacement_field.substring(field_match[0].length)) !== '') {
+							if ((field_match = /^\.([a-z_][a-z_\d]*)/i.exec(replacement_field)) !== null) {
+								field_list.push(field_match[1]);
+							}
+							else if ((field_match = /^\[(\d+)\]/.exec(replacement_field)) !== null) {
+								field_list.push(field_match[1]);
+							}
+							else {
+								throw('[sprintf] huh?');
+							}
+						}
+					}
+					else {
+						throw('[sprintf] huh?');
+					}
+					match[2] = field_list;
+				}
+				else {
+					arg_names |= 2;
+				}
+				if (arg_names === 3) {
+					throw('[sprintf] mixing positional and named placeholders is not (yet) supported');
+				}
+				parse_tree.push(match);
+			}
+			else {
+				throw('[sprintf] huh?');
+			}
+			_fmt = _fmt.substring(match[0].length);
+		}
+		return parse_tree;
+	};
+
+	return str_format;
+})();
+
+var vsprintf = function(fmt, argv) {
+	argv.unshift(fmt);
+	return sprintf.apply(null, argv);
+};
+
+exports.sprintf = sprintf;
+exports.vsprintf = vsprintf;
+});
+
+_sardines.register("/modules/sprintf", function(require, module, exports, __dirname, __filename) {
+	module.exports = require('modules/sprintf/lib/sprintf.js');
+});
+_sardines.register("/modules/faebed62/views/abstract.js", function(require, module, exports, __dirname, __filename) {
 	var Structr = require('structr'),
-ConcreteModel = require('malt/lib/core/models/concrete').Model,
+ConcreteModel = require('malt').models.Model,
 Instructor = require('../instructor'),
 logger = require('mesh-winston').loggers.get('fig'),
 renderView = require('../renderView');
@@ -9034,7 +9378,7 @@ var View = module.exports = ConcreteModel.extend({
 
 
 });
-_sardines.register("/modules/fig/template/adapters/mustache/mustache.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/faebed62/template/adapters/mustache/mustache.js", function(require, module, exports, __dirname, __filename) {
 	/*
   mustache.js — Logic-less templates in JavaScript
 
@@ -10296,7 +10640,7 @@ function inspect(obj, showHidden, depth, colors) {
   var ctx = {
     showHidden: showHidden,
     seen: [],
-    stylize: colors ? stylizeWithColor : stylizeNoColor,
+    stylize: colors ? stylizeWithColor : stylizeNoColor
   };
   return formatValue(ctx, obj, (typeof depth === 'undefined' ? 2 : depth));
 }
@@ -10532,7 +10876,685 @@ exports.inherits = function(ctor, superCtor) {
 };
 
 });
-_sardines.register("/modules/malt/lib/core/models/concrete.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/8999ac4d/index.js", function(require, module, exports, __dirname, __filename) {
+	var models = require('./models'),
+Schema = require('./schema'),
+modifiers = require('./modifiers');
+
+models.Item = require('./models/item');
+models.Collection = require('./models/collection');
+models.Model = require('./models/concrete').Model;
+
+if(typeof global == 'undefined') global = {};
+
+exports.models = global.malt ? global.malt.models : models;
+exports.modifiers = modifiers;
+
+if(!global.malt) global.malt = exports;
+
+
+
+
+exports._initModel = function(Model, name, appModels, router)
+{
+
+	var AppModel = Model.extend({ router: router, 
+
+
+		//used for serialization
+		name: Model.prototype.name || name,
+
+		//schema for the model
+		_schema: new Schema(Model.schema, modifiers),
+
+
+		/**
+		 */
+
+		'newModel': function(type, ops)
+		{
+			var clazz = this.model(type);
+
+			return new clazz(ops);
+		},
+
+		/**
+		 */
+
+		'model': function(type)
+		{
+			var clazz;
+
+			if(this.models)
+			{
+				clazz = appModels[this.models[type]];
+			}
+			
+			return clazz ? clazz : appModels[type || this.channel];
+		}
+	});
+
+
+	appModels[name] = appModels[AppModel.prototype.name]  = AppModel;
+}
+
+/**
+ */
+
+
+function _init(router) {
+	var hostModels = {};
+
+	for(var name in models)
+	{
+		var Model = models[name];
+
+		if(!Model.extend) continue;
+
+		exports._initModel(Model, name, hostModels , router);
+	}
+
+
+	router.on('pull malt', function(req, res) {
+
+		req.models = hostModels;
+
+		if(!req.next()) res.end(hostModels);
+	});
+
+	router.push('malt', hostModels);
+
+
+	return router.models = hostModels;   
+}
+
+/**
+ * connects malt to a server
+ */   
+
+exports.plugin = function(router, params)
+{                               
+	router.on('pull load/*', function() {
+		console.log("INIT MALT")
+		_init(router);
+		this.next();
+	});     
+}
+
+
+});
+_sardines.register("/modules/faebed62/instructor/index.js", function(require, module, exports, __dirname, __filename) {
+	var Structr = require('structr');
+
+module.exports = Structr({
+	
+	/**
+	 */
+
+	'__construct': function(target)
+	{
+		this._instructions = [];
+		this._target = target;
+	},
+	
+	/**
+	 */
+
+	'add': function(instructions)
+	{
+		this._instructions = this._instructions.concat(instructions);
+
+		this._next();
+	},
+
+	/**
+	 */
+
+	'_next': function()
+	{
+		if(this._running || !this._instructions.length)
+		{
+			return;
+		}
+
+		this._running = true;
+		var self = this;
+
+
+		var name = this._instructions.shift();
+
+
+		this._target[name](function()
+		{
+			self._target.change(name);
+
+
+			if(!self._instructions.length)
+			{
+				self._target.complete = true;
+				self._target.change('complete');
+			}
+		
+			self._running = false;
+			self._next();
+		});
+	}
+});
+});
+_sardines.register("/modules/faebed62/renderView/index.js", function(require, module, exports, __dirname, __filename) {
+	var logger = require('mesh-winston').loggers.get('fig');
+
+module.exports = function(view, res) {
+	
+	logger.debug('rendering view');
+	
+	view.setup({ el: window.document, $: $ }).init({
+		complete: function() {
+
+			logger.debug('finishing view');
+
+			if(res) {
+				res.header('dontPrint', true);
+				res.end();
+			}
+		}
+	});
+}
+});
+_sardines.register("/modules/8999ac4d/models/index.js", function(require, module, exports, __dirname, __filename) {
+	
+});
+_sardines.register("/modules/8999ac4d/schema/index.js", function(require, module, exports, __dirname, __filename) {
+	var Structr = require('structr');
+
+
+module.exports = Structr({
+	
+	/**
+	 */
+
+	'__construct': function(target, modifiers)
+	{
+		this._defs = {};
+		this._modifiers = modifiers;
+
+		for(var property in target)
+		{
+			this.add(property, target[property]);
+		}	
+	},
+
+	/**
+	 */
+
+
+	'add': function(property, definition)
+	{
+		this._defs[property] = new exports.Definition(property, definition, this._modifiers);
+	},
+
+	/**
+	 */
+
+	'definition': function(property)
+	{
+		return this._defs[property];
+	},
+
+	/**
+	 */
+
+	'apply': function(model)
+	{
+		for(var prop in this._defs)
+		{
+			this._defs[prop].apply(model);
+		}	
+	},
+
+	/**
+	 */
+
+	'set': function(model, property, value)
+	{
+		var def = this.definition(property);
+
+		return def ? def.set(model, value) : value;
+	}
+});
+
+
+exports.Definition = Structr({
+	
+	/**
+	 */
+
+	'__construct': function(property, def, modifiers)
+	{
+		this.property = property;
+		this._modifiers = modifiers;
+		this._def = def;
+
+		for(var prop in def) this[prop] = def[prop];
+	},
+
+	/**
+	 */
+
+	'apply': function(model)
+	{
+		for(var modifier in this._def)
+		{
+			this._modifiers[modifier].apply(model, this);
+		}
+	},
+
+	/**
+	 */
+
+	
+	'set': function(model, value)
+	{
+		var newValue = value;
+
+		for(var modifier in this._def)
+		{
+			var mod = this._modifiers[modifier];
+
+			if(mod)
+			{
+				newValue = mod.set(model, newValue, this);
+			}
+		}
+
+		return newValue;
+	}
+})
+
+});
+_sardines.register("/modules/8999ac4d/modifiers/index.js", function(require, module, exports, __dirname, __filename) {
+	module.exports = require('./modifiers');
+
+require('./setting');
+require('./type');
+});
+_sardines.register("/modules/8999ac4d/models/item.js", function(require, module, exports, __dirname, __filename) {
+	var Structr = require('structr'),
+RemoteModel = require('./remote'),
+Collection = require('./collection'),
+vine = require('vine'),
+concrete = require('./concrete');
+    
+
+module.exports = RemoteModel.extend(concrete.partial, {
+	
+
+	/**
+	 * id does not exist? it's new.
+	 */
+
+	'isNew': function()
+	{
+		return this.doc._id == undefined;
+	},
+
+	/**
+	 */
+
+	'collection': function(collectionName, model, search)
+	{
+		//root, or relative
+		var channel = collectionName.substr(0,1) == '/' ? collectionName : this._channel() + '/' + collectionName;
+
+		return this['__' + collectionName] || (this['__' + collectionName] = this.newModel('Collection', { channel: channel, Model: model, parent: this, doc: search }));
+	},
+
+	/**
+	 */
+
+	'save': function(doc, callback)
+	{
+		if(typeof doc == 'function')
+		{
+			callback = doc;
+			doc = {};
+		}
+
+		if(!doc) doc = {};
+
+		if(this.parent) doc.parent = this.parent.get('_id');
+
+		this._set(doc);
+
+		var isNew = this.isNew(), self = this;
+
+
+		function onSave(err, result)
+		{
+			if(callback) callback(err, result);
+
+			if(isNew && self._collection) self._collection._add(self);
+		}
+
+		this.load( isNew ? 'POST' : 'PUT', this.doc, onSave);
+		return this;
+	},
+
+	/**
+	 */
+	
+	'remove': function(onRemove)
+	{                      
+		console.log("Malt remove");     
+		                                   
+		
+		this._pull('DELETE', this.removeData(), onRemove);
+
+
+		//remove from the collection if it exists.
+		if(this._collection) this._collection._remove(this.doc);
+
+		this.change('remove');
+
+		return this;
+	},
+
+	/**
+	 */
+
+	'removeData': function()
+	{
+		return null;
+	},
+
+	/**
+	 */
+
+	'override _load': function(method, data, callback)
+	{
+		if(!data) data = {};
+
+		if(this.isNew()) data = this.doc;
+
+
+		return this._super(method, data, callback);
+	},
+
+
+	/**
+	 */
+
+	'_channel': function()
+	{
+		if(this.isNew()) return this.channel;
+		return this.channel + '/' + this.doc._id;
+	},
+
+	/**
+	 */
+
+	'_onResponse': function(response)
+	{
+		if(response.result)
+		{
+			this._set(response.result instanceof Array ? response.result[0] : response.result);
+		}
+
+	},
+
+	/**
+	 */
+
+	'override _set': function(doc)
+	{
+		this._super(doc);
+
+		// this.loaded = this.doc._id != undefined;
+	},
+
+	/**
+	 */
+
+	'static find': function(query, callback)
+	{
+		if(typeof query == 'function')
+		{
+			callback = query;
+			query = {};
+		}
+
+		var channel = this.prototype.channel;
+
+
+		if(query._id)
+		{
+			channel += '/' + query._id;
+			delete query._id;
+		}
+
+		var model = this.prototype.model('Collection');
+
+		var col = new model( { channel: channel, Model: this });
+
+
+		col.load(query).subscribeOnce('reset', function(e)
+		{
+			if(callback) callback(col);
+		});
+
+		return col;
+	},
+
+	/**
+	 */
+
+	'static findOne': function(query, callback)
+	{
+
+		this.find(query, function(collection)
+		{
+			callback(collection.item(0));
+		});
+	},
+
+	/**
+	 */
+
+	'toJSON': function()
+	{
+		return this.doc;
+	}
+});
+
+
+
+
+
+});
+_sardines.register("/modules/8999ac4d/models/collection.js", function(require, module, exports, __dirname, __filename) {
+	var RemoteModel = require('./remote'),
+models = require('./index');
+
+module.exports = RemoteModel.extend({
+
+	/**
+	 */
+
+	'override __construct': function()
+	{
+		this._super.apply(this, arguments);
+
+		this._items = [];
+	},
+	
+	/**
+	 */
+
+	'_onResponse': function(response)
+	{
+		if(!this._items) this._items = [];
+
+		switch(response.method)
+		{
+			case 'list': return this._list(response.result);
+			case 'add': return this._add(this.create(response.result));
+			case 'remove': return this._remove(response.result);
+			case 'update': return this._remove(response.result, response.result);
+			default: return this._list(response.result);
+		}
+	},
+
+	/**
+	 */
+
+	'override _load': function(method, data, callback)
+	{
+		if(!data) data = this.doc;
+
+		return this._super(method, data, callback);
+	},
+
+	/**
+	 */
+
+	'toArray': function()
+	{
+		return this._items.concat();	
+	},
+
+	/**
+	 */
+
+	'item': function(index)
+	{
+		return this._items[index];	
+	},
+
+	/**
+	 */
+
+	'length': function()
+	{
+		return this._items.length;
+	},
+
+	/** 
+	 */
+
+	'each': function(callback)
+	{
+		if(this._items)
+		for(var i = 0, n = this._items.length; i < n; i++)
+		{ 
+			callback(this._items[i], i);;
+		}
+	},
+
+	/**
+	 */
+
+	'add': function(doc)
+	{
+		var item = this.create(doc);
+		item.save();
+		this._add(item);
+	},
+
+	/**
+	 */
+
+	'clone': function()
+	{
+		return new this.__construct({ channel: this._channel(), Model: this.Model });	
+	},
+
+	/**
+	 */
+
+	'create': function(doc)
+	{
+		if(!doc) doc = {};
+
+		// console.log(item)
+		var item = this.newItem(doc);
+		item.router = this.router;
+
+		if(!item.channel) item.channel = this._channel();
+
+
+		//ref back to the collection so we cam remove it silently 
+		item._collection = this;
+
+		if(item._set) item._set(doc);
+
+		item.loaded = true;
+
+		if(this.parent) item.parent = this.parent;
+
+		return item;
+	},
+
+	/**
+	 */
+
+	'newItem': function(doc)
+	{
+		var clazz = this.model(doc.type || this.channel) || this.Model;
+		
+		return clazz ? new clazz() : doc;	
+	},
+
+	/**
+	 */
+
+	'_list': function(collection)
+	{
+		if(!(collection instanceof Array)) collection = [collection];
+                                       
+		var batch = [];
+		
+		for(var i = 0, n = collection.length; i < n; i++)
+		{
+			batch.push(this._add(this.create(collection[i]), true));
+		}
+		
+		this.change('reset', this._items);    
+		this.change('batch', batch);
+	},
+
+	/**
+	 */
+
+	'_add': function(item, skipEmit)
+	{
+		this._items.push(item);
+
+		if(!skipEmit) this.change('add', item);
+		return item;
+	},
+
+	/**
+	 */
+
+	'_remove': function(item)
+	{
+		for(var i = this._items.length; i--;)
+		{
+			var oldItem = this._items[i];
+
+			if(oldItem.doc._id == item._id)
+			{
+				oldItem.dispose();
+				this._items.splice(i, 1);
+				return this.change('remove', item, i);
+			}
+		}
+
+	}
+
+})
+});
+_sardines.register("/modules/8999ac4d/models/concrete.js", function(require, module, exports, __dirname, __filename) {
 	var AbstractModel = require('./abstract');
 
 exports.partial = {
@@ -10684,81 +11706,614 @@ exports.partial = {
 
 exports.Model = AbstractModel.extend(exports.partial);
 });
-_sardines.register("/modules/fig/instructor/index.js", function(require, module, exports, __dirname, __filename) {
-	var Structr = require('structr');
+_sardines.register("/modules/8999ac4d/modifiers/modifiers.js", function(require, module, exports, __dirname, __filename) {
+	
+});
+_sardines.register("/modules/8999ac4d/modifiers/setting.js", function(require, module, exports, __dirname, __filename) {
+	var modifier = require('./modifiers');
 
-module.exports = Structr({
+
+modifier.setting = {
 	
 	/**
 	 */
 
-	'__construct': function(target)
+
+	apply: function(item, definition)
 	{
-		this._instructions = [];
-		this._target = target;
-	},
-	/**
-	 */
+		var setting = modifier.setting[definition.setting];
 
-	'add': function(instructions)
-	{
-		this._instructions = this._instructions.concat(instructions);
+		if(!setting) return;
 
-		this._next();
-	},
 
-	/**
-	 */
-
-	'_next': function()
-	{
-		if(this._running || !this._instructions.length)
+		setting.get(this._key(item, definition), item, function(v)
 		{
+			item.set(definition.property, v);	
+		});
+	},
+
+	/**
+	 */
+
+
+	set: function(model, value, definition)
+	{
+		var setting = modifier.setting[definition.setting];
+
+		if(!setting) return value;
+
+		setting.set(this._key(model, definition), value);
+
+		return value;
+	},
+
+	/**
+	 */
+
+	'_key': function(model, def)
+	{
+		return model.name + '.' + def.property;
+	}
+}
+
+
+});
+_sardines.register("/modules/8999ac4d/modifiers/type.js", function(require, module, exports, __dirname, __filename) {
+	var modifier = require('./modifiers');
+
+
+modifier.type = {
+	
+	/**
+	 */
+
+
+	apply: function(model, definition) { },
+
+	/**
+	 */
+
+
+	set: function(model, value, definition)
+	{
+		var clazz = definition.type;
+
+		return new clazz(value);
+	}
+}
+
+
+});
+_sardines.register("/modules/8999ac4d/models/remote.js", function(require, module, exports, __dirname, __filename) {
+	var Structr = require('structr'),
+AbstractModel = require('./abstract'),
+logger = require('mesh-winston').loggers.get('malt'),
+sprintf = require('sprintf').sprintf;
+
+
+module.exports = AbstractModel.extend({
+	
+
+	/**
+	 * syncs the model from the server
+	 */
+
+	'sync': function(listeners)
+	{
+		if(this.loaded)
+		{
+			if(listeners.loaded) listeners.loaded();
+
+			return;	
+		}
+
+		this.subscribe(listeners);
+
+		this.load();
+
+		return this;
+	},
+
+	/**
+	 */
+
+	'unsync': function()
+	{
+		if(this._listener)
+		{
+			this._listener.dispose();
+			this._listener = null;
+		}	
+
+		return this;
+	},
+
+
+	/**
+	 */
+
+	'load': function(method, data, callback)
+	{
+		if(typeof method == 'object')
+		{
+			callback = data;
+			data = method;
+			method = undefined;
+		}
+
+		if(typeof method == 'function')
+		{
+			callback = method;
+			method = undefined;
+			data = undefined;
+		}
+
+		if(!callback) callback = function(){}
+              	       	
+                                                 
+
+		if(this._loading) {
+			logger.warn(sprintf('Cannot load method "%s" because the model is still loading', this._channel()));
 			return;
 		}
 
-		this._running = true;
+		this._loading = true;
+
 		var self = this;
-
-
-		var name = this._instructions.shift();
-
-
-		this._target[name](function()
-		{
-			self._target.change(name);
-
-
-			if(!self._instructions.length)
-			{
-				self._target.complete = true;
-				self._target.change('complete');
-			}
 		
-			self._running = false;
-			self._next();
-		});
-	}
-});
-});
-_sardines.register("/modules/fig/renderView/index.js", function(require, module, exports, __dirname, __filename) {
-	var logger = require('mesh-winston').loggers.get('fig');
+		var callSuccess = this._load(method, data, function(response)
+		{
+			self.loaded = true;
 
-module.exports = function(view, res) {
-	
-	logger.debug('rendering view');
-	
-	view.setup({ el: window.document, $: $ }).init({
-		complete: function() {
+			self._onResponse(response);
 
-			logger.debug('finishing view');
+			//really - only ONE error should be sent back at a time. Multiple errors
+			//should be handled on the client-side of things. 
+			if(response.errors) {
+				callback(new Error(response.errors[0].message));
+			} else {
+				callback(null, response.result);
+			}
 
-			if(res) res.end();
+			self._loading = false;
+			self.change('loaded', self);
+		});   
+		
+		if(!callSuccess && callback)
+		{
+			callback(new Error('route does not exist'));
 		}
-	});
-}
+			
+		return this;
+	},
+
+	/**
+	 */
+
+	'_load': function(method, data, callback)
+	{ 
+		return this._pull(method, data, callback);	
+	},
+
+
+	/**
+	 */
+
+	'toJSON': function()
+	{
+		return this.doc;
+	},
+
+	/**
+	 */
+
+	'_channel': function()
+	{
+		return this.channel;
+	},
+
+	/**
+	 */
+
+	'_onResponse': function(response)
+	{
+		//abstract
+	},
+
+	/**
+
+	 */
+
+	'_pull': function(method, data, onResponse)
+	{
+		if(typeof data == 'function')
+		{
+			onResponse = data;
+			data = null;
+		}         
+		
+		logger.debug(sprintf('Malt pull method=%s channel=%s', method, this._channel()));    
+		 
+		return this.router.
+		request(this._channel()).
+		header('method', method || 'GET').
+		error(function(err) {
+			logger.error(err.stack);
+		}).
+		success(function() {
+			if(onResponse) onResponse.apply(null, arguments);
+		}).
+		query(data).
+		pull();               
+	},
+
+
+	/**
+	 */
+
+	'_initPush': function()
+	{
+		if(this._listener) return this;
+
+                         
+
+		this._listener = this.router.on(this._channel(), { type: 'push', meta: { 'public': 1 } }, this.getMethod('_onResponse'));	
+		return this;
+	}
+
 });
-_sardines.register("/modules/malt/lib/core/models/abstract.js", function(require, module, exports, __dirname, __filename) {
+
+
+
+
+});
+_sardines.register("/modules/vine/index.js", function(require, module, exports, __dirname, __filename) {
+	var outcome = require('outcome'),
+EventEmitter = require('events').EventEmitter;
+
+
+//meh, shit's ugly.
+function combineArrays(c1,c2,target,property)
+{
+	var c1p = c1[property];
+		c2p = c2[property];
+		
+	if(!c1p && !c2p) return;
+	
+	c1p = c1p || [];
+	c2p = c2p || [];
+	
+	c1p = c1p instanceof Array ? c1p : [c1p];
+	c2p = c2p instanceof Array ? c2p : [c2p];
+	
+	target[property] = c1p.concat(c2p);
+}
+
+function _buildMessage()
+{
+	var msg = arguments[0];
+
+	//error object
+	if(msg.message) msg = msg.message;
+	
+	for(var i = 1, n = arguments.length; i < n; i++)
+	{
+		msg = msg.replace(/%\w/, arguments[i]);
+	}
+	
+	return msg;
+}
+
+
+var Vine = 
+{
+
+	/**
+	 */
+	 
+	setApi: function(request)
+	{
+		request.api = Vine.api(request);
+		
+		return request;
+	},
+
+	/**
+	 */
+
+	api: function(request,methods,data)
+	{
+		if(!data) data = {};
+		
+		var methods  = methods || {};
+		
+
+		var invoker = 
+		{
+
+			/**
+			 */
+
+			error: function()
+			{
+				if(!arguments.length) return data.errors;
+
+				if(arguments[0] instanceof Array) {
+					arguments[0].forEach(function(err) {
+						invoker.error(err);
+					})
+					return this;
+				}
+				
+				if(!data.errors) data.errors = [];
+				
+				data.errors.push({ message: _buildMessage.apply(null, arguments)});
+				return this;
+			},
+
+
+			/**
+			 * the type of data. Used for 
+			 */
+
+			type: function(type)
+			{
+				if(!arguments.length) return data.type;
+
+				data.type = type;
+
+				return this;
+			},
+
+			/**
+			 */
+			 
+			warning: function()
+			{
+				if(!arguments.length) return data.warnings;
+				
+				if(!data.warnings) data.warnings = [];
+				
+				data.warnings.push({ message: _buildMessage.apply(null, arguments)});
+				return this;
+			},
+			
+			/**
+			 */
+			
+			'success': function()
+			{
+				if(!arguments.length) return data.messages;
+				
+				if(!data.messages) data.messages = [];
+				
+				data.messages.push({ message: _buildMessage.apply(null, arguments)});
+				
+				return this;
+			},
+			
+			/**
+			 */
+			 
+			combine: function(api)
+			{
+				var thisData = data,
+					thatData = api.data || api,
+					newData = {};
+					
+				for(var i in thisData) newData[i] = thisData;
+				
+				combineArrays(thisData,thatData,newData,'errors');
+				combineArrays(thisData,thatData,newData,'warnings');
+				combineArrays(thisData,thatData,newData,'messages');
+				combineArrays(thisData,thatData,newData,'result');
+				
+				return Vine.api(null,null,newData);
+			},
+
+			/**
+			 */
+			 
+
+			redirect: function(to)
+			{
+				if(!arguments.length) return data.redirect;
+				
+				data.redirect = to;
+				return this;
+			},
+
+			/**
+			 */
+			 
+			message: function(msg)
+			{
+				if(!arguments.length) return data.message;
+				
+				data.message = _buildMessage.apply(null, arguments);
+				return this;
+			},
+
+			/**
+			 */
+
+			method: function(method)
+			{
+				if(!arguments.length) return data.method;
+				data.method = method;
+				return this;
+			},
+
+			/**
+			 */
+
+			list: function(data)
+			{
+				this.result(data);
+				return this.method('list');
+			},
+
+			/**
+			 */
+
+			add: function(data)
+			{
+				this.result(data);
+				return this.method('add');
+			},
+
+			/**
+			 */
+
+			remove: function(data)
+			{
+				this.result(data);
+				return this.method('remove');
+			},
+
+			/**
+			 */
+
+			update: function(data)
+			{
+				this.result(data);
+				return this.method('update');
+			},
+
+			/**
+			 */
+			 
+			result: function(result)
+			{
+				if(!arguments.length) return data.result;
+				
+				data.result = result;
+				return this;
+			},
+
+			/**
+			 */
+			 
+			results: function(result)
+			{
+				if(!arguments.length) return data.result;
+				
+				if(!(data.result instanceof Array)) data.result = [];
+				data.result.push(result);
+				return this;
+			},
+			
+			/**
+			 */
+			 
+			ttl:function(ttl)
+			{
+				if(ttl > -1)
+					data.ttl = ttl;
+					
+				return this;
+			},
+
+
+			/**
+			 */
+			 
+			end: function(target)
+			{
+				if(target)
+				if(target.end)
+				{
+					target.end(data);
+				}
+				else
+				if(typeof target == 'function')
+				{
+					target(data);
+				}
+				
+				return data;
+			},
+
+			/**
+			 */
+
+			fn: function(fn)
+			{
+				if(data.errors) 
+				{
+					target(data.errors.length > 1 ? data.errors : data.errors[0]);
+				}
+				else
+				{
+					fn(null, data.result);
+				}	
+			},
+
+			/**
+			 */
+
+			onOutcome: function(resp, messages) 
+			{
+				if(messages) {
+					messages.resp = resp;
+				}
+
+				if(!messages) messages = {};
+
+
+				return outcome.error(function(err) 
+				{
+					invoker.error(messages.error || (err ? err.message : err));
+						
+				}).success(function(result) 
+				{
+					invoker.result(messages.success || result);
+
+				}).done(function() 
+				{
+					if(messages.resp) invoker.end(messages.resp);
+
+				});
+			},
+
+			/**
+			 */
+			 
+			toJSON: function()
+			{
+				return invoker.data;
+			}
+		}
+		
+		invoker.data = data;
+
+
+		return invoker;
+
+	}
+}
+
+exports.api = Vine.api;
+
+var v = Vine.api();
+
+Object.keys(v).forEach(function(method) {
+	exports[method] = function() {
+		var api = exports.api();
+
+		return api[method].apply(api, arguments);
+	}
+})
+
+
+
+
+});
+
+_sardines.register("/modules/vine", function(require, module, exports, __dirname, __filename) {
+	module.exports = require('modules/vine/index.js');
+});
+_sardines.register("/modules/8999ac4d/models/abstract.js", function(require, module, exports, __dirname, __filename) {
 	var Structr = require('structr'),
 Janitor = require('sk/core/garbage').Janitor,
 Bindable = require('../bindable');
@@ -10786,6 +12341,34 @@ module.exports = Bindable.extend({
 
 
 
+});
+_sardines.register("/modules/20637ccc/index.js", function(require, module, exports, __dirname, __filename) {
+	var loggers = {};
+
+var newLogger = function(module) {
+
+	function logger(name) {
+
+		return function(msg) {
+			console.log(name + ": " + module + ": " + msg);
+		}	
+	}
+
+	return {
+		info: logger('info'),
+		warn: logger('warn'),
+		error: logger('error'),
+		debug: logger('debug'),
+		verbose: logger('verbose')
+	};
+}
+
+
+exports.loggers = {
+	get: function(name) {
+		return loggers[name] || (loggers[name] = newLogger(name))
+	}
+}
 });
 _sardines.register("/modules/sk/core/garbage.js", function(require, module, exports, __dirname, __filename) {
 	var Structr = require('./struct');
@@ -10837,7 +12420,7 @@ exports.Janitor = Structr({
 });
 
 });
-_sardines.register("/modules/malt/lib/core/bindable/index.js", function(require, module, exports, __dirname, __filename) {
+_sardines.register("/modules/8999ac4d/bindable/index.js", function(require, module, exports, __dirname, __filename) {
 	var Structr = require('structr'),
 Janitor = require('sk/core/garbage').Janitor;
 
@@ -10955,7 +12538,7 @@ if(this.window && !window.console)
 var	sk = { };
 
 });
-var entries = ["modules/41147061/index.js"],
+var entries = ["modules/edd6af44/src/index.js"],
 	module = {};
 
 for(var i = entries.length; i--;)

@@ -1,131 +1,30 @@
 _       = require "underscore"
 fs      = require "fs"
-ncp     = require("ncp").ncp
+walkr   = require "walkr"
 step    = require "stepc"
 path    = require "path"
 async   = require "async"
 mkdirp  = require "mkdirp"
 rmdirr  = require "rmdirr"
 outcome = require "outcome"
+structr = require "structr"
+Seq     = require "seq"
+mergeDirs = require "../../utils/mergeDirs"
+resolve = require "resolve"
 
-###
-###
-
-readPackageConfig = (pkg, callback) ->
-	fs.readFile pkg, "utf8", (err, content) ->
-		config = if content then JSON.parse content else {}
-
-		dir = path.dirname pkg
-
-		loaded = { dir: dir }
-
-		config.directories = {} if not config.directories
-
-		dirs = config.directories
-
-		loaded.src     = path.normalize "#{dir}/#{(dirs["mesh-src"] || '')}"
-		loaded.lib     = path.normalize "#{dir}/#{(dirs.lib || 'lib')}"
-		## loaded.interm  = path.normalize "#{dir}/#{(dirs.interm || 'intermediate')}"
-
-		loaded.original = config
-
-		callback null, loaded
-		
-###
-###
-
-copyMergeable = (input, output, next) ->
+module.exports = (ops, callback) ->
 	
-	output = output.replace(".merge", "");
+	dir = ops.input
+	platforms = ops.platform.split ":" #web:firefox:6
 
-	step.async () ->
-			path.exists output, @
-		,(outExists) ->
-			ocfg = if outExists then JSON.parse(fs.readFileSync(output, "utf8")) else {}
-			icfg = JSON.parse(fs.readFileSync(input, "utf8"))
-
-			ofg = _.extend(ocfg, icfg);
-
-			fs.writeFileSync output, JSON.stringify(ofg, null, 2);
-			next()
+	dirs = _findTargetDirs dir, platforms
 
 
-###
-###
-
-copyFile2 = (input, output, next) ->
-	readStream  = fs.createReadStream input
-	writeStream = fs.createWriteStream output
-	readStream.pipe(writeStream)
-	readStream.once('end', next)
-###
-###
-
-copyFile = (input, output, next) ->
-		
-	return copyMergeable input, output, next if input.match(/\.merge\.json/)
-	copyFile2 input, output, next
-	
-		
-
-copyDir = (input, output, next) ->
-	
-	res = outcome.error next
 
 
-	step.async () ->
-			mkdirp output, 0777, @
-		,() ->
-			fs.readdir input, @
-		,res.success( (files) ->	
-			async.forEach files,
-				(file, next) ->
-					ifile = "#{input}/#{file}"
-					ofile   = "#{output}/#{file}"
-
-					copyr ifile, ofile, next
-				, next
-		)
-		
-###
-###
-
-copyr = (input, output, next) ->
-
-	res = outcome.error () ->
-		return next new Error "#{input} does not exist"
-
-	fs.lstat input,	res.success (stat) ->
-
-		return copyDir(input, output, next) if stat.isDirectory()
-		return copyFile input, output, next
-
-
-linkToParent = (outputDir, to, callback) ->
-	return callback() if not to
-
-	step.async () ->
-			fs.unlink to, @
-		,() ->
-			fs.symlink outputDir, to, @
-		, callback
-
-
-meshable = (pkg, callback) ->
-
-	step.async () ->
-			fs.readFile pkg, "utf8", @
-		, (err, content) ->
-			return callback false if err
-			try 
-				callback JSON.parse(content).directories["mesh-src"]
-			catch e
-				callback false
-			
 
 
 module.exports = merge = (ops, callback) ->
-
 
 	res        = outcome.error callback
 
@@ -144,17 +43,17 @@ module.exports = merge = (ops, callback) ->
 	# the OUTPUT directory from mesh.json
 	outputDir  = null #ops.output
 
+	outputPkg  = null
+
 	platformDirs = null
 
 	appPkg = null
 
 	incModules = []
 
-	nodeModulesDir = "#{input}/node_modules"
+	nodeModulesDir   = "#{input}/node_modules"
 	outputModulesDir = null
-	linkTo  = ops.link
-
-
+	linkTo           = ops.link
 
 	step.async () -> 
 		readPackageConfig "#{input}/package.json",  @
@@ -166,6 +65,7 @@ module.exports = merge = (ops, callback) ->
 		appPkg    = config.original
 		sourceDir = config.src
 		outputDir = outputDir || path.normalize "#{config.lib}/#{platform}"
+		outputPkg = "#{outputDir}/package.json"
 		outputModulesDir = "#{outputDir}/node_modules"
 		@()
 	)
@@ -175,10 +75,14 @@ module.exports = merge = (ops, callback) ->
 	,() ->
 		mkdirp outputModulesDir, 0777, @
 
+	,() ->
+		fs.writeFile "#{outputDir}/package.json", JSON.stringify({}, null, 2), @
+
 	,() ->	
 		fs.readdir nodeModulesDir, @
 
 	,(err, dirs) ->
+
 
 		# node modules does not exist.
 		return @() if err
@@ -196,109 +100,32 @@ module.exports = merge = (ops, callback) ->
 	)
 
 	,res.success( () ->
-		router.request("target/platform/dirs").query({ platformDir: sourceDir, platforms: [platform] }).response(@).pull()
+
+		mergeDirs(sourceDir, [platform]).
+		filterFile(/\.merge\.json/, mergeDirs.mergeJSON(".json")).
+		filterFile(/package\.json/, mergeDirs.mergeJSON(".json", appPkg)).
+		filterFile(mergeDirs.parseTemplate({})).
+		join(outputDir).
+		complete(@)
 	)
-
-
-	# next need to find the mesh files
-
-	,res.success( (dirs) -> 
-		
-		
-		pkgFiles = []
-		pkgFiles.push "#{dir}/package.json" for dir in dirs
-		platformDirs = dirs
-
-
-		async.map pkgFiles, readPackageConfig, @
-	)
-	# find the target config, and make the lib directory
-
-	,res.success( (pkgs) ->
-
-		# want the target platform to be copied last
-		pkgs = pkgs.sort (a, b) -> if path.basename(a.dir) == platform  then 1 else -1
-
-
-		targetPkg = pkgs.pop()
-
-
-
-		libDir = path.normalize "#{outputDir}/#{targetPkg.original.directories.lib || ''}"
-
-		@ pkgs, targetPkg, libDir
-	)
-
-
-	# copy the target platforms to the output directory
-
-	,(pkgs, mainPkg, dir) ->
-			
-		async.forEach pkgs
-			,(meshConfig, next) ->
-				copyr meshConfig.src, dir, ->
-					# merge might not exist
-					copyr "#{meshConfig.dir}/mesh.merge.json", "#{outputDir}/mesh.merge.json", () -> next()
-			, => 
-				@ pkgs, mainPkg	
-		
-	,(pkgs, mainPkg) ->
-
-		# make the directory - it could be something like "js" - for web
-		copyr mainPkg.dir, outputDir, res.success () =>
-			@ pkgs, mainPkg
-	
-	# now merge the files together into one mesh file
-
-	,(pkgs, mainPkg) ->
-
-		originalPkgs = []
-		originalPkgs.push pkg.original for pkg in pkgs
-		originalPkgs.push mainPkg.original
-
-
-
-		pkg = _.extend.apply(null, originalPkgs) || {}
-		
-		delete appPkg.main
-
-		# copy the root package to the new package - don't copy some stuff (main)
-		pkg = _.defaults pkg, appPkg
-		pkg.dependencies = _.extend pkg.dependencies || {}, appPkg.dependencies
-
-
-		incModules = incModules.concat Object.keys(pkg.dependencies || {})
-
-		@ pkg
-	
-	# save the mesh config
-	
-
-	,(config) ->
-
-		fs.writeFile "#{outputDir}/package.json", JSON.stringify(config, null, 2), @
-
-	# check to make sure the modules exist
 
 	,res.success( () ->
+		
+		deps = Object.keys(JSON.parse(fs.readFileSync(outputPkg, "utf8")).dependencies || {});
 
+		deps = deps.concat Object.keys(appPkg.dependencies || {})
 
-		async.map incModules
-			,(module, next) =>
-
-				router.request("find/module/dir").query({ module: module, input: input, dirs: ["#{input}/modules", "#{input}/node_modules"] }).response(next).pull()
-			,@
+		@ null, deps = _.uniq deps
 
 	)
-		
+
 	# filter out any modules that CANNOT be meshed
-	,res.success( (moduleDirs) ->
+	,res.success( (deps) ->
 
 		pkgPaths = []
 
 
-		pkgPaths.push "#{dir}/package.json" for dir in moduleDirs
-
+		pkgPaths.push "#{input}/node_modules/#{dep}/package.json" for dep in deps
 
 		async.filter pkgPaths, meshable, @
 	)
@@ -306,6 +133,7 @@ module.exports = merge = (ops, callback) ->
 	# recursively load the module configs
 
 	,(pkgPaths) ->
+
 
 
 		async.forEach pkgPaths
@@ -329,3 +157,55 @@ module.exports = merge = (ops, callback) ->
 	, res.success( () ->
 		callback null, { output: outputDir }
 	)
+
+
+###
+###
+
+readPackageConfig = (pkg, callback) ->
+	fs.readFile pkg, "utf8", (err, content) ->
+		config = if content then JSON.parse content else {}
+
+		dir = path.dirname pkg
+
+		loaded = { dir: dir }
+
+		config.directories = {} if not config.directories
+
+		dirs = config.directories
+
+		loaded.src     = path.normalize "#{dir}/#{(dirs["mesh-src"] || 'src')}"
+		loaded.lib     = path.normalize "#{dir}/#{(dirs.lib || 'lib')}"
+
+		loaded.original = config
+
+		callback null, loaded
+
+###
+###
+		
+linkToParent = (outputDir, to, callback) ->
+	return callback() if not to
+
+	step.async () ->
+			fs.unlink to, @
+		,() ->
+			fs.symlink outputDir, to, @
+		, callback
+
+###
+###
+
+meshable = (pkg, callback) ->
+
+	step.async () ->
+			fs.readFile pkg, "utf8", @
+		, (err, content) ->
+			return callback false if err
+			try 
+				callback JSON.parse(content).directories["mesh-src"]
+			catch e
+				callback false
+
+
+	

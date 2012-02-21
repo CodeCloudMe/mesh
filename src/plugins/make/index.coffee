@@ -30,7 +30,6 @@ exports.plugin = (router, params) ->
 
 		"pull merge -> make/config -> make": (req, res) ->
 			
-			
 			# directory to the intermediate files
 			input = req.sanitized.intermediate
 
@@ -39,7 +38,6 @@ exports.plugin = (router, params) ->
 
 			# phase of the builder we want to execute: debug, release, etc.
 			phase = req.query.phase
-
 
 			# load the target mesh file
 			step.async () ->

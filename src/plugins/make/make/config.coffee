@@ -6,6 +6,7 @@ Builders       = require "./builders"
 MakeTargets    = require "./targets"
 BuilderFactory = require "./factory"
 Modules		   = require "./modules"
+traverse       = require "traverse"
 
 
 ### 
@@ -93,7 +94,15 @@ module.exports = class Config
 	###
 
 	load: (config) ->
+		
+		self = @
 
+		# fix relative paths
+		traverse(config).forEach (v) ->
+			if typeof v == 'string' && /^(\.|~)+(\/\w*)+/.test v
+				this.update path.normalize v.replace(/^\./, self.cwd + "/.").replace(/^~/, process.env.HOME + "/");
+
+			
 		# @modules.addDir config.directories.modules if config.directories and config.directories.modules
 
 		# physical builders
@@ -101,6 +110,16 @@ module.exports = class Config
 
 		# next parse the targets
 		@targets.load(config.targets, @cwd) if config.targets
+
+
+	###
+	###
+
+	_fixConfig: (config) ->
+
+		for key of config
+			value = config[config]
+
 
 
 

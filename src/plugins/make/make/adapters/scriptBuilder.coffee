@@ -10,10 +10,10 @@ module.exports = class ScriptBuilder extends BaseBuilder
 	###
 	###
 
-	load: (ops, cwd) ->
+	load: (ops) ->
 
 		# load the target script
-		@builder = require "#{cwd}/#{ops.script}"
+		@builder = require ops.script
 
 	###
 	 passes the build phase 

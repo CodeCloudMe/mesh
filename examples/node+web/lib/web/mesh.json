@@ -10,9 +10,9 @@
   },
   "targets": [
     {
-      "entry": "./js/index.js",
-      "include": "./js",
-      "output": "./js/index.js",
+      "entry": "./src/index.js",
+      "include": "./src",
+      "output": "./src/index.js",
       "build": "web:*"
     }
   ]

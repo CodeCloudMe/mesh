@@ -1,18 +1,1 @@
-{
-  "directories": {
-    "lib": "./js"
-  },
-  "dependencies": {
-    "fig": "0.0.x",
-    "plugin": "0.0.x",
-    "daisy": "*",
-    "mesh-http": "*"
-  },
-  "name": "",
-  "description": "",
-  "author": "",
-  "devDependencies": {},
-  "scripts": {
-    "install": "make node"
-  }
-}
+{}

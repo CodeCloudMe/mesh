@@ -34,30 +34,6 @@ exports.plugin = (router, params) ->
 				res.end result if not mw.next()
 
 
-		###
-		###
-
-		"pull find/module/dir": (req, res) ->
-				
-			# module to find
-			module = req.query.module
-
-
-			# dirs to scan
-			allModuleDirs = moduleDirs.concat req.query.dirs || []
-			
-			possibilities = []
-
-			# push the possible directories
-			possibilities.push "#{dir}/#{module}" for dir in allModuleDirs
-
-
-
-			# find the files that exist, and return the first result
-			async.filter possibilities, path.exists, (results) ->
-				return res.error new Error "module \"#{module}\" does not exist in #{req.query.input}" if not results.length
-				res.end results.shift()
-
 			
 		###
 		###

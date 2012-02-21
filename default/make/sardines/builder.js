@@ -18,9 +18,9 @@ exports.build = function(target, next) {
 
 	var include = [ops.entry].concat(ops.include || []);
 
-	for(var i = include.length; i--;) {
+	/*for(var i = include.length; i--;) {
 		include[i] = target.cwd + "/" + include[i];
-	}
+	}*/
 
 	
 	analyzeDeps({ entries: include }, next.success(function(deps) {
@@ -32,7 +32,7 @@ exports.build = function(target, next) {
 			include: deps,
 			entries: [deps[0]]
 		}, next.success(function(content) {
-			fs.writeFile(target.cwd + "/" + ops.input, content, next);
+			fs.writeFile(ops.input, content, next);
 		}))
 	}));
 }

@@ -18,7 +18,7 @@ exports.build = function(target, next) {
 			var toUglify = [], self = this;
 
 
-			utils.findFiles(target.cwd + "/" + target.options.input, /\.js$/, function(file) {
+			utils.findFiles(target.options.input, /\.js$/, function(file) {
 				toUglify.push(file);
 			}, function() {
 				self(null, toUglify);

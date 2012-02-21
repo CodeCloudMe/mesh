@@ -120,23 +120,38 @@ exports.plugin = (router, params) ->
 			## platforms we want to filter out
 			platforms = req.query.platforms || []
 
-			# common libraries
-			platforms.push "common"
+			dirs = [];
+
+			dirs = dirs.concat(findTargetDirs(req.sanitized.platformDirs, platform.split(":"))) for platform in platforms
 
 
-			allDirs = []
-			targetPlatformDirs = []
-
-			for dir in req.sanitized.platformDirs		
-				dirParts = path.basename(dir).split " "		
-
-
-				## only copy the dir if it's been specified as a target
-				targetPlatformDirs.push dir if not platforms.length or _.intersection(platforms, dirParts).length
-
-				
-			## filter out any duplicate platforms
-			req.sanitized.targetPlatformDirs   = targetPlatformDirs
+			req.sanitized.targetPlatformDirs = dirs
 
 			## return the response if this isn't middleware
-			res.end targetPlatformDirs if not mw.next()
+			res.end dirs if not mw.next()
+
+
+
+# finds target directories based on the target platforms given:
+# web, web:firefox, web:firefox:6
+
+findTargetDirs = (allFiles, targetPlatforms) ->
+	
+
+	numTargetPlatforms = targetPlatforms.length
+	
+	# next find the files targeted towards the given platform
+	allFiles.filter (dir) ->
+			
+		# platform: web/firefox safari/4
+		dirParts = path.basename(dir).split /\s*\>\s*/g 
+
+		for platform, i in dirParts
+			
+			# it's a missmatch if we compile web against web:safari, web:firefox, web:firefox:6
+			# we don't want ffox 6 code mixing with safari code....
+			return false if i == numTargetPlatforms
+			
+			return false if not _.intersection(platform.split(" "), [targetPlatforms[i], "common"]).length
+
+		return true
