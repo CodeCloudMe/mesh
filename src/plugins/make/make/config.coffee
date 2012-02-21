@@ -113,10 +113,21 @@ module.exports = class Config
 	###
 
 	_loadVars: (vars) ->
-		
-		vars = JSON.parse(fs.readFileSync(vars, "utf8")) if typeof vars == "string"
+	
+		trav = {
+			v: vars
+		};
 
-		_.extend @vars, vars
+		try
+			traverse(trav).forEach (v) ->
+				try
+					if typeof v == "string" && fs.lstatSync v
+						this.update JSON.parse(fs.readFileSync(v, "utf8"))
+				catch e
+		catch e
+
+
+		_.extend @vars, trav.v
 
 
 
