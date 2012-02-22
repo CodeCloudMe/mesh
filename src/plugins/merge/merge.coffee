@@ -102,7 +102,7 @@ module.exports = merge = (ops, callback) ->
 
 		mergeDirs(sourceDir, [platform]).
 		filterFile(/\.merge\.json/, mergeDirs.mergeJSON(".json")).
-		filterFile(/package\.json/, mergeDirs.mergeJSON(".json", appPkg)).
+		filterFile(/package\.json/, mergeDirs.mergeJSON("package.json", appPkg)).
 		filterFile(mergeDirs.parseTemplate({})).
 		join(outputDir).
 		complete(@)
