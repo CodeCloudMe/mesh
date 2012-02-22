@@ -3,7 +3,7 @@ BaseBuilder = require("./base").Builder
 parseTpl    = require "../parseTpl"
 
 ###
- builds from a .js file
+ references another builder
 ###
 
 module.exports = class RefBuilder extends BaseBuilder

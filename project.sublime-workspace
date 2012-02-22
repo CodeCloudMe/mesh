@@ -69,7 +69,7 @@
 			"file": "bin/mesh",
 			"settings":
 			{
-				"buffer_size": 2426,
+				"buffer_size": 2424,
 				"line_ending": "Unix"
 			}
 		},
@@ -154,7 +154,7 @@
 			"file": "default/make/catchall/builder.js",
 			"settings":
 			{
-				"buffer_size": 321,
+				"buffer_size": 351,
 				"line_ending": "Unix"
 			}
 		},
@@ -314,7 +314,7 @@
 			"file": "src/plugins/template/index.coffee",
 			"settings":
 			{
-				"buffer_size": 505,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -330,7 +330,7 @@
 			"file": "src/plugins/make/index.coffee",
 			"settings":
 			{
-				"buffer_size": 1210,
+				"buffer_size": 1202,
 				"line_ending": "Unix"
 			}
 		},
@@ -354,7 +354,7 @@
 			"file": "lib/plugins/merge/merge.js",
 			"settings":
 			{
-				"buffer_size": 4862,
+				"buffer_size": 4929,
 				"line_ending": "Unix"
 			}
 		},
@@ -501,7 +501,7 @@
 			"file": "src/plugins/make/make/targets.coffee",
 			"settings":
 			{
-				"buffer_size": 771,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -509,7 +509,7 @@
 			"file": "default/make/sardines/builder.js",
 			"settings":
 			{
-				"buffer_size": 1002,
+				"buffer_size": 1053,
 				"line_ending": "Unix"
 			}
 		},
@@ -595,7 +595,31 @@
 			"file": "default/bootstrap/src/web/mesh.merge.json",
 			"settings":
 			{
-				"buffer_size": 325,
+				"buffer_size": 306,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "default/make/concat/builder.js",
+			"settings":
+			{
+				"buffer_size": 686,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/plugins/make/make/parseTpl.js",
+			"settings":
+			{
+				"buffer_size": 240,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/tmp/subl stdin qEUwuY.txt",
+			"settings":
+			{
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -656,7 +680,7 @@
 			"file": "src/plugins/make/make/factory.coffee",
 			"settings":
 			{
-				"buffer_size": 1292,
+				"buffer_size": 843,
 				"line_ending": "Unix"
 			}
 		},
@@ -664,7 +688,7 @@
 			"file": "src/plugins/make/make/adapters/shellBuilder.coffee",
 			"settings":
 			{
-				"buffer_size": 711,
+				"buffer_size": 699,
 				"line_ending": "Unix"
 			}
 		},
@@ -712,7 +736,7 @@
 			"file": "src/plugins/make/make/builders.coffee",
 			"settings":
 			{
-				"buffer_size": 1141,
+				"buffer_size": 1502,
 				"line_ending": "Unix"
 			}
 		},
@@ -758,7 +782,7 @@
 			"file": "default/mesh.json",
 			"settings":
 			{
-				"buffer_size": 256,
+				"buffer_size": 315,
 				"line_ending": "Unix"
 			}
 		},
@@ -774,7 +798,7 @@
 			"file": "src/plugins/make/make/adapters/targetBuilder.coffee",
 			"settings":
 			{
-				"buffer_size": 696,
+				"buffer_size": 745,
 				"line_ending": "Unix"
 			}
 		},
@@ -809,7 +833,7 @@
 			"file": "src/plugins/make/make/config.coffee",
 			"settings":
 			{
-				"buffer_size": 1475,
+				"buffer_size": 2694,
 				"line_ending": "Unix"
 			}
 		},
@@ -817,7 +841,7 @@
 			"file": "docs/makefiles.rm",
 			"settings":
 			{
-				"buffer_size": 352,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -833,7 +857,7 @@
 			"file": "default/bootstrap/makefile.mu",
 			"settings":
 			{
-				"buffer_size": 126,
+				"buffer_size": 0,
 				"line_ending": "Unix"
 			}
 		},
@@ -841,7 +865,7 @@
 			"file": "src/plugins/make/make/adapters/chainBuilder.coffee",
 			"settings":
 			{
-				"buffer_size": 615,
+				"buffer_size": 629,
 				"line_ending": "Unix"
 			}
 		},
@@ -849,7 +873,7 @@
 			"file": "src/plugins/make/make/adapters/base.coffee",
 			"settings":
 			{
-				"buffer_size": 457,
+				"buffer_size": 736,
 				"line_ending": "Unix"
 			}
 		},
@@ -857,7 +881,23 @@
 			"file": "src/plugins/make/make/adapters/refBuilder.coffee",
 			"settings":
 			{
-				"buffer_size": 512,
+				"buffer_size": 535,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/plugins/make/make/parseTpl.coffee",
+			"settings":
+			{
+				"buffer_size": 321,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "docs/makefiles.md",
+			"settings":
+			{
+				"buffer_size": 1240,
 				"line_ending": "Unix"
 			}
 		}
@@ -1031,6 +1071,8 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"$",
+			"parse",
 			"find/files",
 			"Modules",
 			"phase",
@@ -1156,12 +1198,10 @@
 			"does not ",
 			"unsubscribeUrl",
 			"unsubscr",
-			"console.l",
-			"subscriber",
-			"curated"
+			"console.l"
 		],
 		"highlight": true,
-		"in_selection": true,
+		"in_selection": false,
 		"preserve_case": false,
 		"regex": false,
 		"replace_history":
@@ -1176,7 +1216,7 @@
 	"groups":
 	[
 		{
-			"selected": 71,
+			"selected": 72,
 			"sheets":
 			[
 				{
@@ -1343,15 +1383,15 @@
 					"file": "bin/mesh",
 					"settings":
 					{
-						"buffer_size": 2426,
+						"buffer_size": 2424,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1679,
-								1685
+								1698,
+								1698
 							]
 						],
 						"settings":
@@ -1360,7 +1400,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1234.0,
+						"translation.y": 1350.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -1609,15 +1649,15 @@
 					"file": "default/make/catchall/builder.js",
 					"settings":
 					{
-						"buffer_size": 321,
+						"buffer_size": 351,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								191,
-								191
+								332,
+								318
 							]
 						],
 						"settings":
@@ -2141,15 +2181,15 @@
 					"file": "src/plugins/template/index.coffee",
 					"settings":
 					{
-						"buffer_size": 505,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								390,
-								325
+								0,
+								0
 							]
 						],
 						"settings":
@@ -2194,15 +2234,15 @@
 					"file": "src/plugins/make/index.coffee",
 					"settings":
 					{
-						"buffer_size": 1210,
+						"buffer_size": 1202,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								183,
-								182
+								964,
+								964
 							]
 						],
 						"settings":
@@ -2211,7 +2251,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 34.0,
+						"translation.y": 169.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -2275,7 +2315,7 @@
 					"file": "lib/plugins/merge/merge.js",
 					"settings":
 					{
-						"buffer_size": 4862,
+						"buffer_size": 4929,
 						"regions":
 						{
 						},
@@ -2453,7 +2493,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 199.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -2756,15 +2796,15 @@
 					"file": "src/plugins/make/make/targets.coffee",
 					"settings":
 					{
-						"buffer_size": 771,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								568,
-								568
+								0,
+								0
 							]
 						],
 						"settings":
@@ -2783,15 +2823,15 @@
 					"file": "default/make/sardines/builder.js",
 					"settings":
 					{
-						"buffer_size": 1002,
+						"buffer_size": 1053,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								229,
-								229
+								654,
+								654
 							]
 						],
 						"settings":
@@ -2817,8 +2857,8 @@
 						"selection":
 						[
 							[
-								3602,
-								3602
+								701,
+								706
 							]
 						],
 						"settings":
@@ -2827,7 +2867,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 2704.0,
+						"translation.y": 167.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -3074,15 +3114,15 @@
 					"file": "default/bootstrap/src/web/mesh.merge.json",
 					"settings":
 					{
-						"buffer_size": 325,
+						"buffer_size": 306,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								325,
-								325
+								296,
+								296
 							]
 						],
 						"settings":
@@ -3099,6 +3139,84 @@
 				},
 				{
 					"buffer": 72,
+					"file": "default/make/concat/builder.js",
+					"settings":
+					{
+						"buffer_size": 686,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								679,
+								679
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 73,
+					"file": "src/plugins/make/make/parseTpl.js",
+					"settings":
+					{
+						"buffer_size": 240,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								240
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 74,
+					"file": "/tmp/subl stdin qEUwuY.txt",
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 75,
 					"file": "default/bootstrap/src/web/package.json",
 					"settings":
 					{
@@ -3124,7 +3242,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 73,
+					"buffer": 76,
 					"file": "default/modules/plugin.http.history/src/node/beanpoll.js",
 					"settings":
 					{
@@ -3151,85 +3269,85 @@
 					"type": "text"
 				},
 				{
-					"buffer": 74,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"default_dir": "/Users/craig/Dropbox/Developer/Public/mesh-http/src/web",
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 75,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"default_dir": "/Users/craig/Dropbox/Developer/Public/mesh-http/src/web",
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 76,
-					"settings":
-					{
-						"buffer_size": 0,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"default_dir": "/Users/craig/Dropbox/Developer/Public/mesh-http/src/web",
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
 					"buffer": 77,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"default_dir": "/Users/craig/Dropbox/Developer/Public/mesh-http/src/web",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 78,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"default_dir": "/Users/craig/Dropbox/Developer/Public/mesh-http/src/web",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 79,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"default_dir": "/Users/craig/Dropbox/Developer/Public/mesh-http/src/web",
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 80,
 					"file": "examples/node+web/src/node web/package.json",
 					"settings":
 					{
@@ -3255,7 +3373,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 78,
+					"buffer": 81,
 					"file": "/tmp/subl stdin 8tTpqE.txt",
 					"settings":
 					{
@@ -3281,46 +3399,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 79,
+					"buffer": 82,
 					"file": "src/plugins/make/make/factory.coffee",
 					"settings":
 					{
-						"buffer_size": 1292,
+						"buffer_size": 843,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1150,
-								1150
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Coffeescript/CoffeeScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 4.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 80,
-					"file": "src/plugins/make/make/adapters/shellBuilder.coffee",
-					"settings":
-					{
-						"buffer_size": 711,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								105,
-								69
+								333,
+								348
 							]
 						],
 						"settings":
@@ -3335,7 +3426,34 @@
 					"type": "text"
 				},
 				{
-					"buffer": 81,
+					"buffer": 83,
+					"file": "src/plugins/make/make/adapters/shellBuilder.coffee",
+					"settings":
+					{
+						"buffer_size": 699,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								632,
+								632
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Coffeescript/CoffeeScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 84,
 					"file": "/tmp/subl stdin jqaAp8.txt",
 					"settings":
 					{
@@ -3361,7 +3479,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 82,
+					"buffer": 85,
 					"file": "lib/index.js",
 					"settings":
 					{
@@ -3389,7 +3507,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 83,
+					"buffer": 86,
 					"file": "default/make/sardines/builtin/util.js",
 					"settings":
 					{
@@ -3417,7 +3535,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 84,
+					"buffer": 87,
 					"file": "/tmp/subl stdin RdQkRj.txt",
 					"settings":
 					{
@@ -3443,7 +3561,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 85,
+					"buffer": 88,
 					"file": "default/make/sardines/tpl/main.tpl.js",
 					"settings":
 					{
@@ -3464,25 +3582,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1624.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 86,
+					"buffer": 89,
 					"file": "src/plugins/make/make/builders.coffee",
 					"settings":
 					{
-						"buffer_size": 1141,
+						"buffer_size": 1502,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								215,
-								215
+								450,
+								450
 							]
 						],
 						"settings":
@@ -3491,13 +3609,13 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 156.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 87,
+					"buffer": 90,
 					"file": "/tmp/subl stdin 4n4inA.txt",
 					"settings":
 					{
@@ -3523,7 +3641,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 88,
+					"buffer": 91,
 					"settings":
 					{
 						"buffer_size": 0,
@@ -3549,7 +3667,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 89,
+					"buffer": 92,
 					"settings":
 					{
 						"buffer_size": 0,
@@ -3575,7 +3693,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 90,
+					"buffer": 93,
 					"file": "default/make/sardines/builtin/net.js",
 					"settings":
 					{
@@ -3603,7 +3721,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 91,
+					"buffer": 94,
 					"file": "/tmp/subl stdin Hof5hA.txt",
 					"settings":
 					{
@@ -3629,19 +3747,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 92,
+					"buffer": 95,
 					"file": "default/mesh.json",
 					"settings":
 					{
-						"buffer_size": 256,
+						"buffer_size": 315,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								246,
-								246
+								315,
+								315
 							]
 						],
 						"settings":
@@ -3656,7 +3774,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 93,
+					"buffer": 96,
 					"file": "default/make/copy/builder.js",
 					"settings":
 					{
@@ -3683,19 +3801,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 94,
+					"buffer": 97,
 					"file": "src/plugins/make/make/adapters/targetBuilder.coffee",
 					"settings":
 					{
-						"buffer_size": 696,
+						"buffer_size": 745,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								441,
-								441
+								631,
+								631
 							]
 						],
 						"settings":
@@ -3710,7 +3828,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 95,
+					"buffer": 98,
 					"file": "src/plugins/make/make/adapters/refBuilfer.coffee",
 					"settings":
 					{
@@ -3737,7 +3855,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 96,
+					"buffer": 99,
 					"file": "default/make/uglify/builder.js",
 					"settings":
 					{
@@ -3764,7 +3882,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 97,
+					"buffer": 100,
 					"settings":
 					{
 						"buffer_size": 159,
@@ -3790,19 +3908,19 @@
 					"type": "text"
 				},
 				{
-					"buffer": 98,
+					"buffer": 101,
 					"file": "src/plugins/make/make/config.coffee",
 					"settings":
 					{
-						"buffer_size": 1475,
+						"buffer_size": 2694,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1379,
-								1379
+								2243,
+								2243
 							]
 						],
 						"settings":
@@ -3811,25 +3929,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 469.0,
+						"translation.y": 270.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 99,
+					"buffer": 102,
 					"file": "docs/makefiles.rm",
 					"settings":
 					{
-						"buffer_size": 352,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								169,
-								169
+								0,
+								0
 							]
 						],
 						"settings":
@@ -3843,7 +3961,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 100,
+					"buffer": 103,
 					"file": "src/plugins/make/make/adapters/scriptBuilder.coffee",
 					"settings":
 					{
@@ -3854,88 +3972,8 @@
 						"selection":
 						[
 							[
-								330,
-								330
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Coffeescript/CoffeeScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 101,
-					"file": "default/bootstrap/makefile.mu",
-					"settings":
-					{
-						"buffer_size": 126,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								126,
-								126
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 102,
-					"file": "src/plugins/make/make/adapters/chainBuilder.coffee",
-					"settings":
-					{
-						"buffer_size": 615,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								518,
-								518
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Coffeescript/CoffeeScript.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 103,
-					"file": "src/plugins/make/make/adapters/base.coffee",
-					"settings":
-					{
-						"buffer_size": 457,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								452,
-								452
+								312,
+								312
 							]
 						],
 						"settings":
@@ -3951,24 +3989,158 @@
 				},
 				{
 					"buffer": 104,
-					"file": "src/plugins/make/make/adapters/refBuilder.coffee",
+					"file": "default/bootstrap/makefile.mu",
 					"settings":
 					{
-						"buffer_size": 512,
+						"buffer_size": 0,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								390,
-								390
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 105,
+					"file": "src/plugins/make/make/adapters/chainBuilder.coffee",
+					"settings":
+					{
+						"buffer_size": 629,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								373,
+								373
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/Coffeescript/CoffeeScript.tmLanguage",
 							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 106,
+					"file": "src/plugins/make/make/adapters/base.coffee",
+					"settings":
+					{
+						"buffer_size": 736,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								359,
+								359
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Coffeescript/CoffeeScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 107,
+					"file": "src/plugins/make/make/adapters/refBuilder.coffee",
+					"settings":
+					{
+						"buffer_size": 535,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								393,
+								393
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Coffeescript/CoffeeScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 108,
+					"file": "src/plugins/make/make/parseTpl.coffee",
+					"settings":
+					{
+						"buffer_size": 321,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								111,
+								111
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Coffeescript/CoffeeScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 109,
+					"file": "docs/makefiles.md",
+					"settings":
+					{
+						"buffer_size": 1240,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								441,
+								441
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Markdown/Markdown.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -4010,13 +4182,9 @@
 		]
 	},
 	"menu_visible": true,
-	"output.git":
-	{
-		"height": 100.0
-	},
 	"replace":
 	{
-		"height": 0.0
+		"height": 64.0
 	},
 	"save_all_on_build": true,
 	"select_file":

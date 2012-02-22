@@ -12,6 +12,7 @@ ScriptBuilder = require "./adapters/scriptBuilder"
 ShellBuilder  = require "./adapters/shellBuilder"
 RefBuilder    = require "./adapters/refBuilder"
 TargetBuilder = require "./adapters/targetBuilder"
+SearchBuilder = require "./adapters/searchBuilder"
 
 
 ### 
@@ -32,6 +33,7 @@ module.exports = class Config
 		taskFactory.addBuilderClass ShellBuilder
 		taskFactory.addBuilderClass RefBuilder
 		taskFactory.addBuilderClass TargetBuilder
+		taskFactory.addBuilderClass SearchBuilder
 
 		##taskFactory  = new BuilderFactory()
 		##taskFactory.addBuilderClass ChainBuilder

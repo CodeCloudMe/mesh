@@ -74,7 +74,8 @@ module.exports = merge = (ops, callback) ->
 		mkdirp outputModulesDir, 0777, @
 
 	,() ->
-		fs.writeFile "#{outputDir}/package.json", JSON.stringify({}, null, 2), @
+		fs.writeFileSync outputPkg, JSON.stringify({}, null, 2)
+		@()
 
 	,() ->	
 		fs.readdir nodeModulesDir, @
@@ -109,8 +110,8 @@ module.exports = merge = (ops, callback) ->
 
 	,res.success( () ->
 		
-		deps = Object.keys(JSON.parse(fs.readFileSync(outputPkg, "utf8")).dependencies || {});
-
+		deps = Object.keys(JSON.parse(fs.readFileSync(outputPkg, "utf8")).dependencies || {})
+		
 		deps = deps.concat Object.keys(appPkg.dependencies || {})
 
 		@ null, deps = _.uniq deps

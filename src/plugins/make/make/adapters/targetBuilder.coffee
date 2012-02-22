@@ -1,11 +1,10 @@
 async       = require "async"
 BaseBuilder = require("./base").Builder
-handlebars  = require "handlebars"
-exec        = require("child_process").exec
 structr     = require "structr"
+parseTpl    = require "../parseTpl"
 
 ###
- builds from a .js file
+ the ENTRY point into the build system
 ###
 
 module.exports = class TargetBuilder extends BaseBuilder
@@ -28,6 +27,9 @@ module.exports = class TargetBuilder extends BaseBuilder
 		#structr.copy @target, target
 		structr.copy target, obj
 		structr.copy @target, obj
+
+		# parse the object incase vars are passed 
+		obj = parseTpl(obj, target)
 
 		@builder.start obj, callback
 	

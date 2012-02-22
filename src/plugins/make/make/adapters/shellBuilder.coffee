@@ -4,7 +4,7 @@ parseTpl    = require "../parseTpl"
 exec        = require("child_process").exec
 
 ###
- builds from a .js file
+ executes a shell script
 ###
 
 module.exports = class ShellBuilder extends BaseBuilder

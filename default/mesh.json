@@ -9,6 +9,9 @@
 		"catchall": {
 			"script": "./make/catchall/builder.js"
 		},
+		"concat": {
+			"script": "./make/concat/builder.js"
+		},
 		"copy": {
 			"script": "./make/copy/builder.js"
 		}
