@@ -16,7 +16,7 @@ module.exports = class SearchBuilder extends BaseBuilder
 
 	load: (options) ->
 	
-		@dir = options.walkDirectory
+		@dir = options.directory
 
 		builders = @findBuilders = []
 
@@ -54,4 +54,4 @@ module.exports = class SearchBuilder extends BaseBuilder
 
 
 module.exports.test = (config) ->
-	return !!config.walkDirectory
+	return !!config.directory && !!config.find
