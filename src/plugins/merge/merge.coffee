@@ -74,7 +74,8 @@ module.exports = merge = (ops, callback) ->
 		mkdirp outputModulesDir, 0777, @
 
 	,() ->
-		fs.writeFileSync outputPkg, JSON.stringify({}, null, 2)
+		fs.writeFileSync outputPkg, JSON.stringify(appPkg || {}, null, 2)
+
 		@()
 
 	,() ->	
@@ -100,10 +101,11 @@ module.exports = merge = (ops, callback) ->
 
 	,res.success( () ->
 
+
 		mergeDirs(sourceDir, [platform]).
 		filterFile(/\.merge\.json/, mergeDirs.mergeJSON(".json")).
 		filterFile(/package\.json/, mergeDirs.mergeJSON("package.json", appPkg)).
-		filterFile(mergeDirs.parseTemplate({})).
+		# filterFile(mergeDirs.parseTemplate({})).
 		join(outputDir).
 		complete(@)
 	)

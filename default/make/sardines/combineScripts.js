@@ -73,6 +73,7 @@ function stringifyEntries(entries) {
  		},
  		on.success(function(content) {
 
+
  			var path = script.alias, tplFile = __dirname + '/tpl/module.tpl.js';
 
 

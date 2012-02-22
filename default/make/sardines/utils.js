@@ -163,7 +163,7 @@ var modulePath = exports.modulePath = function(script) {
  */
 
 exports.getPathInfo = function(required, cwd) {
-	
+
 
 	try {
 
