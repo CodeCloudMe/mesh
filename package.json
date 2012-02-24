@@ -9,7 +9,6 @@
   "repository": {},
   "engines": {},
   "dependencies": {
-    "crema":"0.0.x",
     "celeri": "<0.3",
     "ncp": "<0.3",
     "beanie": "0.0.x",
