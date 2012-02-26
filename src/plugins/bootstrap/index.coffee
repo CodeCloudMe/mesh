@@ -3,7 +3,6 @@ fs     = require "fs"
 path   = require "path"
 mkdirp = require "mkdirp" 
 step   = require("stepc")
-npm    = require "npm"
 mergeDirs = require "../../utils/mergeDirs"
 walkr     = require "walkr"
 
