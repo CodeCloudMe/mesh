@@ -6,6 +6,7 @@ Builders       = require "./builders"
 traverse       = require "traverse"
 BuilderFactory = require "./factory"
 _              = require "underscore"
+crc32          = require "crc32"
 
 ChainBuilder  = require "./adapters/chainBuilder"
 ScriptBuilder = require "./adapters/scriptBuilder"
@@ -40,7 +41,7 @@ module.exports = class Config
 		##taskFactory.addBuilderClass TargetBuilder
 		##taskFactory.addBuilderClass RefBuilder
 
-		@vars = {}
+		@vars = { buildId: crc32 String Date.now() }
 
 		# the collection of available builders
 		# @scripts  = new Builders scriptsFactory, @

@@ -46,7 +46,7 @@ crc32			 = require('crc32');
 
 
 
- 			this(null, parseFile({ body: buffer.join('\n\n'), name: '__app'}, __dirname + "/tpl/body.tpl.js"));
+ 			this(null, parseFile({ body: buffer.join('\n\n'), name: '__app', buildId: ops.buildId }, __dirname + "/tpl/body.tpl.js"));
  		}),
  		callback
  	)

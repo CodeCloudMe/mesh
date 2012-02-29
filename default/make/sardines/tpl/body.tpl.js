@@ -1,4 +1,9 @@
 var $$$name = (function(){
+
+	var mesh = {
+		buildId: '$$$buildId'
+	};
+
 	$$$body
 })();
 

@@ -31,7 +31,8 @@ exports.build = function(target, next) {
 
 		combineScripts({
 			include: deps,
-			entries: [deps[0]]
+			entries: [deps[0]],
+			buildId: target.buildId
 		}, next.success(function(content) {
 			fs.writeFile(ops.input, content, next);
 		}));

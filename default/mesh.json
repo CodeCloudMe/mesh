@@ -9,6 +9,9 @@
 		"catchall": {
 			"script": "./make/catchall/builder.js"
 		},
+		"hashify": {
+			"script": "./make/hashify/builder.js"
+		},
 		"concat": {
 			"script": "./make/concat/builder.js"
 		},
