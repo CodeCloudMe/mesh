@@ -35,14 +35,18 @@ crc32			 = require('crc32');
 
  			// this(null, parseFile({}))
  			
- 			var buffer = fs.readFileSync(__dirname + "/tpl/main.tpl.js") + "\n\n";
-
- 			buffer += modules.join("\n") + "\n";
-
- 			buffer += parseFile({ entries: stringifyEntries(entries) }, __dirname + "/tpl/entry.tpl.js") + "\n";
+ 			var buffer = [];
 
 
- 			this(null, parseFile({ body: buffer, name: '__app'}, __dirname + "/tpl/body.tpl.js"));
+ 			buffer.push(fs.readFileSync(__dirname + "/tpl/shim.tpl.js"));
+ 			buffer.push(fs.readFileSync(__dirname + "/tpl/main.tpl.js"));
+ 			buffer.push(modules.join('\n\n'));
+ 			buffer.push(parseFile({ entries: stringifyEntries(entries) }, __dirname + "/tpl/entry.tpl.js"));
+
+
+
+
+ 			this(null, parseFile({ body: buffer.join('\n\n'), name: '__app'}, __dirname + "/tpl/body.tpl.js"));
  		}),
  		callback
  	)
