@@ -16,6 +16,7 @@
 - Builders
 	- [browserify](/substack/node-browserify)-like combining of scripts
 	- [catchall](/crcn/catchall) - catch *all* exceptions thrown in javascript
+	- hashify - scans css / html for dependencies, and adds a unique hash so clients are stuck with stale data
 
 
 ## Supports
