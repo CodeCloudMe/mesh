@@ -6,6 +6,9 @@
 		"uglify": {
 			"script": "./make/uglify/builder.js"
 		},
+		"minify_html": {
+			"script": "./make/minify_html/builder.js"
+		},
 		"catchall": {
 			"script": "./make/catchall/builder.js"
 		},

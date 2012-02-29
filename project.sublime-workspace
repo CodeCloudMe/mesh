@@ -474,7 +474,7 @@
 			"file": "README.md",
 			"settings":
 			{
-				"buffer_size": 1690,
+				"buffer_size": 1798,
 				"line_ending": "Unix"
 			}
 		},
@@ -549,7 +549,7 @@
 			"file": "default/make/sardines/builder.js",
 			"settings":
 			{
-				"buffer_size": 1053,
+				"buffer_size": 1081,
 				"line_ending": "Unix"
 			}
 		},
@@ -830,7 +830,7 @@
 			"file": "default/mesh.json",
 			"settings":
 			{
-				"buffer_size": 315,
+				"buffer_size": 376,
 				"line_ending": "Unix"
 			}
 		},
@@ -881,7 +881,7 @@
 			"file": "src/plugins/make/make/config.coffee",
 			"settings":
 			{
-				"buffer_size": 2789,
+				"buffer_size": 2856,
 				"line_ending": "Unix"
 			}
 		},
@@ -961,7 +961,23 @@
 			"file": "default/make/sardines/combineScripts.js",
 			"settings":
 			{
-				"buffer_size": 2029,
+				"buffer_size": 2052,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/tmp/subl stdin ZNEwmT.txt",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "default/make/hashify/builder.js",
+			"settings":
+			{
+				"buffer_size": 1154,
 				"line_ending": "Unix"
 			}
 		},
@@ -978,6 +994,14 @@
 			"settings":
 			{
 				"buffer_size": 3258,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "default/make/sardines/tpl/body.tpl.js",
+			"settings":
+			{
+				"buffer_size": 146,
 				"line_ending": "Unix"
 			}
 		}
@@ -1296,7 +1320,7 @@
 	"groups":
 	[
 		{
-			"selected": 117,
+			"selected": 88,
 			"sheets":
 			[
 				{
@@ -2347,8 +2371,8 @@
 						"selection":
 						[
 							[
-								964,
-								964
+								889,
+								889
 							]
 						],
 						"settings":
@@ -2793,15 +2817,15 @@
 					"file": "README.md",
 					"settings":
 					{
-						"buffer_size": 1690,
+						"buffer_size": 1798,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1352,
-								1352
+								925,
+								925
 							]
 						],
 						"settings":
@@ -2810,7 +2834,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 19.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -3034,15 +3058,15 @@
 					"file": "default/make/sardines/builder.js",
 					"settings":
 					{
-						"buffer_size": 1053,
+						"buffer_size": 1081,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								654,
-								654
+								887,
+								887
 							]
 						],
 						"settings":
@@ -3263,7 +3287,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 240.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -3810,8 +3834,8 @@
 						"selection":
 						[
 							[
-								2604,
-								2618
+								29,
+								29
 							]
 						],
 						"settings":
@@ -3820,7 +3844,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1069.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -3989,15 +4013,15 @@
 					"file": "default/mesh.json",
 					"settings":
 					{
-						"buffer_size": 315,
+						"buffer_size": 376,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								315,
-								315
+								241,
+								241
 							]
 						],
 						"settings":
@@ -4150,15 +4174,15 @@
 					"file": "src/plugins/make/make/config.coffee",
 					"settings":
 					{
-						"buffer_size": 2789,
+						"buffer_size": 2856,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								982,
-								982
+								1204,
+								1211
 							]
 						],
 						"settings":
@@ -4419,15 +4443,15 @@
 					"file": "default/make/sardines/combineScripts.js",
 					"settings":
 					{
-						"buffer_size": 2029,
+						"buffer_size": 2052,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								881,
-								881
+								1193,
+								1193
 							]
 						],
 						"settings":
@@ -4442,7 +4466,7 @@
 				},
 				{
 					"buffer": 118,
-					"file": "/tmp/subl stdin EalEYM.txt",
+					"file": "/tmp/subl stdin ZNEwmT.txt",
 					"settings":
 					{
 						"buffer_size": 0,
@@ -4468,6 +4492,58 @@
 				},
 				{
 					"buffer": 119,
+					"file": "default/make/hashify/builder.js",
+					"settings":
+					{
+						"buffer_size": 1154,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								930,
+								930
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 135.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 120,
+					"file": "/tmp/subl stdin EalEYM.txt",
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 121,
 					"file": "default/make/sardines/tpl/shim.tpl.js",
 					"settings":
 					{
@@ -4485,7 +4561,34 @@
 						"settings":
 						{
 							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"translate_tabs_to_spaces": false
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 122,
+					"file": "default/make/sardines/tpl/body.tpl.js",
+					"settings":
+					{
+						"buffer_size": 146,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								64,
+								64
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
