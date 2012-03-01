@@ -1,10 +1,10 @@
 fs     = require "fs"
 step   = require "stepc"
 async  = require "async"
-Config = require "./make/config"
+capirona = require "capirona"
 
 exports.plugin = (router, params) ->
-	
+
 	makeConfigs = [ params.configPath ] 
 
 
@@ -15,23 +15,23 @@ exports.plugin = (router, params) ->
 		###
 
 		"pull make/config": (req, res, mw) ->
-				
-			cfg = req.sanitized.makeConfig = new Config()
 
-			async.forEach makeConfigs,
-				(file, next) ->
-					cfg.loadFile file, next
-				,res.success () ->
-					res.end cfg if not mw.next()
+			cfg = req.sanitized.makeConfig = capirona.make()
 
+			for config in makeConfigs
+				cfg.load config
+
+			cfg.next () ->
+				res.end cfg if not mw.next()
+				@()
 
 		###
 		###
 
 		"pull merge -> make/config -> make": (req, res) ->
-			
+
 			# directory to the intermediate files
-			input = req.sanitized.intermediate
+			input = req.query.input
 
 			# the physical config object
 			cfg   = req.sanitized.makeConfig
@@ -39,18 +39,29 @@ exports.plugin = (router, params) ->
 			# phase of the builder we want to execute: debug, release, etc.
 			task = req.query.task
 
+			pkg = JSON.parse(fs.readFileSync("#{req.sanitized.intermediate}/package.json", "utf8"));
+
+
+
 			# load the target mesh file
 			step.async () ->
-				cfg.loadFile "#{input}/mesh.json", => @ cfg
+				cfg.load "#{input}/make.json", => @ cfg
 
 			# on load start building
 			,(config) ->
-				
-				cfg.tasks.build task, { target: task }, res.success (result) -> res.end result
+				cfg.run task, { 
+					cwd: req.sanitized.intermediate,
+					target: task, 
+					directories: {
+						root:  "#{req.sanitized.intermediate}",
+						src: "#{req.sanitized.intermediate}/#{pkg.directories['mesh-src']}", 
+						lib: "#{req.sanitized.intermediate}/#{pkg.directories.lib||'lib'}" 
+					}
+				}, res.success (result) -> res.end result
 
 			,(err) ->
 				res.error err
-				
+
 
 
 		###
@@ -59,4 +70,3 @@ exports.plugin = (router, params) ->
 
 		"push make/config/path": (configPath) ->
 			makeConfigs.push configPath
-

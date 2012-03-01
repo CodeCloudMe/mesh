@@ -3,7 +3,7 @@ fs = require('fs'),
 path = require('path')
 
 
-exports.build = function(target, next) {
+exports.run = function(target, next) {
 
 	catchall.load(target.entry, next.success(function(wrappedSource) {
 

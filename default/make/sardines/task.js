@@ -4,7 +4,7 @@ async           = require('async'),
 combineScripts  = require('./combineScripts'),
 path            = require('path')
 
-exports.build = function(target, next) {
+exports.run = function(target, next) {
 
 	var ops = target;
 

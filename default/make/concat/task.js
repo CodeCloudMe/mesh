@@ -2,12 +2,14 @@ var walkr = require("walkr"),
 fs        = require("fs"),
 seq       = require("seq");
 
-exports.build = function(target, nextBuilder) {
+exports.run = function(target, nextBuilder) {
+
 
 	var ops = target,
 	include = ops.include instanceof Array ? ops.include : [ops.include],
 	output  = ops.output,
 	ws      = fs.createWriteStream(output);
+
 
 	seq(include).
 	seqEach(function(file) {

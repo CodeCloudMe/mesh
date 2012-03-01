@@ -29,7 +29,8 @@
     "html-minifier": "git+https://github.com/crcn/html-minifier.git",
     "beanpoll": "0.2.x",
     "plugin": "0.0.x",
-    "walkr": "0.0.x"
+    "walkr": "0.0.x",
+    "capirona": "0.0.x"
   },
   "devDependencies": {},
   "main": "./lib/index.js",

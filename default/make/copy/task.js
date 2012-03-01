@@ -1,6 +1,6 @@
 dirmr = require("dirmr");
 
-exports.build = function(target, next) {
+exports.run = function(target, next) {
 
 	var ops = target;
 	

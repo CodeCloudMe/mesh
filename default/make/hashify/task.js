@@ -7,7 +7,7 @@ qs       = require('querystring');
 //adds the buildId to all dependencies. This ensures new files
 //are *always* served to the client
 
-exports.build = function(target, next) {
+exports.run = function(target, next) {
 
 	var uniqueHash = target.buildId;
 

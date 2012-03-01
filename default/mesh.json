@@ -1,25 +1,28 @@
 {
 	"tasks": {
+		"merge": {
+			"script": "./make/merge/task.js"
+		},
 		"combine": {
-			"script": "./make/sardines/builder.js"
+			"script": "./make/sardines/task.js"
 		},
 		"uglify": {
-			"script": "./make/uglify/builder.js"
+			"script": "./make/uglify/task.js"
 		},
 		"minify_html": {
-			"script": "./make/minify_html/builder.js"
+			"script": "./make/minify_html/task.js"
 		},
 		"catchall": {
-			"script": "./make/catchall/builder.js"
+			"script": "./make/catchall/task.js"
 		},
 		"hashify": {
-			"script": "./make/hashify/builder.js"
+			"script": "./make/hashify/task.js"
 		},
 		"concat": {
-			"script": "./make/concat/builder.js"
+			"script": "./make/concat/task.js"
 		},
 		"copy": {
-			"script": "./make/copy/builder.js"
+			"script": "./make/copy/task.js"
 		}
 	}
 }

@@ -39,6 +39,9 @@ module.exports = merge = (ops, callback) ->
 	# the SOURCE directory from mesh.json
 	sourceDir  = null
 
+	# target platform source
+	targetSourceDir = null
+
 	# the OUTPUT directory from mesh.json
 	outputDir  = null #ops.output
 
@@ -47,6 +50,8 @@ module.exports = merge = (ops, callback) ->
 	platformDirs = null
 
 	appPkg = null
+
+	targetPkg = null
 
 	incModules = []
 
@@ -63,6 +68,7 @@ module.exports = merge = (ops, callback) ->
 		console.log "merge #{config.original.name}"
 		appPkg    = config.original
 		sourceDir = config.src
+		targetSourceDir = "#{sourceDir}/#{platform}"
 		outputDir = outputDir || path.normalize "#{config.lib}/#{platform}"
 		outputPkg = "#{outputDir}/package.json"
 		outputModulesDir = "#{outputDir}/node_modules"
@@ -73,14 +79,17 @@ module.exports = merge = (ops, callback) ->
 	,() ->
 		mkdirp outputModulesDir, 0777, @
 
+	#
 	,() ->
 		fs.writeFileSync outputPkg, JSON.stringify(appPkg || {}, null, 2)
 
 		@()
 
+	#
 	,() ->	
 		fs.readdir nodeModulesDir, @
 
+	#
 	,(err, dirs) ->
 
 
@@ -92,25 +101,46 @@ module.exports = merge = (ops, callback) ->
 				fs.symlink "#{nodeModulesDir}/#{dir}", "#{outputModulesDir}/#{dir}", () -> next()
 			,@ 
 	
-
+	#
 	,res.success( () ->
 		linkToParent outputDir, linkTo, @
-
-	# find the target platform first
 	)
 
+	# find the target platform first
 	,res.success( () ->
 
+		# at this point, it doesn't matter if the package.json exists. Default dir is src/
+		readPackageConfig "#{targetSourceDir}/package.json", this
+
+	)
+
+	,res.success( (pkg) ->
+
+		targetPkg = pkg
+
+		walkr(targetSourceDir, outputDir).
+		filter(pkg.src). # omit source directory for now.
+		filter(walkr.copy).
+		start this
+	)
+
+	# first copy the sources
+	,res.success( () ->
 
 		mergeDirs(sourceDir, [platform]).
-		filterFile(/\.merge\.json/, mergeDirs.mergeJSON(".json")).
+		mapDir (dir, next) ->
+			readPackageConfig "#{dir}/package.json", res.success (pkg) ->
+				next null, pkg.src
+		.
 		filterFile(/package\.json/, mergeDirs.mergeJSON("package.json", appPkg)).
-		# filterFile(mergeDirs.parseTemplate({})).
-		join(outputDir).
+		filterFile(mergeDirs.parseTemplate({})).
+		join("#{outputDir}/#{targetPkg.original.directories["mesh-src"]}").
 		complete(@)
 	)
 
-	,res.success( () ->
+
+	#
+	,() ->
 		
 		deps = Object.keys(JSON.parse(fs.readFileSync(outputPkg, "utf8")).dependencies || {})
 		
@@ -118,7 +148,7 @@ module.exports = merge = (ops, callback) ->
 
 		@ null, deps = _.uniq deps
 
-	)
+	
 
 	# filter out any modules that CANNOT be meshed
 	,res.success( (deps) ->

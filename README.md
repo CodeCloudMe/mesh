@@ -1,4 +1,4 @@
-## Cross-Platform JavaScript Build System
+## The JavaScript Build System
 
 
 ## Motivation
@@ -18,7 +18,6 @@
 	- [catchall](/crcn/catchall) - catch *all* exceptions thrown in javascript
 	- hashify - scans css / html for dependencies, and adds a unique hash so clients are stuck with stale data
 
-
 ## Supports
 
 - Web 
@@ -34,7 +33,7 @@
 - [daisy](/crcn/daisy) - Cross-platform mq for beanpoll.js
 - [fig](/crcn/fig) - Cross-platform view library (service single-page apps + static websites).
 - [mesh-winston](/crcn/mesh-winston) - Cross-platform implementation of winston.
-- [haba](/crcn/haba) - Module loader.
+- [plugin.ks](/crcn/plugin) - Module loader.
 
 
 ## Prerequisites

@@ -9,7 +9,7 @@ async      = require('async');
 
 
 
-exports.build = function(target, next) {
+exports.run = function(target, next) {
 	
 
 	step(
