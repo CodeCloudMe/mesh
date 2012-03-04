@@ -11,7 +11,17 @@
 	},
 	"main": "./lib/{{defaultPlatform}}/index.js",
 	"directories": {
-		"mesh-src": "./src",
+		"src": "./src",
 		"lib": "./lib"
+	},
+	"mesh": {
+		"tasks": {
+			"web": {
+				"include": "./make/web.json"
+			},
+			"node": {
+				"include": "./make/node.json"
+			}
+		}
 	}
 }

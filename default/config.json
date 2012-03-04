@@ -1,4 +1,7 @@
 {
+	"directories": {
+		"bootstrap": "./bootstrap"
+	},
 	"tasks": {
 		"merge": {
 			"script": "./make/merge/task.js"
@@ -15,6 +18,9 @@
 		"catchall": {
 			"script": "./make/catchall/task.js"
 		},
+		"help": {
+			"script": "./make/help/task.js"
+		},
 		"hashify": {
 			"script": "./make/hashify/task.js"
 		},
@@ -23,6 +29,12 @@
 		},
 		"copy": {
 			"script": "./make/copy/task.js"
+		},
+		"bootstrap": {
+			"defaultPlatform": "node",
+			"task": {
+				"script": "./make/bootstrap/task.js"
+			}
 		}
 	}
 }

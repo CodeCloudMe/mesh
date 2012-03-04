@@ -30,7 +30,8 @@
     "beanpoll": "0.2.x",
     "plugin": "0.0.x",
     "walkr": "0.0.x",
-    "capirona": "0.0.x"
+    "capirona": "0.0.x",
+    "sprintf": "0.1.x"
   },
   "devDependencies": {},
   "main": "./lib/index.js",

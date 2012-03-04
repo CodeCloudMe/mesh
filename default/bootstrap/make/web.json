@@ -1,0 +1,24 @@
+{
+    "transformScript": {
+        "directory": "<%=srcDir %>"
+    },
+    "transformEntry/:task": {
+        "directory": "<%=srcDir %>",
+        "find": {
+            "\\.entry\\.js$": {
+                "input": "<%=file %>",
+                "output": "<%=file.replace('.entry','') %>",
+                "task": "<%=task %>"
+            }
+        }
+    },
+    "makeEntries": "transformEntry/combine",
+    "make": {
+        "debug": [
+            "makeEntries"
+        ],
+        "release": [
+            "../debug"
+        ]
+    }
+}

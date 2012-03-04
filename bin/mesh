@@ -1,143 +1,94 @@
 #!/usr/bin/env node
 
-var mesh = require("../"),
-celeri  = require('celeri'),
-outcome = require('outcome'),
-colors  = require('colors'),
-_       = require("underscore"),
-path    = require("path");
+var cli = require('optimist').
+usage("Usage: $0 [targets] -i=[target] --arg=[value]").
+alias('i','input').
+default('i',"./package.json"),
+argv = cli.argv,
+capirona = require('capirona'),
+path     = require('path'),
+step     = require('stepc'),
+outcome  = require('outcome'),
+fs       = require('fs');
 
-
-var on = outcome.error(function(err) {
-	console.error(err.stack);
-})
-
-
-
-mesh.load(on.success(function(router) {
-	
-
-	loadCli(router);
-	celeri.parse(process.argv);
-
-}));
-
-function replaceCwd(dir) {
-		
-		return dir.replace(/^\./, process.cwd() + '/.');
-
+if(argv.h || argv.help) {
+	cli.showHelp();
+	process.exit();
 }
 
-var dirFlags = {
-	'--dir': 'The directory to use scan',
-	'--out': 'the output directory'
-}
+var makeTarget = (argv.i).
+replace('~', process.env.HOME).
+replace('./', process.cwd() + "/");
 
 
-function loadCli(router) {
+argv.cwd          = path.dirname(makeTarget);
+
+
+var on = outcome.error(function(e) {
 	
-	
+	console.error(e.message);
+
+});
+
+step(
 
 	/**
 	 */
 
-	celeri.option({
-		command: 'fix input OR fix input :platform',
-		optional: dirFlags
-	}, function(ops, next) {
+	function() {
 
+		path.exists(makeTarget, this);
 
-		var input = replaceCwd(ops.input || '.'),
-		output    = replaceCwd(ops.output || input + '/') + '/' + (ops.platform || '')
-		
-		next(null, {
-			input: input,
-			output: output
-		});
-
-	});
-
+	},
 
 	/**
 	 */
 
-	celeri.option({
-		command: 'fix input :platform -> merge :platform',
-		description: 'Prepares library for target platform',
-		optional: dirFlags
-	}, function(ops, next) {
+	function(exists) {
 
-		var input = ops.input,
-		output    = ops.output,
-		platform  = ops.platform;
+		if(exists) {
 
-		console.log('Merging %s to %s', input.bold, platform.bold);
+			fs.readFile(makeTarget, "utf8", this);
 
+		} else {
 
-		router.
-		request('merge').
-		query(_.defaults({
-			input: ops.input,
-			platform: platform
-		}, ops)).
-		error(function(err) {
-			console.log(err.stack);
-		}).
-		pull();
-	});
+			this();
+
+		}
+	},
 
 	/**
 	 */
 
-	celeri.option({
-		command: 'fix input :platform -> make :platform OR make :platform :task',
-		description: 'Builds project for target platform',
-		optional: dirFlags
-	}, function(ops) {
+	on.success(function(content) {
 
+		if(!content) return this(null, { mesh: {} });
+		this(null, JSON.parse(content));
 
-		router.
-		request('make').
-		query(_.defaults({
-			input    : ops.input,
-			platform : ops.platform,
-			task     : [ops.platform, ops.task || "debug"].join(":")
-		}, ops)).
-		error(function(err) {
-			console.log(err.stack);
-		}).
-		pull();
-
-	});
-
+	}),
 
 	/**
 	 */
 
-
-	celeri.option({
-		command: 'fix input -> bootstrap OR bootstrap :platforms',
-		description: 'Creates a new project',
-		optional: _.extend({
-			'--all': 'include all platforms',
-			'--name': 'name of the project',
-			'--description': 'description of the application',
-			'--author': 'author of the program'
-		}, dirFlags)
-	}, function(ops) {
-
-		router.
-		request('bootstrap').
-		query(_.defaults({
-			output: path.normalize(ops.output),
-			platforms: ops.platforms ? ops.platforms.split('+') : null
-		}, ops)).
-		error(function(err) {
-			console.log(err.stack);
-		}).
-		pull();
-
-	});
+	on.success(function(pkg) {
 
 
-}
+		capirona.
+		make().
+		load(__dirname + "/../default/config.json").
+		cwd(argv.cwd).
+		load(pkg).
+		run(argv._, argv, this);
+
+	}),
+
+	/**
+	 */
+
+	on.success(function() {
+
+		console.log('done without errors');
+
+	})
+)
+
