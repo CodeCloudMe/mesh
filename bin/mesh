@@ -87,7 +87,7 @@ step(
 
 	on.success(function() {
 
-		console.log('done without errors');
+		//console.log('done without errors');
 
 	})
 )

@@ -11,12 +11,6 @@
 - Seamlessly communicate between two different javascript apps, e.g., web + node.
 - To do other really cool stuff, e.g., serving single-page apps and static websites from the same code.
 
-## Features
-
-- Builders
-	- [browserify](/substack/node-browserify)-like combining of scripts
-	- [catchall](/crcn/catchall) - catch *all* exceptions thrown in javascript
-	- hashify - scans css / html for dependencies, and adds a unique hash so clients are stuck with stale data
 
 ## Supports
 
@@ -28,14 +22,6 @@
 - Browser Extensions: **Firefox**, **Safari**, **Chrome**, **IE**, **Opera**, **Bookmarklets**
 - Soon: Titanium, Phonegap
 
-## Projects Using Mesh.js
-
-- [daisy](/crcn/daisy) - Cross-platform mq for beanpoll.js
-- [fig](/crcn/fig) - Cross-platform view library (service single-page apps + static websites).
-- [mesh-winston](/crcn/mesh-winston) - Cross-platform implementation of winston.
-- [plugin.ks](/crcn/plugin) - Module loader.
-
-
 ## Prerequisites
 
 - [Node.js](http://nodejs.org/) (needed for CLI)
@@ -44,18 +30,14 @@
 	
 We'll first kick things off by initializing our project. Call:
 
-	mesh bootstrap [platforms]
+	mesh bootstrap
 
-Here's an example:
-
-	mesh bootstrap web+node+chrome+firefox
 
 The bootstrap script will produce some boilerplate code. 
 After you're done initializing your project, you can go ahead and make it:
 
 ```
-mesh make [platform]
+mesh make:web:debug
+mesh make:iphone:debug
+mesh make:node:debug
 ```
-
-
-
