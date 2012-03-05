@@ -149,7 +149,7 @@ exports.run = function(ops, next) {
 
 			mergeDirs(srcDir, [targetPlatform]).
 			mapDir(function(dir, next) {
-				next(null, readPackage(dir).dir);
+				next(null, readPackage(dir).src);
 			}).
 			filterFile(/package\.json/, mergeDirs.mergeJSON("package.json")).
 			// filterFile(mergeDirs.parseTemplate({})).
@@ -239,7 +239,7 @@ function readPackage(pkgPath) {
 
 	var cfg = {
 		dir: dir,
-		src: path.normalize(dir + "/" + (dirs.src || 'src')),
+		src: path.normalize(dir + "/" + (dirs.src || '')),
 		lib: path.normalize(dir + "/" + (dirs.lib || 'lib')),
 		original: pkg
 	};
