@@ -17,6 +17,12 @@
 - Web 
 - Node.js
 
+## Installation
+
+```bash
+npm install mesh -g
+```
+
 ## Soon
 
 - Browser Extensions: **Firefox**, **Safari**, **Chrome**, **IE**, **Opera**, **Bookmarklets**
