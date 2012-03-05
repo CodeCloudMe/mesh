@@ -18,6 +18,7 @@ exports.run = function(ops, next) {
 	bootstrapDir  = ops.directories.bootstrap;
 	// bootstrapSrcDir = bootstrapDir + "/src";
 
+
 	step(
 
 		/**
@@ -56,7 +57,7 @@ exports.run = function(ops, next) {
 
 
 exports.taskMessage = function(target) {
-	return "bootstrap";
+	return "bootstrap cwd";
 	// return sprintf("bootstrap \"%s\"", target.platforms.replace(/\+/g,', '));
 
 }

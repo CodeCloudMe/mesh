@@ -62,7 +62,7 @@ step(
 
 	on.success(function(content) {
 
-		if(!content) return this(null, { mesh: {} });
+		if(!content) return this(null, {  mesh: {} });
 		this(null, JSON.parse(content));
 
 	}),
@@ -72,11 +72,11 @@ step(
 
 	on.success(function(pkg) {
 
+		pkg.cwd = argv.cwd;
 
 		capirona.
 		make().
-		load(__dirname + "/../default/config.json").
-		cwd(argv.cwd).
+		load(__dirname + "/../default/config.js").
 		load(pkg).
 		run(argv._, argv, this);
 

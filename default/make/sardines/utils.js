@@ -205,8 +205,6 @@ exports.getPathInfo = function(required, cwd) {
  		return ret;
 
 	} catch(e) {
-
-
 		console.error('cannot load "%s" in "%s"', required, cwd);
 
 		//something went wront

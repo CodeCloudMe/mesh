@@ -1,27 +1,26 @@
 {
-	
-	"name": "{{name}}",
-	"description": "{{description}}",
-	"author": "{{author}}",
-	"version":"0.0.1",
-	"dependencies": {
-	},
-	"devDependencies": {
-		
-	},
-	"main": "./lib/{{defaultPlatform}}/index.js",
-	"directories": {
-		"src": "./src",
-		"lib": "./lib"
-	},
-	"mesh": {
-		"tasks": {
-			"web": {
-				"include": "./make/web.json"
-			},
-			"node": {
-				"include": "./make/node.json"
-			}
-		}
-	}
+    "name": "{{name}}",
+    "description": "{{description}}",
+    "author": "{{author}}",
+    "version": "0.0.1",
+    "dependencies": {},
+    "devDependencies": {},
+    "main": "./lib/{{defaultPlatform}}/index.js",
+    "directories": {
+        "src": "./src",
+        "lib": "./lib"
+    },
+    "mesh": {
+        "tasks": {
+            "merge -> make/:target/:phase": [
+                {
+                    "cwd": "./lib/<%-target %>",
+                    "load": "./make/<%-target %>.json"
+                },
+                {
+                    "task": "<%=phase %>"
+                }
+            ]
+        }
+    }
 }
