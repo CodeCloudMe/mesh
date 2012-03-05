@@ -12,12 +12,14 @@
     },
     "mesh": {
         "tasks": {
-            "merge -> make/:target/:phase": [
+            "merge -> make/:target/:command": "<%-command %>/<%-target %>",
+            ":command/:target": [
                 {
+                    "cwd": "./lib/<%-target %>",
                     "load": "./lib/<%-target %>/make.json"
                 },
                 {
-                    "task": "<%=phase %>"
+                    "task": "<%=command %>"
                 }
             ]
         }

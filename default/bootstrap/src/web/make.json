@@ -2,6 +2,17 @@
     "tasks": {
         "debug": {
             "log": "debug web"
+        },
+        "run": {
+        	"parallel": true,
+        	"chain": [
+	        	{
+	        		"exec": "node ../node"
+	        	},
+	        	{
+	        		"exec": "open http://localhost"
+	        	}
+	        ]
         }
     }
 }
