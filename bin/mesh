@@ -16,9 +16,11 @@ if(argv.h || argv.help) {
 	process.exit();
 }
 
-var makeTarget = (argv.i).
-replace('~', process.env.HOME).
-replace('./', process.cwd() + "/");
+function fixPath(path) {
+	return path.replace('~', process.env.HOME).replace('./', process.cwd() + "/")
+}
+
+var makeTarget = fixPath(argv.i);
 
 
 argv.cwd          = path.dirname(makeTarget);
@@ -77,6 +79,7 @@ step(
 		capirona.
 		make().
 		load(__dirname + "/../default/config.js").
+		load(fixPath('~/.mesh/config.json')).
 		load(pkg).
 		run(argv._, argv, this);
 
