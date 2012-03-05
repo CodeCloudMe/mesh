@@ -13,9 +13,10 @@ sprintf   = require('sprintf').sprintf;
 _.str = require('underscore.string');
 
 
-exports.validate = {
-	'input': path.exists,
-	'output': path.exists
+exports.params = {
+	'directories.src': true,
+	'directories.lib': true,
+	'target': true
 }
 
 exports.run = function(ops, next) {

@@ -14,8 +14,7 @@
         "tasks": {
             "merge -> make/:target/:phase": [
                 {
-                    "cwd": "./lib/<%-target %>",
-                    "load": "./make/<%-target %>.json"
+                    "load": "./lib/<%-target %>/make.json"
                 },
                 {
                     "task": "<%=phase %>"

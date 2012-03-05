@@ -3,8 +3,9 @@ mergeDirs = require('../merge/mergeDirs'),
 walkr     = require('walkr'),
 sprintf   = require('sprintf').sprintf;
 
-exports.validate = {
-	'directories:bootstrap': true,
+exports.params = {
+	'directories.bootstrap': true,
+	'name': /^\w+$/,
 	'platforms': /(\w+\+?)+/,
 	'cwd': true
 };
@@ -14,9 +15,9 @@ exports.run = function(ops, next) {
 
 
 	var output    = ops.cwd,
-	// platforms = ops.platforms = ops.platforms.split('+'),
+	platforms = ops.platforms = ops.platforms.split('+'),
 	bootstrapDir  = ops.directories.bootstrap;
-	// bootstrapSrcDir = bootstrapDir + "/src";
+	bootstrapSrcDir = bootstrapDir + "/src";
 
 
 	step(
@@ -24,14 +25,14 @@ exports.run = function(ops, next) {
 		/**
 		 */
 
-		/*function() {
+		function() {
 
 			mergeDirs(bootstrapSrcDir, platforms).
 			filterFile(mergeDirs.parseTemplate(ops)).
 			copyEach(output + "/src").
 			complete(this);
 
-		},*/
+		},
 
 		/**
 		 */
@@ -39,9 +40,9 @@ exports.run = function(ops, next) {
 		function() {
 
 			walkr(bootstrapDir, output).
-			/*filter(function(options, next) {
+			filter(function(options, next) {
 				next(options.source == bootstrapDir || !options.stat.isDirectory())
-			}).*/
+			}).
 			filterFile(walkr.parseTemplate(ops)).
 			filter(walkr.copy).
 			start(this);
@@ -57,7 +58,6 @@ exports.run = function(ops, next) {
 
 
 exports.taskMessage = function(target) {
-	return "bootstrap cwd";
-	// return sprintf("bootstrap \"%s\"", target.platforms.replace(/\+/g,', '));
+	return sprintf("bootstrap \"%s\"", target.platforms.replace(/\+/g,', '));
 
 }

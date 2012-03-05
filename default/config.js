@@ -11,7 +11,8 @@ exports.load = function(config, next) {
 	taskDir = __dirname + "/make";
 
 	tasks = {
-		"merge/:target": "merge"
+		"merge/:target": "merge",
+		"bootstrap/:platforms": "bootstrap"
 	};
 
 	step(
