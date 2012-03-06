@@ -9,7 +9,8 @@ capirona = require('capirona'),
 path     = require('path'),
 step     = require('stepc'),
 outcome  = require('outcome'),
-fs       = require('fs');
+fs       = require('fs'),
+structr  = require('structr');
 
 if(argv.h || argv.help) {
 	cli.showHelp();
@@ -76,12 +77,15 @@ step(
 
 		pkg.cwd = argv.cwd;
 
+		var mesh = pkg.mesh;
+		delete pkg.mesh;
+
 		capirona.
 		make().
 		load(__dirname + "/../default/config.js").
 		load(fixPath('~/.mesh/config.json')).
-		load(pkg).
-		run(argv._, argv, this);
+		load(mesh).
+		run(argv._, structr.copy(argv, pkg), this);
 
 	}),
 

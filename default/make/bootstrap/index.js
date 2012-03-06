@@ -5,7 +5,7 @@ sprintf   = require('sprintf').sprintf;
 
 exports.params = {
 	'directories.bootstrap': true,
-	'name': /^\w+$/,
+	'name': /^[^\/]+$/,
 	'platforms': /(\w+\+?)+/,
 	'cwd': true
 };
