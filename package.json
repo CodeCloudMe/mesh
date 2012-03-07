@@ -26,7 +26,7 @@
         "structr": "0.1.x",
         "dirmr": "0.0.x",
         "traverse": "0.6.x",
-        "html-minifier": "git+https://github.com/crcn/html-minifier.git",
+        "html-minifier": "https://github.com/crcn/html-minifier/tarball/gh-pages",
         "beanpoll": "0.2.x",
         "plugin": "0.0.x",
         "walkr": "0.0.x",
