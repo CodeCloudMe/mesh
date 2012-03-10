@@ -84,9 +84,9 @@ step(
 		capirona.make({
 			"load": __dirname + "/../default/config.js"
 		},
-		{
+		/*{
 			"load": fixPath('~/.mesh/config.json')
-		},
+		},*/
 		mesh,
 		argv._).run(structr.copy(argv, pkg), this);
 
