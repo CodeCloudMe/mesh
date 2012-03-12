@@ -1354,6 +1354,14 @@
 			}
 		},
 		{
+			"file": "/tmp/subl stdin ecGjEz.txt",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "/tmp/subl stdin 8sMkj8.txt",
 			"settings":
 			{
@@ -1703,7 +1711,7 @@
 	"groups":
 	[
 		{
-			"selected": 163,
+			"selected": 6,
 			"sheets":
 			[
 				{
@@ -1877,8 +1885,8 @@
 						"selection":
 						[
 							[
-								1240,
-								1240
+								664,
+								669
 							]
 						],
 						"settings":
@@ -6065,7 +6073,7 @@
 				},
 				{
 					"buffer": 164,
-					"file": "/tmp/subl stdin 8sMkj8.txt",
+					"file": "/tmp/subl stdin ecGjEz.txt",
 					"settings":
 					{
 						"buffer_size": 0,
@@ -6091,6 +6099,32 @@
 				},
 				{
 					"buffer": 165,
+					"file": "/tmp/subl stdin 8sMkj8.txt",
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 166,
 					"file": "default/make/load/index.js",
 					"settings":
 					{
@@ -6116,7 +6150,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 166,
+					"buffer": 167,
 					"file": "default/bootstrap/src/web/make.json",
 					"settings":
 					{
@@ -6144,7 +6178,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 167,
+					"buffer": 168,
 					"file": "default/bootstrap/src/node/index.js",
 					"settings":
 					{
