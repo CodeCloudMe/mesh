@@ -5,7 +5,6 @@ usage("Usage: $0 [targets] -i=[target] --arg=[value]").
 alias('i','input').
 default('i',"./package.json"),
 argv = cli.argv,
-capirona = require('capirona'),
 path     = require('path'),
 step     = require('stepc'),
 outcome  = require('outcome'),
@@ -16,6 +15,7 @@ if(argv.h || argv.help) {
 	cli.showHelp();
 	process.exit();
 }
+var capirona = require('capriona')
 
 function fixPath(path) {
 	return path.replace('~', process.env.HOME).replace('./', process.cwd() + "/")
