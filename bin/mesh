@@ -15,7 +15,7 @@ if(argv.h || argv.help) {
 	cli.showHelp();
 	process.exit();
 }
-var capirona = require('capriona')
+var capirona = require('capirona')
 
 function fixPath(path) {
 	return path.replace('~', process.env.HOME).replace('./', process.cwd() + "/")
@@ -82,6 +82,7 @@ step(
 
 
 		capirona.make({
+			"cwd": process.cwd(),
 			"load": __dirname + "/../default/config.js"
 		},
 		/*{
