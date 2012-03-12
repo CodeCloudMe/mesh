@@ -77,5 +77,5 @@ exports.run = function(target, next) {
 
 
 exports.taskMessage = function(target) {
-	return "hashify ./" + path.relative(process.cwd(), target.entry);
+	return "hashify " + target.entry;
 }

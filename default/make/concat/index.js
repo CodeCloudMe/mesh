@@ -6,7 +6,7 @@ exports.run = function(target, nextBuilder) {
 
 
 	var ops = target,
-	include = ops.include instanceof Array ? ops.include : [ops.include],
+	include = getInput(target),
 	output  = ops.output,
 	ws      = fs.createWriteStream(output);
 
@@ -41,4 +41,13 @@ exports.run = function(target, nextBuilder) {
 		nextBuilder();
 		
 	});
+}
+
+exports.taskMessage = function(target) {
+	return "concat " + getInput(target).join(" + ") + " -> " + target.output;
+}
+
+
+function getInput(target) {
+	return target.include instanceof Array ? target.include : [target.include];
 }
