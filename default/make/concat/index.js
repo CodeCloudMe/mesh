@@ -8,17 +8,17 @@ exports.run = function(target, nextBuilder) {
 	var ops = target,
 	include = getInput(target),
 	output  = ops.output,
-	ws      = fs.createWriteStream(output);
+	ws      = fs.createWriteStream(output),
+	search  = new RegExp(target.search || "\\w+\\.\\w+$");
 
-
-
+	
 	seq(include).
 	seqEach(function(file) {
 			
 		var nextCat = this;
 
 		walkr(file).
-		filterFile(/\.js$/, function(options, nextFile) {
+		filterFile(search, function(options, nextFile) {
 
 			fs.readFile(options.source, "utf8", nextBuilder.success(function(content) {
 
