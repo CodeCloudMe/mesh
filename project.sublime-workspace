@@ -218,7 +218,7 @@
 			"file": "package.json",
 			"settings":
 			{
-				"buffer_size": 1171,
+				"buffer_size": 1144,
 				"line_ending": "Unix"
 			}
 		},
@@ -1424,6 +1424,14 @@
 			}
 		},
 		{
+			"file": "/tmp/subl stdin XdosR6.txt",
+			"settings":
+			{
+				"buffer_size": 0,
+				"line_ending": "Unix"
+			}
+		},
+		{
 			"file": "/tmp/subl stdin 4DFPwO.txt",
 			"settings":
 			{
@@ -1789,7 +1797,7 @@
 	"groups":
 	[
 		{
-			"selected": 171,
+			"selected": 23,
 			"sheets":
 			[
 				{
@@ -2404,15 +2412,15 @@
 					"file": "package.json",
 					"settings":
 					{
-						"buffer_size": 1171,
+						"buffer_size": 1144,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								0,
-								0
+								392,
+								392
 							]
 						],
 						"settings":
@@ -6359,7 +6367,7 @@
 				},
 				{
 					"buffer": 172,
-					"file": "/tmp/subl stdin 4DFPwO.txt",
+					"file": "/tmp/subl stdin XdosR6.txt",
 					"settings":
 					{
 						"buffer_size": 0,
@@ -6385,7 +6393,7 @@
 				},
 				{
 					"buffer": 173,
-					"file": "/tmp/subl stdin ecGjEz.txt",
+					"file": "/tmp/subl stdin 4DFPwO.txt",
 					"settings":
 					{
 						"buffer_size": 0,
@@ -6411,7 +6419,7 @@
 				},
 				{
 					"buffer": 174,
-					"file": "/tmp/subl stdin 8sMkj8.txt",
+					"file": "/tmp/subl stdin ecGjEz.txt",
 					"settings":
 					{
 						"buffer_size": 0,
@@ -6437,6 +6445,32 @@
 				},
 				{
 					"buffer": 175,
+					"file": "/tmp/subl stdin 8sMkj8.txt",
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 176,
 					"file": "default/make/load/index.js",
 					"settings":
 					{
@@ -6462,7 +6496,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 176,
+					"buffer": 177,
 					"file": "default/bootstrap/src/web/make.json",
 					"settings":
 					{
@@ -6490,7 +6524,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 177,
+					"buffer": 178,
 					"file": "default/bootstrap/src/node/index.js",
 					"settings":
 					{

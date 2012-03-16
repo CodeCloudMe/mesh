@@ -137,7 +137,7 @@ exports.run = function(ops, next) {
 
 			walkr(targetSrcDir, outputDir).
 			filter(pkg.src). //ommit the src dir for now
-			filter(/package.json/).
+			filter(/\/package.json/).
 			filter(walkr.copy).
 			start(this);
 
@@ -152,7 +152,7 @@ exports.run = function(ops, next) {
 			mapDir(function(dir, next) {
 				next(null, readPackage(dir).src);
 			}).
-			filterFile(/package\.json/, mergeDirs.mergeJSON("package.json")).
+			filterFile(/\/package\.json/, mergeDirs.mergeJSON("package.json")).
 			// filterFile(mergeDirs.parseTemplate({})).
 			join(outputDir + "/" + (srcPkg.original.directories.src || '/')).
 			complete(this);
