@@ -119,11 +119,11 @@ exports.run = function(ops, next) {
 		/**
 		 */
 
-		next.success(function() {
+		function() {
 
 			//at this point, it doesn't matter if the package.json exists. Default dir is src/
 			this(null, readPackage(targetSrcDir));
-		}),
+		},
 
 
 		/**
