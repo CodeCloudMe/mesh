@@ -1,5 +1,8 @@
 var entries = $$$entries,
-	module = {};
+	module = {},
+	process = {
+		title: 'browser'
+	}
 
 for(var i = entries.length; i--;)
 {
