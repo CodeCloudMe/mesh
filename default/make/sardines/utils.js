@@ -164,9 +164,6 @@ var modulePath = exports.modulePath = function(script) {
 
 exports.getPathInfo = function(required, cwd) {
 
-	if(required == "net") {
-		console.log(cwd)
-	}
 
 	try {
 
@@ -194,7 +191,7 @@ exports.getPathInfo = function(required, cwd) {
 			name         = pkgPath ? getPackageName(pkgPath) : null,
 			im           = pkgPath ? exports.isMain(realPath, pkgPath) : pkgPath;
 
-			ret.path        = realPath;
+			ret.path        = browserifyPath(pkgPath) || realPath;
 			ret.moduleName  = name;
 			ret.pkgPath     = pkgPath;
 			ret.isMain      = !!im;
@@ -204,7 +201,7 @@ exports.getPathInfo = function(required, cwd) {
 
 		//alias to the given script - used as UID
 		ret.alias = ret.pathFromPkg.replace('.', modulePath(ret));
-
+		
  		return ret;
 
 	} catch(e) {
@@ -241,28 +238,19 @@ function resolvePath(module, cwd) {
 	} catch(e) {
 		return null;
 	}
-
-	return eachDir(cwd, function(dir) {
-
-		try {
-			var moduleDir = dir + '/node_modules/' + module;
-
-			fs.lstatSync(moduleDir);
-				
-			//this is a bit redundant since we're about to load the package *again* - cache?
-			return path.normalize(moduleDir + "/" + loadPackage(moduleDir + "/package.json").main);
-		} catch(e) {
-			
-		}
-	});
+	
 
 }
 
 
-
-
-
-
+function browserifyPath(pkgPath) {
+	try {
+		var browserifyPath = exports.loadPackage(pkgPath).browserify;
+		return browserifyPath ? path.dirname(pkgPath) + "/" + browserifyPath : null;
+	} catch(e) {
+		return null;
+	}
+}
 
 
 /**
