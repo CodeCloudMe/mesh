@@ -8,6 +8,7 @@ exports.run = function(target, next) {
 	var server = express.createServer();
 	server.use(express.static(target.directory));	
 	server.listen(target.port || 8080);
+	next();
 }
 
 exports.taskMessage = function(target) {
