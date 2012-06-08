@@ -1,4 +1,5 @@
-var express = require("express");
+var express = require("express"),
+sardines = require("sardines");
 
 exports.params = {
 	'directory': true
@@ -6,7 +7,7 @@ exports.params = {
 
 exports.run = function(target, next) {
 	var server = express.createServer();
-	server.use(express.static(target.directory));	
+	server.use(sardines.middleware(target));
 	server.listen(target.port || 8080);
 	next();
 }

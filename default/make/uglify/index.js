@@ -3,7 +3,7 @@ parser     = uglify.parser,
 outcome    = require('outcome'),
 step       = require('stepc'),
 fs         = require('fs'),
-utils      = require('../sardines/utils'),
+utils      = require("sardines").utils,
 async      = require('async');
 
 

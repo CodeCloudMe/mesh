@@ -1,8 +1,10 @@
-var analyzeDeps = require('./analyzeDeps'),
-_ 	            = require('underscore'),
-async           = require('async'),
-combineScripts  = require('./combineScripts'),
-path            = require('path')
+var fs = require("fs"),
+sardines = require("sardines");
+
+
+exports.params = {
+	entry: true
+}
 
 exports.run = function(target, next) {
 
@@ -23,23 +25,19 @@ exports.run = function(target, next) {
 		include[i] = target.cwd + "/" + include[i];
 		}*/
 
-	
-	analyzeDeps({ entries: include }, next.success(function(deps) {
+	sardines.shrinkwrap(ops, next.success(function(content) {
 
 		//next item should take this script
 		ops.entry = ops.input = ops.output;
 
-		combineScripts({
-			include: deps,
-			entries: [deps[0]],
-			buildId: target.buildId
-		}, next.success(function(content) {
-			fs.writeFile(ops.input, content, next);
-		}));
+
+		fs.writeFile(ops.input, content, next);
+
 	}));
+
 }
 
 
 exports.taskMessage = function(target) {
-	return "browserify " + target.entry;
+	return "shrinkwrap " + target.entry;
 }

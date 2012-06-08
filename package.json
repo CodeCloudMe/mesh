@@ -2,7 +2,7 @@
   "name": "mesh",
   "description": "Write one app, deploy to many platforms",
   "repository": {},
-  "version": "0.0.19",
+  "version": "0.0.20",
   "engines": {},
   "dependencies": {
     "celeri": "<0.3",

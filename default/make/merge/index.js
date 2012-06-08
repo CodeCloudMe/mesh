@@ -45,7 +45,6 @@ exports.run = function(ops, next) {
 
 	console.log(sprintf('==> merge %s-> %s', _.str.rpad(rootPkg.name + " ", 0,' '), path.relative(ops.root || ops.cwd, outputDir)));
 
-
 	step(
 
 		/**
