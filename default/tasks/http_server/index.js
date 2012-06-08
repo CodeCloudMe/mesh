@@ -16,7 +16,8 @@ exports.run = function(target, next) {
 	var server = express.createServer();
 	server.listen(target.port || 8080);
 
-	var self = this;
+	var self = this,
+	taskScope = target.taskScope || "public";
 
 
 	server.use(function(req, res, next) {
@@ -30,8 +31,7 @@ exports.run = function(target, next) {
 		var output =  newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64") + "." + mime.extension(mime.lookup(fullPath));
 
 
-
-		self.factory.commands.run(task, newTarget, function(err, result) {
+		self.factory.commands.run([taskScope, task].join(":"), newTarget, function(err, result) {
 			if(err) {
 				return res.end(String(err))
 			}
