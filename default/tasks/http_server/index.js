@@ -26,22 +26,17 @@ exports.run = function(target, next) {
 		if(!task) return next();
 
 		var newTarget = req.query;
-		var output = newTarget.input = newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64") + "." + mime.extension(mime.lookup(fullPath));
+		newTarget.input = fullPath;
+		var output =  newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64") + "." + mime.extension(mime.lookup(fullPath));
 
 
-		var outfs = fs.createWriteStream(output, { flags: "w+" });
-		var infs  = fs.createReadStream(fullPath);
 
-
-		pump(infs, outfs, function() {
-			
-			self.factory.commands.run(task, newTarget, function(err, result) {
-				if(err) {
-					return res.end(String(err))
-				}
-				res.sendfile(output);
-			});
-		})
+		self.factory.commands.run(task, newTarget, function(err, result) {
+			if(err) {
+				return res.end(String(err))
+			}
+			res.sendfile(output);
+		});
 	});
 
 	server.use(express.static(target.directory));
