@@ -27,13 +27,13 @@ exports.run = function(target, next) {
 	}
 
 
-
 	sardines(ops, next.success(function(content) {
 
 		//next item should take this script
 		ops.entry = ops.input = ops.output;
 
 		fs.writeFile(ops.input, content, next);
+
 
 	}));
 

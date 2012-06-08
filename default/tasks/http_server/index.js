@@ -1,7 +1,9 @@
 var express = require("express"),
 sardines = require("sardines"),
 fs = require("fs"),
-mime = require("mime")
+mime = require("mime"),
+pump = require("util").pump
+
 
 exports.params = {
 	// 'directory': true
@@ -24,13 +26,22 @@ exports.run = function(target, next) {
 		if(!task) return next();
 
 		var newTarget = req.query;
-		newTarget.input = fullPath;
-		var output = newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64") + "." + mime.extension(mime.lookup(fullPath));
+		var output = newTarget.input = newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64") + "." + mime.extension(mime.lookup(fullPath));
 
 
-		self.factory.commands.run(task, newTarget, function(err, result) {
-			res.sendfile(output);
-		});
+		var outfs = fs.createWriteStream(output, { flags: "w+" });
+		var infs  = fs.createReadStream(fullPath);
+
+
+		pump(infs, outfs, function() {
+			
+			self.factory.commands.run(task, newTarget, function(err, result) {
+				if(err) {
+					return res.end(String(err))
+				}
+				res.sendfile(output);
+			});
+		})
 	});
 
 	server.use(express.static(target.directory));
