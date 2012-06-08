@@ -25,11 +25,12 @@ exports.run = function(target, next) {
 
 		var newTarget = req.query;
 		newTarget.input = fullPath;
-		var output = newTarget.output = "/tmp/meshed." + mime.extension(mime.lookup("fdsd.js"));
+		var output = newTarget.output = "/tmp/" + Date.now() + "." + mime.extension(mime.lookup(fullPath));
 
 
 		self.factory.commands.run(task, newTarget, function(err, result) {
 			res.sendfile(output);
+			fs.unlink(output);
 		});
 	});
 
