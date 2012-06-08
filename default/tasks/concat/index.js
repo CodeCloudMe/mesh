@@ -9,9 +9,11 @@ exports.run = function(target, nextBuilder) {
 
 	var ops = target,
 	include = getInput(target),
-	output  = ops.output,
-	ws      = fs.createWriteStream(output),
-	search  = new RegExp(target.search || "\\w+\\.\\w+$");
+	output = target.output,
+	ws      = fs.createWriteStream(target.output, { flags: "a+" }),
+	search  = new RegExp(target.search || "\\w+\\.\\w+$"),
+	buffer = [];
+
 
 	
 	seq(include).
@@ -24,6 +26,7 @@ exports.run = function(target, nextBuilder) {
 
 			fs.readFile(options.source, "utf8", nextBuilder.success(function(content) {
 
+				// buffer.push(content);
 				ws.write(content + "\n");
 				nextFile();
 
@@ -39,7 +42,8 @@ exports.run = function(target, nextBuilder) {
 	}).
 	seq(function() {
 
-		target.entry = output;
+		// fs.writeFile(output, buffer.join("\n"), nextBuilder);
+		target.input = output;
 		nextBuilder();
 		
 	});
@@ -51,5 +55,5 @@ exports.taskMessage = function(target) {
 
 
 function getInput(target) {
-	return target.include instanceof Array ? target.include : [target.include];
+	return target.input instanceof Array ? target.input : [target.input];
 }
