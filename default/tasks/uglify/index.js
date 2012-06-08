@@ -38,7 +38,7 @@ exports.run = function(target, next) {
 				fs.readFile(file, "utf8", this)
 			},
 			next.success(function(content) {
-				var body = uglify.uglify.gen_code(parser.parse(content, false, false), { beautify: target.options.beautify });
+				var body = uglify.uglify.gen_code(parser.parse(content, false, false), { beautify: target.beautify });
 				this(null, body);
 			}),
 			next.success(function(body) {
