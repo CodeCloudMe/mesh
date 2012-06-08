@@ -34,7 +34,10 @@ exports.run = function(target, next) {
 
 	//the target scope given. This is important incase
 	//the scope changes from something like development, to production
-	taskScope = target.taskScope || publicScope;
+	taskScope = target.taskScope || publicScope,
+
+	//tasks to run against file matches
+	fileTasks = target.fileTasks || {};
 
 	//runs a registered task
 	function runTask(scope, task, target, next) {
@@ -48,11 +51,6 @@ exports.run = function(target, next) {
 		//parse anything in the query such as commas -> array
 		query = parseQuery(req.query);
 
-		if(!query.task) return next();
-
-		tasks = query.task instanceof Array ? query.task : [query.task];
-
-
 		//otherwise set the file up to be meshed
 		var newTarget = query,
 		extParts = fullPath.match(/\/.*$/g)[0].split("."),
@@ -65,6 +63,14 @@ exports.run = function(target, next) {
 			newTarget.input = fullPath + "/index.html";
 			ext = "html";
 		}
+
+		query.task = query.task || fileTasks[ext];
+
+		if(!query.task) return next();
+
+		tasks = query.task instanceof Array ? query.task : [query.task];
+
+
 		
 		//create a temp file consisting of a unique hash
 		var output =  newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64").replace(/\//g,"_") + "." + ext;
