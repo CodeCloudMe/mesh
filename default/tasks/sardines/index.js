@@ -17,8 +17,7 @@ exports.run = function(target, next) {
 	 * 2. entry point specified, so scan ONLY scripts which are used ~ (look for require() stmts)
 	 */
 
-
-	if(!ops.entry) {
+	if(ops.input) {
 		ops.entry = ops.input;
 	}
 
@@ -43,5 +42,5 @@ exports.run = function(target, next) {
 
 
 exports.taskMessage = function(target) {
-	return (target.method || "shrinkwrap") + " " + (target.entry || target.input);
+	return (target.method || "shrinkwrap") + " " + (target.input || target.entry);
 }
