@@ -35,7 +35,15 @@ exports.load = function(target, next) {
 
 				if(dir.substr(0,1) == ".") return;
 
-				tasks[dir] = { script: taskDir + "/" + dir };
+				var pt = taskDir + "/" + dir;
+
+				var script = require(pt);
+
+				if(script.public) {
+					dir += " OR public/" + dir;
+				}
+
+				tasks[dir] = { script: pt };
 
 			});
 

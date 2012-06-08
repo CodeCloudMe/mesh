@@ -2,6 +2,8 @@ var walkr = require("walkr"),
 fs        = require("fs"),
 seq       = require("seq");
 
+exports.public = true;
+
 exports.run = function(target, nextBuilder) {
 
 

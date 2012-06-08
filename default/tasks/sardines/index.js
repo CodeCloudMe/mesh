@@ -5,6 +5,8 @@ sardines = require("sardines");
 exports.params = {
 }
 
+exports.public = true;
+
 exports.run = function(target, next) {
 
 	var ops = target;

@@ -7,6 +7,7 @@ path     = require("path")
 
 //adds the buildId to all dependencies. This ensures new files
 //are *always* served to the client
+exports.public = true;
 
 exports.run = function(target, next) {
 

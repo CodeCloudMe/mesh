@@ -6,7 +6,7 @@ fs         = require('fs'),
 utils      = require("sardines").utils,
 async      = require('async');
 
-
+exports.public = true;
 
 
 exports.run = function(target, next) {
