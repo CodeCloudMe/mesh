@@ -23,7 +23,6 @@ exports.run = function(target, next) {
 
 		if(!task) return next();
 
-		console.log(new Buffer(req.url).toString("base64"))
 		var newTarget = req.query;
 		newTarget.input = fullPath;
 		var output = newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64") + "." + mime.extension(mime.lookup(fullPath));
