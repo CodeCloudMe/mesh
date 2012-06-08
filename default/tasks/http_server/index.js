@@ -48,24 +48,32 @@ exports.run = function(target, next) {
 		//parse anything in the query such as commas -> array
 		query = parseQuery(req.query);
 
+		if(!query.task) return next();
+
 		tasks = query.task instanceof Array ? query.task : [query.task];
 
-		//no tasks? skip.
-		if(!tasks) return next();
 
 		//otherwise set the file up to be meshed
-		var newTarget = query;
-		newTarget.input = fullPath;
+		var newTarget = query,
+		extParts = fullPath.match(/\/.*$/g)[0].split("."),
+		ext;
 
-		//create a temp file consisting of a unique hash
-		var output =  newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64") + "." + mime.extension(mime.lookup(fullPath));
-
+		if(extParts.length > 1) {
+			newTarget.input = fullPath;
+			ext = extParts.pop();
+		} else {
+			newTarget.input = fullPath + "/index.html";
+			ext = "html";
+		}
 		
-		//init the task queue
-		var queue = tq.queue(),
+		//create a temp file consisting of a unique hash
+		var output =  newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64").replace(/\//g,"_") + "." + ext;
+
+
+		var queue = tq.queue();
 
 		//error? return it to the user
-		on = outcome.error(function(err) {
+		var on = outcome.error(function(err) {
 			res.end(String(err));
 		})
 

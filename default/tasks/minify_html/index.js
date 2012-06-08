@@ -56,7 +56,7 @@ exports.run = function(target, next) {
 		 */
 
 		function() {
-			fs.readFile(target.entry, "utf8", this)
+			fs.readFile(target.input, "utf8", this)
 		},
 
 		/**

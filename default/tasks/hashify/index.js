@@ -21,7 +21,7 @@ exports.run = function(target, next) {
 		 */
 
 		function() {
-			fs.readFile(target.entry, "utf8", this)
+			fs.readFile(target.input, "utf8", this)
 		},
 
 		/**
@@ -63,7 +63,6 @@ exports.run = function(target, next) {
 		 */
 
 		 next.success(function(content) {
-
 		 	fs.writeFile(target.output, content, this);
 
 		 }),
@@ -78,5 +77,5 @@ exports.run = function(target, next) {
 
 
 exports.taskMessage = function(target) {
-	return "hashify " + target.entry;
+	return "hashify " + target.input;
 }
