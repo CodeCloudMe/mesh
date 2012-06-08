@@ -20,6 +20,30 @@ function parseQuery(oldQuery) {
 	return query;
 }
 
+function parseFileTasks(fileTasks) {
+	var ft = [];
+	for(var pattern in fileTasks) {
+		var task = fileTasks[pattern];
+		ft.push({
+			tester: new RegExp(pattern),
+			tasks: task instanceof Array ? task : [task]
+		});
+	}
+
+	return ft;
+}
+
+function getFileTasks(ft, file) {
+	var tasks = [];
+	for(var i = 0, n = ft.length; i < n; i++) {
+		var inf = ft[i];
+		if(inf.tester.test(file)) {
+			tasks = tasks.concat(inf.tasks);
+		}
+	}
+	return tasks;
+}
+
 exports.run = function(target, next) {
 	if(!target.directory) {
 		target.directory = process.cwd();
@@ -37,7 +61,7 @@ exports.run = function(target, next) {
 	taskScope = target.taskScope || publicScope,
 
 	//tasks to run against file matches
-	fileTasks = target.fileTasks || {};
+	fileTasks = parseFileTasks(target.fileTasks || {});
 
 	//runs a registered task
 	function runTask(scope, task, target, next) {
@@ -53,7 +77,7 @@ exports.run = function(target, next) {
 
 		//otherwise set the file up to be meshed
 		var newTarget = query,
-		extParts = fullPath.match(/\/.*$/g)[0].split("."),
+		extParts = fullPath.match(/\/[^\/]*?$/)[0].split("."),
 		ext;
 
 		if(extParts.length > 1) {
@@ -64,7 +88,8 @@ exports.run = function(target, next) {
 			ext = "html";
 		}
 
-		query.task = query.task || fileTasks[ext];
+		query.task = query.task || getFileTasks(fileTasks, newTarget.input);
+
 
 		if(!query.task) return next();
 
@@ -93,9 +118,15 @@ exports.run = function(target, next) {
 				//equal the public scope - this would be redundant.
 				if(taskScope != publicScope) {
 					next = function(err) {
+						switch(err.errno || 0) {
+							case 3: 
+							return on(err);
+						}
+
 						runTask(publicScope, task, newTarget, on.success(nextQueue));
 					}
 				}
+
 
 				//try running the task in the current scope. If it fails, then
 				//it'll move to the public domain
@@ -106,6 +137,7 @@ exports.run = function(target, next) {
 
 		//once all the tasks are done, send the file
 		queue.push(function() {
+			// console.log("==> serve %s", fullPath);
 			res.sendfile(output);
 			this();
 		});

@@ -7,7 +7,8 @@
         "runServer/:scope": {
             "taskScope": "<%-scope %>",
             "fileTasks": {
-            	"js": "makeScript"
+            	"js$": "makeScript",
+                "html$": ["hashify"]
             },
             "port": 8080,
             "task": "http_server"
