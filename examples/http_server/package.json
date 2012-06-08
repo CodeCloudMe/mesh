@@ -1,0 +1,32 @@
+{
+    "mesh": {
+        "run": {
+            "dev": "runServer/dev",
+            "prod": "runServer/prod"
+        },
+        "runServer/:scope": {
+            "taskScope": "<%-scope %>",
+            "fileTasks": {
+            	"js": "makeScript"
+            },
+            "port": 8080,
+            "task": "http_server"
+        },
+        "dev": {
+            "makeScript": {
+                "method": "browserify",
+                "task": "sardines"
+            }
+        },
+        "prod": {
+	    "sardines": "sardines",
+            "makeScript": [
+                {
+                    "method": "shrinkwrap",
+                    "task": "sardines"
+                },
+                "uglify"
+            ]
+        }
+    }
+}
