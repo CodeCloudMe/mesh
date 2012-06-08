@@ -8,7 +8,7 @@ outcome = require('outcome');
 exports.load = function(target, next) {
 
 	var on = outcome.error(next), tasks,
-	taskDir = __dirname + "/make";
+	taskDir = __dirname + "/tasks";
 
 	tasks = {
 		"merge/:target": "merge",

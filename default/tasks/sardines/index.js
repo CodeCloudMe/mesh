@@ -21,15 +21,11 @@ exports.run = function(target, next) {
 
 	var include = [ops.entry].concat(ops.include || []);
 
-	/*for(var i = include.length; i--;) {
-		include[i] = target.cwd + "/" + include[i];
-		}*/
 
 	sardines.shrinkwrap(ops, next.success(function(content) {
 
 		//next item should take this script
 		ops.entry = ops.input = ops.output;
-
 
 		fs.writeFile(ops.input, content, next);
 
