@@ -27,7 +27,7 @@ exports.run = function(target, next) {
 	}
 
 	ops.wrap = "?task=sardines&method=wrap";
-	
+
 
 	sardines(ops, next.success(function(content) {
 
@@ -43,5 +43,5 @@ exports.run = function(target, next) {
 
 
 exports.taskMessage = function(target) {
-	return "shrinkwrap " + (target.entry || target.input);
+	return (target.method || "shrinkwrap") + " " + (target.entry || target.input);
 }
