@@ -1,8 +1,8 @@
-
-
 var fs = require('fs'),
 step   = require('stepc'),
 outcome = require('outcome');
+
+require("./monkeypatch/fs");
 
 
 exports.load = function(target, next) {
