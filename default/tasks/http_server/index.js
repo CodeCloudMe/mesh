@@ -23,14 +23,14 @@ exports.run = function(target, next) {
 
 		if(!task) return next();
 
+		console.log(new Buffer(req.url).toString("base64"))
 		var newTarget = req.query;
 		newTarget.input = fullPath;
-		var output = newTarget.output = "/tmp/" + Date.now() + "." + mime.extension(mime.lookup(fullPath));
+		var output = newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64") + "." + mime.extension(mime.lookup(fullPath));
 
 
 		self.factory.commands.run(task, newTarget, function(err, result) {
 			res.sendfile(output);
-			fs.unlink(output);
 		});
 	});
 
