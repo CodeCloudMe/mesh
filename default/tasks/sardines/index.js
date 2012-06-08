@@ -3,7 +3,6 @@ sardines = require("sardines");
 
 
 exports.params = {
-	entry: true
 }
 
 exports.run = function(target, next) {
@@ -19,10 +18,17 @@ exports.run = function(target, next) {
 	 */
 
 
-	var include = [ops.entry].concat(ops.include || []);
+	if(!ops.entry) {
+		ops.entry = ops.input;
+	}
+
+	if(!ops.method) {
+		ops.method = "shrinkwrap";
+	}
 
 
-	sardines.shrinkwrap(ops, next.success(function(content) {
+
+	sardines(ops, next.success(function(content) {
 
 		//next item should take this script
 		ops.entry = ops.input = ops.output;
@@ -35,5 +41,5 @@ exports.run = function(target, next) {
 
 
 exports.taskMessage = function(target) {
-	return "shrinkwrap " + target.entry;
+	return "shrinkwrap " + (target.entry || target.input);
 }

@@ -1,17 +1,42 @@
 var express = require("express"),
-sardines = require("sardines");
+sardines = require("sardines"),
+fs = require("fs"),
+mime = require("mime")
 
 exports.params = {
-	'directory': true
+	// 'directory': true
 };
 
 exports.run = function(target, next) {
+	if(!target.directory) {
+		target.directory = process.cwd();
+	}
 	var server = express.createServer();
-	server.use(sardines.middleware(target));
 	server.listen(target.port || 8080);
+
+	var self = this;
+
+
+	server.use(function(req, res, next) {
+		var fullPath = target.directory + req.path,
+		task = req.query.task;
+
+		if(!task) return next();
+
+		var newTarget = req.query;
+		newTarget.input = fullPath;
+		var output = newTarget.output = "/tmp/meshed." + mime.extension(mime.lookup("fdsd.js"));
+
+
+		self.factory.commands.run(task, newTarget, function(err, result) {
+			res.sendfile(output);
+		});
+	});
+
+	server.use(express.static(target.directory));
 	next();
 }
 
 exports.taskMessage = function(target) {
-	return "run http server dir=" + target.directory + " port=" + target.port; 
+	return "run http server dir=" + (target.directory || process.cwd()) + " port=" + target.port; 
 }
