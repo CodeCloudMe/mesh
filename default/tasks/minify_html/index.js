@@ -1,15 +1,28 @@
 var step = require('stepc'),
 fs       = require('fs'),
 minify   = require('html-minifier').minify,
-_        = require('underscore');
+_        = require('underscore'),
+outcome  = require("outcome");
 
 
 //adds the buildId to all dependencies. This ensures new files
 //are *always* served to the client
 
-exports.public = true;
+module.exports = {
+	"def minify_html OR public/minify_html": {
+		"params": {
+			"input": true,
+			"output": true
+		},
+		"run": run
+	}
+}
 
-exports.run = function(target, next) {
+function run(target, next) {
+
+
+	var ops = target.data,
+	on = outcome.error(next);
 
 
 	function _minify(content) {
@@ -35,7 +48,7 @@ exports.run = function(target, next) {
 			return false;
 		}
 
-		return minify(content,  _.defaults(target, {
+		return minify(content,  _.defaults(ops, {
 			removeEmptyElements: false,
 			removeAttributeQuotes: false,
 			collapseBooleanAttributes: false,
@@ -58,13 +71,13 @@ exports.run = function(target, next) {
 		 */
 
 		function() {
-			fs.readFile(target.input, "utf8", this)
+			fs.readFile(ops.input, "utf8", this)
 		},
 
 		/**
 		 */
 
-		next.success(function(content) {
+		on.success(function(content) {
 
 
 			minified = _minify(content);
@@ -76,9 +89,9 @@ exports.run = function(target, next) {
 		/**
 		 */
 
-		 next.success(function(content) {
+		 on.success(function(content) {
 
-		 	fs.writeFile(target.output, content, this);
+		 	fs.writeFile(ops.output, content, this);
 
 		 }),
 

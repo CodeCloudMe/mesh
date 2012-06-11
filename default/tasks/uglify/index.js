@@ -4,53 +4,42 @@ outcome    = require('outcome'),
 step       = require('stepc'),
 fs         = require('fs'),
 utils      = require("sardines").utils,
-async      = require('async');
+async      = require('async'),
+outcome    = require("outcome");
 
-exports.public = true;
 
 
-exports.run = function(target, next) {
-	
-
-	step(
-		function() {
-
-			var toUglify = [], self = this;
-
-			utils.findFiles(target.input, /\.js$/, function(file) {
-				toUglify.push(file);
-			}, function() {
-				self(null, toUglify);
-			})
+module.exports = {
+	"def uglify OR public/uglify": {
+		"params": {
+			"input": true,
+			"output": true
 		},
-
-		next.success(function(files) {
-			async.forEach(files, uglifyFile, this);
-		}),
-		next
-	)
-
-
-	function uglifyFile(file, callback) {
-		
-		step(
-			function() {
-				fs.readFile(file, "utf8", this)
-			},
-			next.success(function(content) {
-				var body = uglify.uglify.gen_code(parser.parse(content, false, false), { beautify: target.beautify });
-				this(null, body);
-			}),
-			next.success(function(body) {
-				fs.writeFile(file, body, this)
-			}),
-			callback
-		)
+		"message": "<%-input %>",
+		"run": run
 	}
 }
 
 
-exports.taskMessage = function(target) {
-	return "uglify " + target.input;
+
+function run(target, next) {
+
+	var ops = target.data,
+	on = outcome.error(next);
+	
+	step(
+		function() {
+			fs.readFile(ops.input, "utf8", this)
+		},
+		on.success(function(content) {
+			var body = uglify.uglify.gen_code(parser.parse(content, false, false), { beautify: ops.beautify });
+			this(null, body);
+		}),
+		on.success(function(body) {
+			fs.writeFile(ops.output, body, this)
+		}),
+		next
+	)
 }
+
 

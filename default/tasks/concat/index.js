@@ -2,18 +2,29 @@ var walkr = require("walkr"),
 fs        = require("fs"),
 seq       = require("seq");
 
-exports.public = true;
+module.exports = {
+	"def concat OR public/concat": {
+		"params": {
+			"input": function(target) {
+				if(!target.data.input) return false;
+				return target.data.input instanceof Array ? target.data.input : [target.data.input];
+			},
+			"output": true
+		},
+		"message": "<%-input.join('+') %> -> <%-output %>",
+		"run": run
+	}
+}
 
-exports.run = function(target, nextBuilder) {
 
+function run(target, nextBuilder) {
 
-	var ops = target,
-	include = getInput(target),
-	output = target.output,
-	ws      = fs.createWriteStream(target.output, { flags: "a+" }),
-	search  = new RegExp(target.search || "\\w+\\.\\w+$"),
-	buffer = [];
-
+	var ops = target.data,
+	include = ops.target,
+	output  = ops.output,
+	ws      = fs.createWriteStream(output, { flags: "a+" }),
+	search  = new RegExp(ops.filter || "\\w+\\.\\w+$"),
+	buffer  = [];
 
 	
 	seq(include).
@@ -42,18 +53,8 @@ exports.run = function(target, nextBuilder) {
 	}).
 	seq(function() {
 
-		// fs.writeFile(output, buffer.join("\n"), nextBuilder);
 		target.input = output;
 		nextBuilder();
 		
 	});
-}
-
-exports.taskMessage = function(target) {
-	return "concat " + getInput(target).join(" + ") + " -> " + target.output;
-}
-
-
-function getInput(target) {
-	return target.input instanceof Array ? target.input : [target.input];
 }

@@ -15,6 +15,8 @@ exports.load = function(target, next) {
 		"bootstrap/:platforms": "bootstrap"
 	};
 
+	console.log(tasks)
+
 	step(
 
 		/**

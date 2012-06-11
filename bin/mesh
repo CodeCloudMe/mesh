@@ -9,7 +9,8 @@ path     = require('path'),
 step     = require('stepc'),
 outcome  = require('outcome'),
 fs       = require('fs'),
-structr  = require('structr');
+structr  = require('structr'),
+crc32 = require("crc32");
 
 if(argv.h || argv.help) {
 	cli.showHelp();
@@ -80,16 +81,23 @@ step(
 		var mesh = pkg.mesh;
 		delete pkg.mesh;
 
+		target   = structr.copy(argv, pkg);
+		target.buildId = crc32(String(Date.now()));
 
-		capirona.make({
-			"cwd": process.cwd(),
-			"load": __dirname + "/../default/config.js"
-		},
-		/*{
-			"load": fixPath('~/.mesh/config.json')
-		},*/
-		mesh,
-		argv._).run(structr.copy(argv, pkg), this);
+
+		var script = capirona.run([{
+			"load": {
+				"cwd": process.cwd(),
+				"source": __dirname + "/../default/tasks"
+			}
+		}, mesh], target, on.success());
+
+		var commands = argv._;
+
+
+		for(var i = 0, n = commands.length; i < n; i++) {
+			script.run(commands[i], structr.copy(target), on.success());
+		}
 
 	}),
 

@@ -1,16 +1,24 @@
 var fs = require("fs"),
-sardines = require("sardines");
+sardines = require("sardines"),
+outcome = require("outcome");
 
-
-exports.params = {
+module.exports = {
+	"def sardines OR public/sardines": {
+		"params": {
+			"input": true,
+			"output": true,
+			"method": function(target) {
+				return target.data.method || "shrinkwrap";
+			}
+		},
+		"message": "<%-method %> <%-input %>",
+		"run": run
+	}
 }
 
-exports.public = true;
+function run(target, next) {
 
-exports.run = function(target, next) {
-
-	var ops = target;
-
+	var ops = target.data;
 
 	/**
 	 * first analyze the dependencies. This works a few ways:
@@ -29,20 +37,12 @@ exports.run = function(target, next) {
 
 	ops.wrap = "?task=sardines&method=wrap";
 
-
-	sardines(ops, next.success(function(content) {
+	sardines(ops, outcome.error(next).success(function(content) {
 
 		//next item should take this script
 		ops.entry = ops.input = ops.output;
 
 		fs.writeFile(ops.input, content, next);
-
-
 	}));
 
-}
-
-
-exports.taskMessage = function(target) {
-	return (target.method || "shrinkwrap") + " " + (target.input || target.entry);
 }

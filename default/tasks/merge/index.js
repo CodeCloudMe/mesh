@@ -13,13 +13,21 @@ sprintf   = require('sprintf').sprintf;
 _.str = require('underscore.string');
 
 
-exports.params = {
-	'directories.src': true,
-	'directories.lib': true,
-	'target': true
+module.exports = {
+	"def merge": {
+		"params": {
+			"directories.src": true,
+			"directories.lib": true,
+			"target": true
+		},
+		"run": run
+	}
 }
 
-exports.run = function(ops, next) {
+function run(target, next) {
+
+	var ops = target.data,
+	on = outcome.error(next);
 
 
 	var dirs       = ops.directories || {},
@@ -111,7 +119,7 @@ exports.run = function(ops, next) {
 		/**
 		 */
 
-		next.success(function() {
+		on.success(function() {
 			linkToParent(outputDir, linkTo, this);
 		}),
 
@@ -128,7 +136,7 @@ exports.run = function(ops, next) {
 		/**
 		 */
 
-		next.success(function(pkg) {
+		on.success(function(pkg) {
 
 			srcPkg = pkg;
 			
@@ -145,7 +153,7 @@ exports.run = function(ops, next) {
 		/**
 		 */
 
-		next.success(function() {
+		on.success(function() {
 
 			mergeDirs(srcDir, platforms).
 			mapDir(function(dir, next) {
@@ -160,7 +168,7 @@ exports.run = function(ops, next) {
 		/**
 		 */
 
-		next.success(function() {
+		on.success(function() {
 			var deps = Object.keys(readPackage(outputPkg).original.dependencies || {});
 			// deps = deps.concat(Object.keys(rootPkg))
 			this(null, deps);
@@ -169,7 +177,7 @@ exports.run = function(ops, next) {
 		/**
 		 */
 
-		next.success(function(deps) {
+		on.success(function(deps) {
 
 			var pkgPaths = [];
 
@@ -208,7 +216,7 @@ exports.run = function(ops, next) {
 		/**
 		 */
 
-		next.success(function() {
+		on.success(function() {
 
 			next();			
 		})

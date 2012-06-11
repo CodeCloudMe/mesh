@@ -5,10 +5,16 @@ mime = require("mime"),
 tq = require("tq"),
 outcome = require("outcome");
 
-
-exports.params = {
-	// 'directory': true
-};
+module.exports = {
+	"def http_server": {
+		"defaults": {
+			"port": 8080,
+			"directory": process.cwd()
+		},
+		"message": "dir=<%-directory %> port=<%-port %>",
+		"run": run
+	}
+}
 
 function parseQuery(oldQuery) {
 	var query = {};
@@ -44,12 +50,12 @@ function getFileTasks(ft, file) {
 	return tasks;
 }
 
-exports.run = function(target, next) {
-	if(!target.directory) {
-		target.directory = process.cwd();
-	}
+function run (target, next) {
+
+	var ops = target.data;
+
 	var server = express.createServer();
-	server.listen(target.port || 8080);
+	server.listen(ops.port);
 
 	var self = this,
 
@@ -58,19 +64,19 @@ exports.run = function(target, next) {
 
 	//the target scope given. This is important incase
 	//the scope changes from something like development, to production
-	taskScope = target.taskScope || publicScope,
+	taskScope = ops.taskScope || publicScope,
 
 	//tasks to run against file matches
-	fileTasks = parseFileTasks(target.fileTasks || {});
+	fileTasks = parseFileTasks(ops.fileTasks || {});
 
 	//runs a registered task
-	function runTask(scope, task, target, next) {
-		self.factory.commands.run([scope, task].join(":"), target, next);	
+	function runTask(scope, task, ops, next) {
+		target.parser.run([scope, task].join("/"), ops, next);	
 	}
 
 	//use middleware to mesh content
 	server.use(function(req, res, next) {
-		var fullPath = target.directory + req.path,
+		var fullPath = ops.directory + req.path,
 
 		//parse anything in the query such as commas -> array
 		query = parseQuery(req.query);
@@ -90,7 +96,6 @@ exports.run = function(target, next) {
 
 		query.task = query.task || getFileTasks(fileTasks, newTarget.input);
 
-
 		if(!query.task) return next();
 
 		tasks = query.task instanceof Array ? query.task : [query.task];
@@ -106,6 +111,10 @@ exports.run = function(target, next) {
 		//error? return it to the user
 		var on = outcome.error(function(err) {
 			res.end(String(err));
+		});
+
+		queue.push(function() {
+			fs.unlink(output, this);
 		})
 
 		tasks.forEach(function(task) {
@@ -148,11 +157,7 @@ exports.run = function(target, next) {
 		
 	});
 
-	server.use(express.static(target.directory));
+	server.use(express.static(ops.directory));
 
 	next();
-}
-
-exports.taskMessage = function(target) {
-	return "run http server dir=" + (target.directory || process.cwd()) + " port=" + target.port; 
 }

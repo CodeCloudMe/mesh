@@ -1,11 +1,23 @@
 dirmr = require("dirmr");
 
-exports.run = function(target, next) {
+module.exports = {
+	"def copy": {
+		"params": {
+			"input": function(target) {
+				if(!target.data.input) return false;
+				return target.data.input instanceof Array ? target.data.input : [target.data.input];
+			}
+		},
+		"message": "<%-input.join(', ') %> -> <%-output %>",
+		"run": run
+	}
+}
 
-	var ops = target;
-	
-	var include = getInput(target),
 
+function run(target, next) {
+
+	var ops = target.data;
+	var include = ops.input,
 	exclude     = (ops.exclude || []).map(function(filter) {
 		return new RegExp("^" + filter + "$");
 	});
@@ -21,13 +33,4 @@ exports.run = function(target, next) {
 	}).
 	join(ops.output).
 	complete(next);
-}
-
-exports.taskMessage = function(target) {
-	return "copy " + getInput(target).join(', ') + " -> " + target.output;
-}
-
-
-function getInput(target) {
-	return target.include instanceof Array ? target.include : [target.include];
 }

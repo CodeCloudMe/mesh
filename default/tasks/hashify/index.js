@@ -2,18 +2,28 @@ var step = require('stepc'),
 crc32    = require('crc32'),
 fs       = require('fs'),
 qs       = require('querystring'),
-path     = require("path")
+path     = require("path"),
+outcome = require("outcome");
 
 
-//adds the buildId to all dependencies. This ensures new files
-//are *always* served to the client
-exports.public = true;
+module.exports = {
+	"def run OR public/run": {
+		"params": {
+			"input": true,
+			"output": true
+		},
+		"message": "<%-input %>",
+		"run": run
+	}
+}
 
-exports.run = function(target, next) {
 
+function run(target, next) {
 
-	var uniqueHash = target.buildId;
-
+	var uniqueHash = target.data.buildId,
+	input = target.data.input,
+	output = target.data.output,
+	on = outcome.error(next);
 
 	step(
 
@@ -21,13 +31,13 @@ exports.run = function(target, next) {
 		 */
 
 		function() {
-			fs.readFile(target.input, "utf8", this)
+			fs.readFile(input, "utf8", this)
 		},
 
 		/**
 		 */
 
-		next.success(function(content) {
+		on.success(function(content) {
 
 
 			//take CSS into account by looking for ()
@@ -62,8 +72,8 @@ exports.run = function(target, next) {
 		/**
 		 */
 
-		 next.success(function(content) {
-		 	fs.writeFile(target.output, content, this);
+		 on.success(function(content) {
+		 	fs.writeFile(output, content, this);
 
 		 }),
 
@@ -73,9 +83,4 @@ exports.run = function(target, next) {
 		 next
 
 	);
-}
-
-
-exports.taskMessage = function(target) {
-	return "hashify " + target.input;
 }

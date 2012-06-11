@@ -1,21 +1,20 @@
 var catchall = require('catchall'),
-fs = require('fs'),
-path = require('path')
+fs = require('fs');
 
-exports.public = true;
+module.exports = {
+	"def catchall OR public/catchall": {
+		"params": {
+			"input": true,
+			"output": true
+		},
+		"message": "<%-input %>",
+		"run": run
+	}
+}
 
-exports.run = function(target, next) {
-
+function run(target, next) {
 	catchall.load(target.input, next.success(function(wrappedSource) {
-
-		fs.writeFile(target.output, wrappedSource, next);
-
+		fs.witeFile(target.output, wrappedSource, next);
 	}))
 }
 
-
-exports.buildMessage = function(target) {
-
-	return "catchall " + path.basename(target.input);
-	
-}
