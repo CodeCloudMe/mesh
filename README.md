@@ -1,49 +1,38 @@
-## The JavaScript Build System
+## Mesh
 
+Mesh is a task system for JavaScript.
 
-## Motivation
+### Featured Tasks
 
-- Ability to use the same libraries, same API's across multiple platforms without refactoring code.
-- Some standardization for writing javascript-based apps (commonjs).
-- Keeps platform-specific code separate from core implementation (common library).
-- Flexible enough to customize build processes. 
-- Ability to be very specific about a platform, e.g., `mesh make web:ie:6`, `mesh make web:firefox:7`
-- Seamlessly communicate between two different javascript apps, e.g., web + node.
-- To do other really cool stuff, e.g., serving single-page apps and static websites from the same code.
+- `concat` - concatenate files
+- `copy` - copy files from one place to another
+- `exec` - execute command line scripts
+- `find` - find files and run a task on them
+- `minify_html` - minify html files
+- `merge` - merge two or more directories together
+- `sardines` - browserify your js files
+- `uglify` - uglify your js files
+- `catchall` - wraps your code up so *all* exceptions are caught
+- `http_server` - start a web server for executing tasks
+- `watch` - watch for any changes
 
+#### TODO Tasks
 
-## Supports
+- `cli input`: prompts, choices, confirmations, etc.
+- `template` - parse a template file
+- `lessc` - less css 
+- `watch` - watch files for any changes
 
-- Web 
-- Node.js
+### How-To
 
-## Installation
+- Build for multiple platforms under one codebase
+- Build a clean layer for communicating between multiple JS apps
+- Use mesh for CLI input
+- Use mesh with jekyll
+- Build libraries that are supported under mesh
+- Create custom tasks for mesh
+- Use mesh from the command line
 
-```bash
-npm install mesh -g
-```
+### Example Libraries
 
-## Soon
-
-- Browser Extensions: **Firefox**, **Safari**, **Chrome**, **IE**, **Opera**, **Bookmarklets**
-- Soon: Titanium, Phonegap
-
-## Prerequisites
-
-- [Node.js](http://nodejs.org/) (needed for CLI)
-
-## Basic Setup
-	
-We'll first kick things off by initializing our project. Call:
-
-	mesh bootstrap
-
-
-The bootstrap script will produce some boilerplate code. 
-After you're done initializing your project, you can go ahead and make it:
-
-```
-mesh make:web:debug
-mesh make:iphone:debug
-mesh make:node:debug
-```
+- [mesh-winston](winston wrapper library which can run on any platform)
