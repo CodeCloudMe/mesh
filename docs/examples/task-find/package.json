@@ -1,0 +1,25 @@
+{
+	"mesh": {
+		"def handleFiles": {
+			"def :file(\\w+.js)": {
+				"run": {
+					"log": "log handle js file <%-filename %>"
+				}
+			},
+			"def :file(\\w+.css)": {
+				"run": {
+					"log": "log handle css file <%-filename %>"
+				}
+			},
+			"def :file": {
+				"run": {
+					"log": "log handle other file <%-filename %>"
+				}
+			}
+		},
+		"find": {
+			"directory": "./files",
+			"run": "handleFiles/<%-filename %>"
+		}
+	}
+}

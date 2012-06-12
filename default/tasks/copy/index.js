@@ -4,8 +4,8 @@ module.exports = {
 	"def copy": {
 		"params": {
 			"input": function(target) {
-				if(!target.data.input) return false;
-				return target.data.input instanceof Array ? target.data.input : [target.data.input];
+				if(!target.get("input")) return false;
+				return target.get().input instanceof Array ? target.get().input : [target.data.input];
 			}
 		},
 		"message": "<%-input.join(', ') %> -> <%-output %>",
@@ -16,9 +16,10 @@ module.exports = {
 
 function run(target, next) {
 
-	var ops = target.data;
-	var include = ops.input,
-	exclude     = (ops.exclude || []).map(function(filter) {
+	var data = target.get();
+
+	var include = data.input,
+	exclude     = (data.exclude || []).map(function(filter) {
 		return new RegExp("^" + filter + "$");
 	});
 
@@ -31,6 +32,6 @@ function run(target, next) {
 
 		next();
 	}).
-	join(ops.output).
+	join(data.output).
 	complete(next);
 }

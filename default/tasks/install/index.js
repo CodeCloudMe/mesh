@@ -4,7 +4,7 @@ module.exports = {
 			"package": function(target) {
 				return target.value || target.data["package"];
 			}
-		}
+		},
 		"run": run
 	}
 };

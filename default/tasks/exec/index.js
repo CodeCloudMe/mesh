@@ -4,7 +4,7 @@ module.exports = {
 	"def exec": {
 		"params": {
 			"script": function(target) {
-				return target.value || target.data.script;
+				return target.value() || target.get().script;
 			}
 		},
 		"message": "<%-script %>",
@@ -13,9 +13,11 @@ module.exports = {
 }
 
 function run(target, next) {
-	var script = target.data.script;
+	var data = target.get();
 
-	var child = exec(script, { cwd: target.data.cwd, maxBuffer: 0 }, next),
+	var script = data.script;
+
+	var child = exec(script, { cwd: data.cwd, maxBuffer: 0 }, next),
 	logger = target.logger;
 
 	//taking a look at the sauce code, stdout appended to an array.

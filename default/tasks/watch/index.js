@@ -5,7 +5,8 @@ module.exports = {
 	"def watch": {
 		"params": {
 			"file": function(target) {
-				return target.data.file || target.data.input || target.data.path || process.cwd()
+				var data = target.get();
+				return data.file || data.input || data.path || process.cwd();
 			},
 			"run": true
 		},
@@ -15,15 +16,17 @@ module.exports = {
 
 
 function run(target, next) {
+
+	var data = target.get();
+
 	var parser = target.parser,
-	run = target.data.run,
+	run = data.run,
 	logger = target.logger;
 
-	watch_r(target.data.file, outcome.error(next).success(function(watcher) {
+	watch_r(data.file, outcome.error(next).success(function(watcher) {
 
 		watcher.on("change", function(changed) {
-
-			parser.run(run, target.clone().defaults({ input: changed.path }).data, function(err) {
+			parser.run(run, target.clone().defaults({ input: changed.path }).get(), function(err) {
 				if(err) logger.error(err);
 			})
 		});

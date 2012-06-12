@@ -21,7 +21,7 @@ module.exports = {
 function run(target, next) {
 
 
-	var ops = target.data,
+	var data = target.get(),
 	on = outcome.error(next);
 
 
@@ -48,7 +48,7 @@ function run(target, next) {
 			return false;
 		}
 
-		return minify(content,  _.defaults(ops, {
+		return minify(content,  _.defaults(data, {
 			removeEmptyElements: false,
 			removeAttributeQuotes: false,
 			collapseBooleanAttributes: false,
@@ -71,7 +71,7 @@ function run(target, next) {
 		 */
 
 		function() {
-			fs.readFile(ops.input, "utf8", this)
+			fs.readFile(data.input, "utf8", this)
 		},
 
 		/**
@@ -90,9 +90,8 @@ function run(target, next) {
 		 */
 
 		 on.success(function(content) {
-
-		 	fs.writeFile(ops.output, content, this);
-
+			target.set("input", data.output);
+		 	fs.writeFile(data.output, content, this);
 		 }),
 
 		 /**

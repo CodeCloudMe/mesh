@@ -8,7 +8,7 @@ module.exports = {
 			"input": true,
 			"output": true,
 			"method": function(target) {
-				return target.data.method || "shrinkwrap";
+				return target.get().method || "shrinkwrap";
 			}
 		},
 		"message": "<%-method %> <%-input %>",
@@ -18,7 +18,7 @@ module.exports = {
 
 function run(target, next) {
 
-	var ops = target.data;
+	var data = target.get();
 
 	/**
 	 * first analyze the dependencies. This works a few ways:
@@ -27,20 +27,20 @@ function run(target, next) {
 	 * 2. entry point specified, so scan ONLY scripts which are used ~ (look for require() stmts)
 	 */
 
-	if(ops.input) {
-		ops.entry = ops.input;
+	if(data.input) {
+		data.entry = data.input;
 	}
 
-	if(!ops.method) {
-		ops.method = "shrinkwrap";
+	if(!data.method) {
+		data.method = "shrinkwrap";
 	}
 
-	ops.wrap = "?task=sardines&method=wrap";
+	data.wrap = "?task=sardines&method=wrap";
 
-	sardines(ops, outcome.error(next).success(function(content) {
+	sardines(data, outcome.error(next).success(function(content) {
 
 		//next item should take this script
-		ops.entry = ops.input = ops.output;
+		target.set("input", data.output);
 
 		fs.writeFile(ops.input, content, next);
 	}));

@@ -1,0 +1,7 @@
+{
+	"def saySomething": {
+		"run": {
+			"log": "hello task!"
+		}
+	}
+}

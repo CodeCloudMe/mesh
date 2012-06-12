@@ -26,7 +26,7 @@ module.exports = {
 
 function run(target, next) {
 
-	var ops = target.data,
+	var data = target.get(),
 	on = outcome.error(next);
 
 

@@ -7,8 +7,7 @@ outcome   = require("outcome");
 module.exports = {
 	"def find": {
 		"params": {
-			"directory": true,
-			"match": true
+			"directory": true
 		},
 		"run": run
 	}
@@ -17,23 +16,21 @@ module.exports = {
 
 function run(target, next) {
 
-	var dir = target.data.directory,
-	match   = target.data.match,
+	var dir = target.get("directory"),
 	parser  = target.parser,
 	expr    = this;
 
-	walkr(path.normalize(target.data.cwd + "/" + dir)).
+
+	walkr(path.normalize(target.get("cwd") + "/" + dir)).
 	filter(function(options, nextFile) {
 
-		for(var cs in match) {
-			if(new RegExp(cs).test(options.source)) {
-				return target.caller.runChild(match[cs], structr.copy(target.data, { input: options.source }), outcome.error(next).success(function() {
-					nextFile();
-				}));
-			}
-		}
+		var childTarget = target.child({ input: options.source, filename: path.basename(options.source) }, false);
 
-		nextFile();
+		return target.caller.runChild(childTarget.get("run"), childTarget, function(err, next) {
+			if(err) console.error(err);
+			nextFile();
+		});
+
 	}).
 	start(next);
 }

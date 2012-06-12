@@ -1,0 +1,13 @@
+{
+	"mesh": [
+		{
+			"load": "./tasks"
+		},
+		{
+			"def customNamespace": {
+				"load": "./another-task.json"
+			}
+		},
+		"customNamespace/saySomething"
+	]
+}

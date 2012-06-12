@@ -1,5 +1,8 @@
 ## Mesh
 
+### Docs (TODO)
+
+- Getting Started
 
 ### Featured Tasks
 - `concat` - concatenate files
@@ -22,6 +25,7 @@
 - `growl` 
 - `ping` - ping server on a task
 - `install` - install mesh packages
+- `help` - show tasks, & descriptions for tasks
 
 ### TODO Features
 - get `watch` content difference

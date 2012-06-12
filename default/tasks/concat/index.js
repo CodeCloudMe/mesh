@@ -6,8 +6,8 @@ module.exports = {
 	"def concat OR public/concat": {
 		"params": {
 			"input": function(target) {
-				if(!target.data.input) return false;
-				return target.data.input instanceof Array ? target.data.input : [target.data.input];
+				if(!target.get("input")) return false;
+				return target.get().input instanceof Array ? target.get().input : [target.get().input];
 			},
 			"output": true
 		},
@@ -19,11 +19,12 @@ module.exports = {
 
 function run(target, nextBuilder) {
 
-	var ops = target.data,
-	include = ops.target,
-	output  = ops.output,
+	var data = target.get();
+
+	var include = data.target,
+	output  = data.output,
 	ws      = fs.createWriteStream(output, { flags: "a+" }),
-	search  = new RegExp(ops.filter || "\\w+\\.\\w+$"),
+	search  = new RegExp(data.filter || "\\w+\\.\\w+$"),
 	buffer  = [];
 
 	

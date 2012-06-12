@@ -4,7 +4,7 @@ module.exports = {
 	"def mkdir": {
 		"params": {
 			"path": function(target) {
-				return target.value || target.data.path;
+				return target.value || target.get().path;
 			}
 		},
 		"run": run
@@ -12,5 +12,5 @@ module.exports = {
 }
 
 function run(target, next) {
-	mkdirp(target.data.path, next);
+	mkdirp(target.get().path, next);
 }

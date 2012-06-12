@@ -24,19 +24,20 @@ module.exports = {
 
 function run(target, next) {
 
-	var ops = target.data,
+	var data = target.get(),
 	on = outcome.error(next);
 	
 	step(
 		function() {
-			fs.readFile(ops.input, "utf8", this)
+			fs.readFile(data.input, "utf8", this)
 		},
 		on.success(function(content) {
-			var body = uglify.uglify.gen_code(parser.parse(content, false, false), { beautify: ops.beautify });
+			var body = uglify.uglify.gen_code(parser.parse(content, false, false), { beautify: data.beautify });
 			this(null, body);
 		}),
 		on.success(function(body) {
-			fs.writeFile(ops.output, body, this)
+			target.set("input", data.output);
+			fs.writeFile(data.output, body, this)
 		}),
 		next
 	)

@@ -1,0 +1,27 @@
+{
+	"mesh": [
+		{
+			"def hello": {
+				"def :param": {
+					"run": {
+						"log": "hello <%-param %>!!"
+					}
+				},
+				"def :file(\\w+.js)": {
+					"run": {
+						"log": "hello <%-file %>!!!"
+					}
+				},
+				"def :file(\\w+.css)": {
+					"run": {
+						"log": "hello <%-file %>!!!!"
+					}
+				}	
+			}
+			
+		},
+		"hello/test.js",
+		"hello/test.css",
+		"hello/test.html"
+	]
+}

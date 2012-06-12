@@ -14,8 +14,10 @@ module.exports = {
 }
 
 function run(target, next) {
-	catchall.load(target.input, outcome.error(next).success(function(wrappedSource) {
-		fs.witeFile(target.output, wrappedSource, next);
+	var data = target.get();
+	catchall.load(data.input, outcome.error(next).success(function(wrappedSource) {
+		target.set("input", data.output);
+		fs.witeFile(data.output, wrappedSource, next);
 	}));
 }
 
