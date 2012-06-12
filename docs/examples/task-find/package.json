@@ -3,17 +3,17 @@
 		"def handleFiles": {
 			"def :file(\\w+.js)": {
 				"run": {
-					"log": "log handle js file <%-filename %>"
+					"log": "log handle js file <%-file %>"
 				}
 			},
 			"def :file(\\w+.css)": {
 				"run": {
-					"log": "log handle css file <%-filename %>"
+					"log": "log handle css file <%-file %>"
 				}
 			},
 			"def :file": {
 				"run": {
-					"log": "log handle other file <%-filename %>"
+					"log": "log handle other file <%-file %>"
 				}
 			}
 		},
