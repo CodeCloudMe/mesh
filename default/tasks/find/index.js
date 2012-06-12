@@ -24,7 +24,7 @@ function run(target, next) {
 	walkr(path.normalize(target.get("cwd") + "/" + dir)).
 	filter(function(options, nextFile) {
 
-		var childTarget = target.child({ input: options.source, filename: path.basename(options.source) }, false);
+		var childTarget = target.child({ input: options.source, file: options.source, filename: path.basename(options.source) }, false);
 
 		return target.caller.runChild(childTarget.get("run"), childTarget, function(err, next) {
 			if(err) console.error(err);
