@@ -21,7 +21,6 @@ Mesh is a task system for JavaScript.
 - `cli input`: prompts, choices, confirmations, etc.
 - `template` - parse a template file
 - `lessc` - less css 
-- `watch` - watch files for any changes
 
 ### How-To
 
