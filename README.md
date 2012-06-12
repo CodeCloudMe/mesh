@@ -19,6 +19,12 @@
 - `cli input`: prompts, choices, confirmations, etc.
 - `template` - parse a template file
 - `lessc` - less css 
+- `growl` 
+- `ping` - ping server on a task
+- `install` - install mesh packages
+
+### TODO Features
+- get `watch` content difference
 
 ### How-To (TODO)
 - Build for multiple platforms under one codebase
@@ -27,6 +33,8 @@
 - Create custom tasks for mesh
 - Use mesh from the command line
 - Build meteor-like applications
+- Use mesh to watch log files, and send them any changes to any logging service (loggly, pingdom, pagerduty)
+
 
 ### Examples (TODO)
 - Use mesh for CLI input
