@@ -10,22 +10,20 @@ step     = require('stepc'),
 outcome  = require('outcome'),
 fs       = require('fs'),
 structr  = require('structr'),
-crc32 = require("crc32");
+crc32    = require("crc32"),
+capirona = require("capirona");
 
 if(argv.h || argv.help) {
 	cli.showHelp();
 	process.exit();
 }
-var capirona = require('capirona')
 
 function fixPath(path) {
 	return path.replace('~', process.env.HOME).replace('./', process.cwd() + "/")
 }
 
 var makeTarget = fixPath(argv.i);
-
-
-argv.cwd          = path.dirname(makeTarget);
+argv.cwd = path.dirname(makeTarget);
 
 
 var on = outcome.error(function(e) {
