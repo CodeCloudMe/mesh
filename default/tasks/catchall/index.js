@@ -1,5 +1,6 @@
 var catchall = require('catchall'),
-fs = require('fs');
+fs = require('fs'),
+outcome = require("outcome");
 
 module.exports = {
 	"def catchall OR public/catchall": {
@@ -13,8 +14,8 @@ module.exports = {
 }
 
 function run(target, next) {
-	catchall.load(target.input, next.success(function(wrappedSource) {
+	catchall.load(target.input, outcome.error(next).success(function(wrappedSource) {
 		fs.witeFile(target.output, wrappedSource, next);
-	}))
+	}));
 }
 

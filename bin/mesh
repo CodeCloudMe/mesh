@@ -29,9 +29,7 @@ argv.cwd          = path.dirname(makeTarget);
 
 
 var on = outcome.error(function(e) {
-	
 	console.error(e.stack);
-
 });
 
 step(
@@ -40,24 +38,17 @@ step(
 	 */
 
 	function() {
-
 		path.exists(makeTarget, this);
-
 	},
 
 	/**
 	 */
 
 	function(exists) {
-
 		if(exists) {
-
 			fs.readFile(makeTarget, "utf8", this);
-
 		} else {
-
 			this();
-
 		}
 	},
 
@@ -65,10 +56,8 @@ step(
 	 */
 
 	on.success(function(content) {
-
 		if(!content) return this(null, {  mesh: {} });
 		this(null, JSON.parse(content));
-
 	}),
 
 	/**
@@ -79,12 +68,14 @@ step(
 		pkg.cwd = argv.cwd;
 
 		var mesh = pkg.mesh;
+
+		//we don't want the mesh script getting attached to the target
 		delete pkg.mesh;
 
 		target   = structr.copy(argv, pkg);
 		target.buildId = crc32(String(Date.now()));
 
-
+		//run the initial script 
 		var script = capirona.run([{
 			"load": {
 				"cwd": process.cwd(),
@@ -92,9 +83,11 @@ step(
 			}
 		}, mesh], target, on.success());
 
+
+		//grab the commands to execute 
 		var commands = argv._;
 
-
+		//call the commands, these will get executed synchronously
 		for(var i = 0, n = commands.length; i < n; i++) {
 			script.run(commands[i], structr.copy(target), on.success());
 		}

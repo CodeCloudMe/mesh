@@ -1,9 +1,7 @@
 ## Mesh
 
-Mesh is a task system for JavaScript.
 
 ### Featured Tasks
-
 - `concat` - concatenate files
 - `copy` - copy files from one place to another
 - `exec` - execute command line scripts
@@ -22,15 +20,17 @@ Mesh is a task system for JavaScript.
 - `template` - parse a template file
 - `lessc` - less css 
 
-### How-To
-
+### How-To (TODO)
 - Build for multiple platforms under one codebase
 - Build a clean layer for communicating between multiple JS apps
-- Use mesh for CLI input
-- Use mesh with jekyll
 - Build libraries that are supported under mesh
 - Create custom tasks for mesh
 - Use mesh from the command line
+- Build meteor-like applications
+
+### Examples (TODO)
+- Use mesh for CLI input
+- Use mesh with jekyll
 
 ### Example Libraries
 
