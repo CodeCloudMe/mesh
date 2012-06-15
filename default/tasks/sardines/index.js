@@ -42,7 +42,7 @@ function run(target, next) {
 		//next item should take this script
 		target.set("input", data.output);
 
-		fs.writeFile(ops.input, content, next);
+		fs.writeFile(data.output, content, next);
 	}));
 
 }

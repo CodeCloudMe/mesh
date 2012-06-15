@@ -1,5 +1,6 @@
 var watch_r = require("watch_r"),
-outcome = require("outcome");
+outcome = require("outcome"),
+_ = require("underscore");
 
 module.exports = {
 	"def watch": {
@@ -21,15 +22,16 @@ function run(target, next) {
 
 	var parser = target.parser,
 	run = data.run,
+	delay = data.delay || 100,
 	logger = target.logger;
 
 	watch_r(data.file, outcome.error(next).success(function(watcher) {
 
-		watcher.on("change", function(changed) {
+		watcher.on("change", _.debounce(function(changed) {
 			parser.run(run, target.clone().defaults({ input: changed.path }).get(), function(err) {
 				if(err) logger.error(err);
 			})
-		});
+		}, delay));
 
 		next();
 	}));

@@ -1,0 +1,38 @@
+{
+	"mesh": {
+		"def handleHttpFile": {
+			"def dev": {
+				"def (\\w+.js)": {
+					"run": {
+						"sardines": {
+							"method": "browserify"
+						}
+					}
+				}
+			},
+			"def prod": {
+				"def (\\w+.js)": {
+					"run": [
+						{
+							"sardines": {
+								"method": "shrinkwrap"
+							}
+						},
+						"uglify"
+					]
+				}
+			},
+			"def dev OR prod": {
+				"def combine.(\\w+)": {
+					"run": {
+						"log": "combine!"
+					}
+				}
+			}
+		},
+		"http_server": {
+			"directory": "./public",
+			"run": "handleHttpFile/dev/<%-filename %>"
+		}
+	}
+}

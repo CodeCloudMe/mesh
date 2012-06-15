@@ -1,163 +1,116 @@
 var express = require("express"),
-sardines = require("sardines"),
-fs = require("fs"),
-mime = require("mime"),
-tq = require("tq"),
-outcome = require("outcome");
+path        = require("path"),
+fs          = require("fs"),
+mkdirp      = require("mkdirp"),
+step        = require("step"),
+Cache       = require("./cache"),
+watch_r     = require("watch_r"),
+outcome     = require("outcome"),
+_           = require("underscore");
 
 module.exports = {
 	"def http_server": {
 		"defaults": {
 			"port": 8080,
-			"directory": process.cwd()
+			"directory": process.cwd(),
+			"namespace": "/mesh"
 		},
 		"message": "dir=<%-directory %> port=<%-port %>",
 		"run": run
 	}
 }
 
-function parseQuery(oldQuery) {
-	var query = {};
-	for(var prop in oldQuery) {
-		var v = oldQuery[prop];
-		if(~v.indexOf(",")) v = v.split(",");
-		query[prop] = v;
-	}
-	return query;
-}
+function run(target, next) {
 
-function parseFileTasks(fileTasks) {
-	var ft = [];
-	for(var pattern in fileTasks) {
-		var task = fileTasks[pattern];
-		ft.push({
-			tester: new RegExp(pattern),
-			tasks: task instanceof Array ? task : [task]
-		});
-	}
+	var port = target.get("port"),
+	dir      = path.resolve(process.cwd(), target.get("directory")),
+	ns       = target.get("namespace"),
+	parser   = target.parser,
+	cache = new Cache({ dir: "/tmp/mesh/cache" });
 
-	return ft;
-}
 
-function getFileTasks(ft, file) {
-	var tasks = [];
-	for(var i = 0, n = ft.length; i < n; i++) {
-		var inf = ft[i];
-		if(inf.tester.test(file)) {
-			tasks = tasks.concat(inf.tasks);
+	parser.run({
+		"watch": {
+			"file": dir,
+			"delay": 500,
+			"run": function(target, next) {
+				console.log("%s has changed, purging http cache", path.relative(process.cwd(), target.get("input")));
+				cache.purge();
+				next();
+			}
 		}
-	}
-	return tasks;
-}
+	});
 
-function run (target, next) {
-
-	var ops = target.data;
+	cache.purge();
 
 	var server = express.createServer();
-	server.listen(ops.port);
 
-	var self = this,
-
-	//the default public scope
-	publicScope = "public",
-
-	//the target scope given. This is important incase
-	//the scope changes from something like development, to production
-	taskScope = ops.taskScope || publicScope,
-
-	//tasks to run against file matches
-	fileTasks = parseFileTasks(ops.fileTasks || {});
-
-	//runs a registered task
-	function runTask(scope, task, ops, next) {
-		target.parser.run([scope, task].join("/"), ops, next);	
-	}
-
-	//use middleware to mesh content
 	server.use(function(req, res, next) {
-		var fullPath = ops.directory + req.path,
+		var rpath = req.path,
+		containsNs = rpath.indexOf(ns) === 0,
+		hasTask    = !!req.query.task;
 
-		//parse anything in the query such as commas -> array
-		query = parseQuery(req.query);
+		if(!containsNs && !hasTask) return next();
 
-		//otherwise set the file up to be meshed
-		var newTarget = query,
+		var fullPath  = path.normalize(dir + "/" + (containsNs ? rpath.substr(ns.length) : rpath)),
 		extParts = fullPath.match(/\/[^\/]*?$/)[0].split("."),
 		ext;
 
+		//if the extension is NOT present, then default to the index file
 		if(extParts.length > 1) {
-			newTarget.input = fullPath;
 			ext = extParts.pop();
 		} else {
-			newTarget.input = fullPath + "/index.html";
+			fullPath = fullPath + "/index.html";
 			ext = "html";
 		}
 
-		query.task = query.task || getFileTasks(fileTasks, newTarget.input);
+		var key = new Buffer(rpath/*req.url*/).toString("base64").replace(/\//g,"_") + "." + ext;
 
-		if(!query.task) return next();
+		//the temporary file where the mesh script is writing to
+		var tmpFile = "/tmp/" + key;
 
-		tasks = query.task instanceof Array ? query.task : [query.task];
-
-
-		
-		//create a temp file consisting of a unique hash
-		var output =  newTarget.output = "/tmp/" + new Buffer(req.url).toString("base64").replace(/\//g,"_") + "." + ext;
-
-
-		var queue = tq.queue();
-
-		//error? return it to the user
-		var on = outcome.error(function(err) {
-			res.end(String(err));
-		});
-
-		queue.push(function() {
-			fs.unlink(output, this);
-		})
-
-		tasks.forEach(function(task) {
-
-			queue.push(function() {
-				var next = this, nextQueue = this;
+		step(
+			function() {
+				cache.exists(key, this);
+			},
+			function(err) {
+				if(!err) return res.sendfile(cache.path(key));
+				this();
+			},
+			function() {
 
 
-				//ONLY use the fallback if the task scope doesn't
-				//equal the public scope - this would be redundant.
-				if(taskScope != publicScope) {
-					next = function(err) {
-						switch(err.errno || 0) {
-							case 3: 
-							return on(err);
-						}
+				var childData = _.defaults({ filename: path.basename(rpath), 
+					input: fullPath, 
+					output: tmpFile, 
+					directory: dir + "/" },
+					req.query);
 
-						runTask(publicScope, task, newTarget, on.success(nextQueue));
-					}
-				}
+				//the child target
+				var child       = target.child(childData, false),
+				tasks = childData.task ? childData.task.split(",").map(function(task) {
+					return "public/" + task
+				}) : [];
 
+				next = this;
 
-				//try running the task in the current scope. If it fails, then
-				//it'll move to the public domain
-				runTask(taskScope, task, newTarget, on.error(next).success(nextQueue));
-			})
+				parser.run(tasks.length ? tasks : child.get("run"), child, function(err, result) {
 
-		});
-
-		//once all the tasks are done, send the file
-		queue.push(function() {
-			// console.log("==> serve %s", fullPath);
-			res.sendfile(output);
-			this();
-		});
-
-		//start the tasks
-		queue.start();
-
-		
+					if(err) return res.end(err.message);
+					next();
+				});
+			},
+			function() {
+				cache.set(key, tmpFile, this);
+			},
+			function() {
+				fs.unlink(tmpFile);
+				res.sendfile(cache.path(key));
+			}
+		);
 	});
 
-	server.use(express.static(ops.directory));
+	server.use(express.static(dir));
 
-	next();
+	server.listen(port);
 }
