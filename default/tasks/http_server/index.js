@@ -42,6 +42,7 @@ function run(target, next) {
 	parser   = target.parser,
 	cache = new Cache({ dir: "/tmp/mesh/cache" });
 
+	// console.log(target._data)
 
 	parser.run({
 		"watch": {
@@ -93,7 +94,6 @@ function run(target, next) {
 			},
 			function() {
 
-
 				var childData = _.defaults({ filename: path.basename(rpath), 
 					input: fullPath, 
 					output: tmpFile, 
@@ -109,7 +109,6 @@ function run(target, next) {
 				next = this;
 
 				parser.run(tasks.length ? tasks : child.get("run"), child, function(err, result) {
-
 					if(err) return res.end(err.message);
 					next();
 				});

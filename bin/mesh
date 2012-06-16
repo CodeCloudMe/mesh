@@ -1,104 +1,55 @@
 #!/usr/bin/env node
 
-var cli = require('optimist').
-usage("Usage: $0 [targets] -i=[target] --arg=[value]").
-alias('i','input').
-default('i',"./package.json"),
-argv     = cli.argv,
-path     = require('path'),
-step     = require('stepc'),
-outcome  = require('outcome'),
-fs       = require('fs'),
-structr  = require('structr'),
-crc32    = require("crc32"),
-capirona = require("capirona");
 
-if(argv.h || argv.help) {
-	cli.showHelp();
-	process.exit();
-}
+var capirona = require("capirona"),
+async        = require("async"),
+path         = require("path"),
+_            = require("underscore"),
+argv         = require("optimist").argv;
 
-function fixPath(path) {
-	return path.replace('~', process.env.HOME).replace('./', process.cwd() + "/")
-}
-
-var makeTarget = fixPath(argv.i);
-argv.cwd = path.dirname(makeTarget);
+argv._.unshift("./package.json");
 
 
-var on = outcome.error(function(e) {
-	console.error(e.stack);
-});
-
-step(
-
-	/**
-	 */
-
-	function() {
-		path.exists(makeTarget, this);
-	},
-
-	/**
-	 */
-
-	function(exists) {
-		if(exists) {
-			fs.readFile(makeTarget, "utf8", this);
-		} else {
-			this();
+var scripts = [
+	{
+		"load": {
+			"cwd": process.cwd(),
+			"source": __dirname + "/../default/tasks"
 		}
-	},
+	}
+],
+commands    = [],
+target      = _.extend({}, argv); 
 
-	/**
-	 */
 
-	on.success(function(content) {
-		if(!content) return this(null, {  mesh: {} });
-		this(null, JSON.parse(content));
-	}),
+async.forEach(argv._, function(arg, next) {
 
-	/**
-	 */
+	if(arg.substr(0, 1).match(/[\.\/]/)) {
 
-	on.success(function(pkg) {
+		try {
 
-		pkg.cwd = argv.cwd;
+			var script = require(process.cwd() + "/" + arg);
 
-		var mesh = pkg.mesh;
-
-		//we don't want the mesh script getting attached to the target
-		delete pkg.mesh;
-
-		target   = structr.copy(argv, pkg);
-		target.buildId = crc32(String(Date.now()));
-
-		//run the initial script 
-		var script = capirona.run([{
-			"load": {
-				"cwd": process.cwd(),
-				"source": __dirname + "/../default/tasks"
+			if(script.mesh) {
+				_.defaults(target, script);
+				delete target.mesh;
+				script = script.mesh;
 			}
-		}, mesh], target, on.success());
+
+			scripts.push(script);
+
+		} catch(e) { }
 
 
-		//grab the commands to execute 
-		var commands = argv._;
+	} else {
+		commands.push(arg);
+	}
 
-		//call the commands, these will get executed synchronously
-		for(var i = 0, n = commands.length; i < n; i++) {
-			script.run(commands[i], structr.copy(target), on.success());
-		}
 
-	}),
+	next()
 
-	/**
-	 */
-
-	on.success(function() {
-
-		//console.log('done without errors');
-
-	})
-)
-
+}, function() {
+	capirona.run(scripts.concat(commands), target, function(err) {
+		if(err) console.error(err.stack);
+	});
+})

@@ -30,9 +30,20 @@
 				}
 			}
 		},
-		"http_server": {
-			"directory": "./public",
-			"run": "handleHttpFile/dev/<%-filename %>"
-		}
+		"def start_http_server": {
+			"params": {
+				"env": {
+					"value": "dev"
+				}
+			},
+			"run": {
+				"log": "running in <%-env %> mode",
+				"http_server": {
+					"directory": "./public",
+					"run": "handleHttpFile/<%-env %>/<%-filename %>"
+				}
+			}
+		},
+		"start_http_server": true
 	}
 }

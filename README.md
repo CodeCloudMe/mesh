@@ -16,6 +16,7 @@
 - `catchall` - wraps your code up so *all* exceptions are caught
 - `http_server` - start a web server for executing tasks
 - `watch` - watch for any changes
+- `help` - show tasks, & descriptions for tasks
 
 #### TODO Tasks
 
@@ -25,7 +26,6 @@
 - `growl` 
 - `ping` - ping server on a task
 - `install` - install mesh packages
-- `help` - show tasks, & descriptions for tasks
 
 ### TODO Features
 - get `watch` content difference
