@@ -15,6 +15,7 @@ module.exports = {
 			"input": true,
 			"output": true
 		},
+		"description": "uglifies javascript files",
 		"message": "<%-input %>",
 		"run": run
 	}

@@ -8,6 +8,7 @@ module.exports = {
 			"input": true,
 			"output": true
 		},
+		"description": "makes ALL errors catchable",
 		"message": "<%-input %>",
 		"run": run
 	}

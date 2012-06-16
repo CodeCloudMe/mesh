@@ -11,6 +11,7 @@ module.exports = {
 			},
 			"run": true
 		},
+		"description": "runs tasks against watched files",
 		"run": run
 	}
 };

@@ -7,6 +7,7 @@ module.exports = {
 				return target.value || target.get().path;
 			}
 		},
+		"description": "makes a new directory",
 		"run": run
 	}
 }

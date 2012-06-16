@@ -15,6 +15,20 @@ module.exports = {
 			"directory": process.cwd(),
 			"namespace": "/mesh"
 		},
+		"params": {
+			"port": {
+				"value": 8080
+			},
+			"directory": {
+				"description": "path to the HTTP files",
+				"value": process.cwd()
+			},
+			"namespace": {
+				"description": "namespace to use in the browser to handle http files",
+				"value": "/mesh"
+			}
+		},
+		"description": "makes tasks accessible from the web",
 		"message": "dir=<%-directory %> port=<%-port %>",
 		"run": run
 	}
@@ -111,6 +125,6 @@ function run(target, next) {
 	});
 
 	server.use(express.static(dir));
-
 	server.listen(port);
+	next();
 }

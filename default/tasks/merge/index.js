@@ -20,6 +20,7 @@ module.exports = {
 			"directories.lib": true,
 			"target": true
 		},
+		"description": "merges multiple dirs into one",
 		"run": run
 	}
 }

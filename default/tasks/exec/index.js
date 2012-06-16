@@ -7,6 +7,7 @@ module.exports = {
 				return target.value() || target.get().script;
 			}
 		},
+		"description": "executes a shell script",
 		"message": "<%-script %>",
 		"run": run
 	}

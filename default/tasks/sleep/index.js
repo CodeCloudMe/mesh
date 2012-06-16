@@ -5,6 +5,7 @@ module.exports = {
 				return target.value() || target.get().time;
 			}
 		},
+		"description": "calls setTimeout before the next task",
 		"run": run
 	}
 };

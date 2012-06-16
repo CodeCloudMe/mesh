@@ -9,6 +9,7 @@ module.exports = {
 		"params": {
 			"directory": true
 		},
+		"description": "runs tasks against a directory",
 		"run": run
 	}
 };

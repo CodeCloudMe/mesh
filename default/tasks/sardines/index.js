@@ -11,6 +11,7 @@ module.exports = {
 				return target.get().method || "shrinkwrap";
 			}
 		},
+		"description": "browserifies javascript code",
 		"message": "<%-method %> <%-input %>",
 		"run": run
 	}

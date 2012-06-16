@@ -11,6 +11,7 @@ module.exports = {
 			},
 			"output": true
 		},
+		"description": "combines multiple files into one",
 		"message": "<%-input.join('+') %> -> <%-output %>",
 		"run": run
 	}

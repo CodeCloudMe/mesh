@@ -8,6 +8,7 @@ module.exports = {
 				return target.get().input instanceof Array ? target.get().input : [target.data.input];
 			}
 		},
+		"description": "copies files to a new location",
 		"message": "<%-input.join(', ') %> -> <%-output %>",
 		"run": run
 	}
