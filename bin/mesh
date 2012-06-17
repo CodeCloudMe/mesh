@@ -49,7 +49,35 @@ async.forEach(argv._, function(arg, next) {
 	next()
 
 }, function() {
-	capirona.run(scripts.concat(commands), target, function(err) {
+	var runner = capirona.run(scripts.concat(commands), target, function(err) {
 		if(err) console.error(err.stack);
+		if(argv.i || argv.interactive) {
+			process.openStdin();
+			waitForInput(runner);
+		}
+	}); 
+
+
+});
+
+
+
+function waitForInput(runner) {
+
+	process.stdout.write("> ");
+	process.stdin.once("data", function(data) {
+
+		var command = String(data);
+
+		try {
+			command = JSON.parse(command);
+		} catch(e) {
+			// console.log(e)
+		}
+
+		runner.run(command, target, function(err) {
+			if(err) console.error(err.stack);
+			waitForInput(runner);
+		});
 	});
-})
+}

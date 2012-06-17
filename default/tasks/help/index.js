@@ -130,4 +130,5 @@ function run(target, next) {
 	}
 
 	help.print();
+    next();
 }
