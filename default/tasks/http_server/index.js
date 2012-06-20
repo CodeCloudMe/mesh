@@ -6,7 +6,8 @@ step        = require("step"),
 Cache       = require("./cache"),
 watch_r     = require("watch_r"),
 outcome     = require("outcome"),
-_           = require("underscore");
+_           = require("underscore"),
+util        = require("util");
 
 module.exports = {
 	"def http_server": {
@@ -107,12 +108,13 @@ function run(target, next) {
 				next = this;
 
 				parser.run(tasks.length ? tasks : child.get("run"), child, function(err, result) {
-					if(err) return res.end(err.message);
-					next();
+					if(err) {
+						console.warn(err.message);
+						return cache.set(key, fullPath, next);
+					}
+
+					return cache.set(key, tmpFile, next);
 				});
-			},
-			function(err) {
-				cache.set(key, tmpFile, this);
 			},
 			function() {
 				fs.unlink(tmpFile);
