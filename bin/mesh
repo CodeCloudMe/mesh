@@ -24,6 +24,7 @@ target      = _.extend({}, argv);
 
 async.forEach(argv._, function(arg, next) {
 
+
 	if(arg.substr(0, 1).match(/[\.\/]/)) {
 
 		try {
@@ -49,6 +50,7 @@ async.forEach(argv._, function(arg, next) {
 	next()
 
 }, function() {
+	target.cwd = process.cwd();
 	var runner = capirona.run(scripts.concat(commands), target, function(err) {
 		if(err) console.error(err.stack);
 		if(argv.i || argv.interactive) {
