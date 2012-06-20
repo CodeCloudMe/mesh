@@ -39,7 +39,10 @@ async.forEach(argv._, function(arg, next) {
 
 			scripts.push(script);
 
-		} catch(e) { }
+		} catch(e) { 
+			console.error("Unable to load %s", arg);
+			console.log(e.stack)
+		}
 
 
 	} else {
