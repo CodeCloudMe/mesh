@@ -10,11 +10,6 @@ _           = require("underscore");
 
 module.exports = {
 	"def http_server": {
-		"defaults": {
-			"port": 8080,
-			"directory": process.cwd(),
-			"namespace": "/mesh"
-		},
 		"params": {
 			"port": {
 				"value": 8080
@@ -25,7 +20,7 @@ module.exports = {
 			},
 			"namespace": {
 				"description": "namespace to use in the browser to handle http files",
-				"value": "/mesh"
+				"value": "/"
 			}
 		},
 		"description": "makes tasks accessible from the web",
@@ -64,6 +59,7 @@ function run(target, next) {
 		var rpath = req.path,
 		containsNs = rpath.indexOf(ns) === 0,
 		hasTask    = !!req.query.task;
+
 
 		if(!containsNs && !hasTask) return next();
 
@@ -107,6 +103,7 @@ function run(target, next) {
 				}) : [];
 
 				next = this;
+
 
 				parser.run(tasks.length ? tasks : child.get("run"), child, function(err, result) {
 					if(err) return res.end(err.message);
