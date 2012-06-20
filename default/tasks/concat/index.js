@@ -58,7 +58,7 @@ function run(target, nextBuilder) {
 	}).
 	seq(function() {
 
-		target.input = output;
+		target.set("input", output); 
 		nextBuilder();
 		
 	});
