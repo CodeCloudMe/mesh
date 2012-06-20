@@ -28,7 +28,7 @@ function run(target, next) {
 
 	watch_r(data.file, outcome.error(next).success(function(watcher) {
 
-		watcher.on("change", _.debounce(function(changed) {
+		watcher.on("change", _.throttle(function(changed) {
 			parser.run(run, target.clone().defaults({ input: changed.path }).get(), function(err) {
 				if(err) logger.error(err);
 			})

@@ -14,7 +14,7 @@ _.str = require('underscore.string');
 
 
 module.exports = {
-	"def merge": {
+	"def merge OR merge/:target": {
 		"params": {
 			"directories.src": true,
 			"directories.lib": true,
@@ -31,11 +31,11 @@ function run(target, next) {
 	on = outcome.error(next);
 
 
-	var dirs       = ops.directories || {},
-	srcDir         = ops.input || dirs.src,
-	odir           = ops.output || dirs.lib,
-	targetPlatform = ops.target || ops.task.split(':').shift(),
-	platforms      = _.uniq(ops.platforms ? ops.platforms.concat(targetPlatform) : [targetPlatform]);
+	var dirs       = data.directories || {},
+	srcDir         = data.input || dirs.src,
+	odir           = data.output || dirs.lib,
+	targetPlatform = data.target || data.task.split(':').shift(),
+	platforms      = _.uniq(data.platforms ? data.platforms.concat(targetPlatform) : [targetPlatform]);
 		
 	if(!srcDir || !odir || !targetPlatform) {
 		throw new Error("Missing src, lib, or platform");
@@ -45,14 +45,15 @@ function run(target, next) {
 	targetSrcDir     = srcDir + "/" + targetPlatform,
 	outputPkg        = outputDir + "/package.json",
 	outputModulesDir = outputDir + "/node_modules",
-	rootPkg          = readJSON(ops.cwd + "/package.json"),
-	nodeModulesDir   = ops.cwd + "/node_modules",
+	rootPkg          = readJSON(data.cwd + "/package.json"),
+	nodeModulesDir   = data.cwd + "/node_modules",
 	srcPkg           = {},
-	strict 			 = ops.strict == undefined ? true : ops.strict,
-	linkTo           = ops.link;
+	strict 			 = data.strict == undefined ? true : data.strict,
+	linkTo           = data.link;
 
 
-	console.log(sprintf('==> merge %s-> %s', _.str.rpad(rootPkg.name + " ", 0,' '), path.relative(ops.root || ops.cwd, outputDir)));
+	target.logger.logCommand("merge", _.str.rpad(rootPkg.name + " ", 0,' ') + "-> " + path.relative(data.root || data.cwd, outputDir));
+	// console.log(sprintf('==> merge %s-> %s', _.str.rpad(rootPkg.name + " ", 0,' '), path.relative(data.root || data.cwd, outputDir)));
 
 	step(
 
@@ -198,17 +199,20 @@ function run(target, next) {
 			async.forEach(makeable, 
 				function(pkg, next) {
 
-					exports.run({
+					var child = target.child({
 						input: pkg.src,
 						output: pkg.lib,
 						cwd: pkg.dir,
 						target: targetPlatform,
-						root: ops.root || ops.cwd,
+						root: data.root || data.cwd,
 						platforms: platforms,
 						strict: false,
 						link: outputModulesDir + "/" + path.basename(pkg.dir)
-					}, outcome(next).error(next).success(next));
+					});
 
+					child.logger = target.logger;
+
+					run(child, outcome(next).error(next).success(next));
 				},
 				this);
 

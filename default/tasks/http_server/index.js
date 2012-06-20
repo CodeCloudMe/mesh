@@ -104,13 +104,12 @@ function run(target, next) {
 
 				next = this;
 
-
 				parser.run(tasks.length ? tasks : child.get("run"), child, function(err, result) {
 					if(err) return res.end(err.message);
 					next();
 				});
 			},
-			function() {
+			function(err) {
 				cache.set(key, tmpFile, this);
 			},
 			function() {
