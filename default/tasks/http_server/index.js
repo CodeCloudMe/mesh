@@ -78,7 +78,7 @@ function run(target, next) {
 		}
 
 
-		var key = new Buffer(rpath/*req.url*/).toString("base64").replace(/\//g,"_") + "." + ext;
+		var key = new Buffer(req.url).toString("base64").replace(/\//g,"_") + "." + ext;
 
 		//the temporary file where the mesh script is writing to
 		var tmpFile = "/tmp/" + key;
