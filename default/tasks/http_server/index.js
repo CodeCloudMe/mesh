@@ -71,9 +71,11 @@ function run(target, next) {
 		if(extParts.length > 1) {
 			ext = extParts.pop();
 		} else {
-			fullPath = fullPath + "/index.html";
+			rpath = "/index.html";
+			fullPath = fullPath + rpath;
 			ext = "html";
 		}
+
 
 		var key = new Buffer(rpath/*req.url*/).toString("base64").replace(/\//g,"_") + "." + ext;
 
