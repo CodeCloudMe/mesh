@@ -1,6 +1,7 @@
 var walkr = require("walkr"),
 fs        = require("fs"),
-seq       = require("seq");
+seq       = require("seq"),
+outcome = require("outcome");
 
 module.exports = {
 	"def concat OR public/concat": {
@@ -22,22 +23,24 @@ function run(target, nextBuilder) {
 
 	var data = target.get();
 
-	var include = data.target,
+	var include = data.input,
 	output  = data.output,
 	ws      = fs.createWriteStream(output, { flags: "a+" }),
 	search  = new RegExp(data.filter || "\\w+\\.\\w+$"),
-	buffer  = [];
+	buffer  = [],
+	on = outcome.error(nextBuilder);
 
 	
 	seq(include).
 	seqEach(function(file) {
+
 			
 		var nextCat = this;
 
 		walkr(file).
 		filterFile(search, function(options, nextFile) {
 
-			fs.readFile(options.source, "utf8", nextBuilder.success(function(content) {
+			fs.readFile(options.source, "utf8", on.success(function(content) {
 
 				// buffer.push(content);
 				ws.write(content + "\n");
