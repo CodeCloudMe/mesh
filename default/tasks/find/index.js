@@ -19,8 +19,8 @@ function run(target, next) {
 
 	var dir = target.get("directory"),
 	parser  = target.parser,
-	expr    = this;
-
+	expr    = this,
+	logErrors = !!target.get("logErrors");
 
 	walkr(path.normalize(target.get("cwd") + "/" + dir)).
 	filter(function(options, nextFile) {
@@ -28,7 +28,7 @@ function run(target, next) {
 		var childTarget = target.child({ input: options.source, file: options.source, filename: path.basename(options.source) }, false);
 
 		return target.caller.runChild(childTarget.get("run"), childTarget, function(err, next) {
-			if(err) console.error(err);
+			if(err && logErrors) console.error(err);
 			nextFile();
 		});
 
