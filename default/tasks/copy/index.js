@@ -5,7 +5,7 @@ module.exports = {
 		"params": {
 			"input": function(target) {
 				if(!target.get("input")) return false;
-				return target.get().input instanceof Array ? target.get().input : [target.data.input];
+				return target.get().input instanceof Array ? target.get().input : [target.get().input];
 			}
 		},
 		"description": "copies files to a new location",
