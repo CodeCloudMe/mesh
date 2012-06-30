@@ -15,11 +15,11 @@ _.str = require('underscore.string');
 
 module.exports = {
 	"def merge OR merge/:target": {
-		"params": {
+		/*"params": {
 			"directories.src": true,
 			"directories.lib": true,
 			"target": true
-		},
+		},*/
 		"description": "merges multiple dirs into one",
 		"run": run
 	}
@@ -62,11 +62,13 @@ function run(target, next) {
 
 		function() {
 
+			console.log(targetSrcDir)
+
 			path.exists(targetSrcDir, this);
 
 		},
 
-		/**
+		/** 
 		 */
 
 		function(exists) {

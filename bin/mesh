@@ -67,6 +67,7 @@ async.forEach(argv._, function(arg, next) {
 
 
 
+
 function waitForInput(runner) {
 
 	process.stdout.write("> ");

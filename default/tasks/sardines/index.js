@@ -38,6 +38,12 @@ function run(target, next) {
 
 	data.wrap = "?task=sardines&method=wrap";
 
+	try {
+		fs.unlinkSync(data.output);
+	}catch(e) {
+		
+	}
+
 	sardines(data, outcome.error(next).success(function(content) {
 
 		//next item should take this script

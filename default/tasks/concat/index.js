@@ -23,9 +23,10 @@ function run(target, nextBuilder) {
 
 	var data = target.get();
 
+
 	var include = data.input,
 	output  = data.output,
-	ws      = fs.createWriteStream(output, { flags: "a+" }),
+	ws      = fs.createWriteStream(output, { flags: "w+" }),
 	search  = new RegExp(data.filter || "\\w+\\.\\w+$"),
 	buffer  = [],
 	on = outcome.error(nextBuilder);
@@ -43,7 +44,7 @@ function run(target, nextBuilder) {
 			fs.readFile(options.source, "utf8", on.success(function(content) {
 
 				// buffer.push(content);
-				ws.write(content + "\n");
+				ws.write(content + "\n\n");
 				nextFile();
 
 			}));
