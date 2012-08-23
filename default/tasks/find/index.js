@@ -22,7 +22,8 @@ function run(target, next) {
 	expr    = this,
 	logErrors = !!target.get("logErrors");
 
-	walkr(path.normalize(target.get("cwd") + "/" + dir)).
+
+	walkr(dir).
 	filter(function(options, nextFile) {
 
 		var childTarget = target.child({ input: options.source, file: options.source, filename: path.basename(options.source) }, false);
