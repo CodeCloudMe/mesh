@@ -107,11 +107,12 @@ function run(target, next) {
 
 				next = this;
 
-				parser.run(tasks.length ? tasks : child.get("run"), child, function(err, result) {
+				parser.run(tasks.length ? tasks : child.get("run") || { "exec": "cp <%-input %> <%-output %>" }, child, function(err, result) {
 					if(err) {
 						console.warn(err.message);
 						return cache.set(key, fullPath, next);
 					}
+
 
 					return cache.set(key, tmpFile, next);
 				});
