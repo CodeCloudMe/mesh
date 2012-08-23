@@ -52,6 +52,7 @@ function run(target, next) {
 	linkTo           = data.link;
 
 
+
 	target.logger.logCommand("merge", _.str.rpad(rootPkg.name + " ", 0,' ') + "-> " + path.relative(data.root || data.cwd, outputDir));
 	// console.log(sprintf('==> merge %s-> %s', _.str.rpad(rootPkg.name + " ", 0,' '), path.relative(data.root || data.cwd, outputDir)));
 
@@ -62,9 +63,8 @@ function run(target, next) {
 
 		function() {
 
-			console.log(targetSrcDir)
 
-			path.exists(targetSrcDir, this);
+			this(fs.exists(targetSrcDir));
 
 		},
 
@@ -76,7 +76,9 @@ function run(target, next) {
 
 			//strict may not always be appopriate - if an app is using a third party lib
 			//and all that exists is a common lib - we don't want this getting caught
-			if(!exists && strict) return next(new Error(sprintf('"%s" is not a valid target', targetPlatform)));
+			if(!exists && strict) {
+				return next(new Error(sprintf('"%s" is not a valid target', targetPlatform)));
+			}
 
 			mkdirp(outputModulesDir, 0777, this);
 
@@ -87,6 +89,7 @@ function run(target, next) {
 		 */
 
 		function() {
+
 
 			fs.writeFileSync(outputPkg, JSON.stringify(rootPkg, null, 2));
 
