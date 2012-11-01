@@ -8,7 +8,9 @@ mkdirp    = require('mkdirp'),
 async     = require('async'),
 mergeDirs = require('./mergeDirs'),
 outcome   = require('outcome'),
-sprintf   = require('sprintf').sprintf;
+sprintf   = require('sprintf').sprintf,
+sardines  = require("sardines"),
+resolve   = require("resolve");
 
 _.str = require('underscore.string');
 
@@ -53,8 +55,10 @@ function run(target, next) {
 
 
 
+
 	target.logger.logCommand("merge", _.str.rpad(rootPkg.name + " ", 0,' ') + "-> " + path.relative(data.root || data.cwd, outputDir));
 	// console.log(sprintf('==> merge %s-> %s', _.str.rpad(rootPkg.name + " ", 0,' '), path.relative(data.root || data.cwd, outputDir)));
+
 
 	step(
 
@@ -95,40 +99,6 @@ function run(target, next) {
 
 			this();
 		},
-
-		/**
-		 */
-
-		function() {
-
-			fs.readdir(nodeModulesDir, this);
-		},
-
-		/**
-		 */
-
-		function(err, dirs) {
-
-			//node_modules does NOT exist
-			if(err) {
-				return this();
-			}
-
-			async.forEach(dirs,
-				function(dir, next) {
-					fs.symlink(nodeModulesDir + "/" + dir, outputModulesDir + "/" + dir, function() {
-						next();
-					});
-				},
-				this);
-		},
-
-		/**
-		 */
-
-		on.success(function() {
-			linkToParent(outputDir, linkTo, this);
-		}),
 
 		/**
 		 */
@@ -176,20 +146,50 @@ function run(target, next) {
 		 */
 
 		on.success(function() {
-			var deps = Object.keys(readPackage(outputPkg).original.dependencies || {});
-			// deps = deps.concat(Object.keys(rootPkg))
-			this(null, deps);
+			this.deps = Object.keys(readPackage(outputPkg).original.dependencies || {});
+			this(null, this.deps);
 		}),
 
 		/**
 		 */
 
-		on.success(function(deps) {
+		function(err, deps) {
 
-			var pkgPaths = [];
+			//node_modules does NOT exist
+			if(err) {
+				return this();
+			}
+
+			async.forEach(deps,
+				function(dep, next) {
+
+					var dir = findModuleDirPath(dep, data.cwd);
+					if(!dir) throw new Error("cannot find module '" + dep + "' in package '"+outputPkg+"' ")
+					
+					fs.symlink(nodeModulesDir + "/" + dir, outputModulesDir + "/" + dir, function() {
+						next();
+					});
+				},
+				this);
+		},
+
+		/**
+		 */
+
+		on.success(function() {
+			linkToParent(outputDir, linkTo, this);
+		}),
+
+		/**
+		 */
+
+		on.success(function() {
+
+			var pkgPaths = [],
+			deps = this.deps;
 
 			for(var i = deps.length; i--;) {
-				pkgPaths.push(readPackage(nodeModulesDir + "/" + deps[i]));
+				pkgPaths.push(readPackage(findModuleDirPath(deps[i], data.cwd)));
 			}
 
 
@@ -234,6 +234,31 @@ function run(target, next) {
 	);
 }
 
+/**
+ */
+
+function getNodeModulePaths(start) {
+
+	var parts = start.split("/"),
+	paths = [];
+	for(var i = parts.length; i--;) {
+		paths.push(parts.slice(0, i + 1).concat("node_modules").join("/"));
+	}
+	return paths;
+}
+
+/**
+ */
+
+function findModuleDirPath(dep, start) {
+	var paths = getNodeModulePaths(start);
+
+	return _.find(paths.map(function(dir) {
+		return dir + "/" + dep;
+	}), function(path) {
+		return fs.existsSync(path);
+	});
+}
 
 /**
  */
