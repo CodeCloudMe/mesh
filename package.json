@@ -19,7 +19,6 @@
     "resolve": "0.1.x",
     "uglify-js": "1.2.x",
     "crc32": "0.2.x",
-    "rmdirr": "0.0.x",
     "catchall": "0.0.x",
     "structr": "0.1.x",
     "dirmr": "0.0.x",
