@@ -39,7 +39,8 @@
     "sardines": "0.3.x",
     "step": "0.0.x",
     "watch_r": "0.0.x",
-    "capirona": "0.1.x"
+    "capirona": "0.1.x",
+    "pkginfo": "0.2.x"
   },
   "devDependencies": {},
   "main": "./lib/index.js",
