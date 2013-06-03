@@ -1,89 +1,45 @@
 #!/usr/bin/env node
+var mesh  = require(".."),
+commander = require("commander");
+
+mesh.load(function() {
+
+	var self = this;
+
+	function onLoaded() {
+		var commands = self.commands.describe();
 
 
-var capirona = require("capirona"),
-async        = require("async"),
-path         = require("path"),
-_            = require("underscore"),
-argv         = require("optimist").argv;
+		commands.forEach(function(command) {
+			if(!command["public"]) return;
 
-argv._.unshift("./package.json");
+			var cmd = commander.command(command.name);
 
-
-var scripts = [
-	{
-		"load": {
-			"cwd": process.cwd(),
-			"source": __dirname + "/../default/tasks"
-		}
-	}
-],
-commands    = [],
-target      = _.extend({}, argv); 
-
-
-async.forEach(argv._, function(arg, next) {
-
-
-	if(arg.substr(0, 1).match(/[\.\/]/)) {
-
-		try {
-
-			var script = require(process.cwd() + "/" + arg);
-
-			if(script.mesh) {
-				_.defaults(target, script);
-				delete target.mesh;
-				script = script.mesh;
+			for(var key in command.params) {
+				cmd.option("--" + key, command.params[key].description);
 			}
 
-			scripts.push(script);
+			cmd.
+			action(function(ops) {
+				var context = {};
+				for(var key in ops) {
+					if(key in command.params) {
+						context[key] = ops[key];
+					}
+				}
+				self.run(command.name, context, function(err) {
+					if(err) console.error(err);
+				});
+			});
+		});
 
-		} catch(e) { 
-			console.error("Unable to load %s", arg);
-			console.log(e.stack)
-		}
-
-
-	} else {
-		commands.push(arg);
+		commander.parse(process.argv);
 	}
 
-
-	next()
-
-}, function() {
-	target.cwd = process.cwd();
-	var runner = capirona.run(scripts.concat(commands), target, function(err) {
-		if(err) console.error(err.stack);
-		if(argv.i || argv.interactive) {
-			process.openStdin();
-			waitForInput(runner);
-		}
-	}); 
-
+	try {
+		require(process.cwd() + "/mesh")(self, onLoaded);
+	} catch(e) {
+		onLoaded();
+	}
 
 });
-
-
-
-
-function waitForInput(runner) {
-
-	process.stdout.write("> ");
-	process.stdin.once("data", function(data) {
-
-		var command = String(data);
-
-		try {
-			command = JSON.parse(command);
-		} catch(e) {
-			// console.log(e)
-		}
-
-		runner.run(command, target, function(err) {
-			if(err) console.error(err.stack);
-			waitForInput(runner);
-		});
-	});
-}
