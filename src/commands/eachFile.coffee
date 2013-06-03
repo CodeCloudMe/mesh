@@ -11,6 +11,9 @@ eachFile:
 
 module.exports = 
   "def eachFile":
+    "params":
+      "watch":
+        "description": "watches the files"
     "run":
       "each":
         "as": "input"
