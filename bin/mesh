@@ -14,6 +14,7 @@ mesh.load(function() {
 			if(!command["public"]) return;
 
 			var cmd = commander.command(command.name);
+			cmd.description(command.description || "")
 
 			for(var key in command.params) {
 				cmd.option("--" + key, command.params[key].description);
