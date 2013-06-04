@@ -16,11 +16,13 @@ each:
 
 run = (context, next) -> 
 
-  as     = context.get("as") or "value"
-  source = context.get("source")
-  run    = context.get("run")
-  o      = outcome.e next
+  as        = context.get("as") or "value"
+  source    = context.get("source")
+  run       = context.get("run")
+  parallel  = context.get("parallel") or 10
+  o         = outcome.e next
   callstack = flatstack()
+
 
   callstack.push (nex) =>
     return next() if type(source) isnt "function"
@@ -34,7 +36,7 @@ run = (context, next) ->
       nex()
 
   callstack.push (next) =>
-    async.eachSeries source, ((item, next) =>
+    async.eachLimit source, parallel, ((item, next) =>
 
       data = {}
       data[as] = item
