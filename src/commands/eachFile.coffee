@@ -35,6 +35,7 @@ _getFiles = (context, next) ->
   cwd   = context.get("cwd") or process.cwd()
   input = context.get("input")
   glob input, { cwd: cwd }, (err, files) ->
+    return next(err) if err?
     files = files.map((file) ->
       try 
         fs.realpathSync cwd + "/" + file
@@ -77,6 +78,10 @@ _watch = (context) ->
   
   getFiles = (triggerAdded) ->
     _getFiles context, (err, files) ->
+      if err
+        console.error err
+        return
+
       for file in files
         watchFile file, triggerAdded
 
