@@ -1,6 +1,7 @@
 fs   = require "fs"
 glob = require "glob"
-
+watch_r = require "watch_r"
+path = require "path"
 ###
 eachFile:
   input: /dir
@@ -14,19 +15,24 @@ module.exports =
     "params":
       "watch":
         "description": "watches the files"
-    "run":
-      "each":
-        "as": "input"
-        "source": (context, next) -> 
+    "run": [
+      {
+        "each":
+          "as": "input"
+          "source": (context, next) -> 
 
-          run   = context.get("run")
-          cwd   = context.get("cwd") or process.cwd()
-          watch = !!context.get("watch")
+            run   = context.get("run")
+            cwd   = context.get("cwd") or process.cwd()
 
-          _getFiles context, next
+            _getFiles context, next
+      },
+      (context, next) ->
+        next()
+        if !!context.get("watch")
+          _watch.call @,  context
 
-          if watch 
-            _watch.call @, context
+
+    ]
 
 ###
 ###
@@ -52,42 +58,29 @@ _getFiles = (context, next) ->
 
 _watch = (context) ->
 
-  _watched = []
 
   
   onChange = (file) =>
     @run context.get("run"), context.child({input:file})
 
 
-  watchFile = (file, triggerAdded) ->
-    return if ~_watched.indexOf(file)
-    _watched.push file
 
-    if triggerAdded
-      onChange file
+  pt = context.get("input")
 
-    fs.watchFile file, { persistent: true, interval: 500 }, (cur, prev) ->
-      return if cur.nlink != 0 and cur.mtime.getTime() == prev.mtime.getTime()
+  pt = pt.replace(/\*\*.*/,"")
 
-      # file removed
-      # if cur.nlink == 0
+  _processing = {}
 
-      onChange file
+  watch_r pt, (err, watcher) ->
 
-
-  
-  getFiles = (triggerAdded) ->
-    _getFiles context, (err, files) ->
-      if err
-        console.error err
-        return
-
-      for file in files
-        watchFile file, triggerAdded
+    watcher.on "new", (target) ->
+      onChange target.path
+    watcher.on "change", (target) ->
+      onChange target.path
+    watcher.on "remove", (target) ->
 
 
-  getFiles()
-  setInterval getFiles, 4000
+
     
 
 

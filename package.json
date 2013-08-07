@@ -2,7 +2,7 @@
   "name": "mesh",
   "description": "Write one app, deploy to many platforms",
   "repository": {},
-  "version": "0.2.4",
+  "version": "0.2.5",
   "engines": {},
   "dependencies": {
     "async": "0.2.x",
